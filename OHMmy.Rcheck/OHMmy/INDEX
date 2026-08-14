@@ -1,0 +1,55 @@
+.blend_feature_plot_v5
+                        Title
+CleanSeuratReductions   Title
+ClusterAndUMAP          Title
+FindTopMarkersAndHeatmap
+                        Title
+PlotDimByFactors        Title
+ProcessSeuratLOG        Title
+ProcessSeuratSCT        Title
+addSoupXMetaToSeurat    Title
+create_final_seurat     Title
+create_seurat_for_clustering
+                        Title
+create_soup_channels    Title
+estimate_contamination
+                        Title
+extract_binned_expression
+                        Title
+generate_and_save_heatmap
+                        Title
+generate_dimheatmaps    Title
+generate_volcano_trio   Title
+get_sample_names        Title
+get_top_mixed_genes     Title
+load_counts             Title
+make_cluster_palette    Title
+plot_blend_nebulosa     Title
+plot_cell_abundance     Title
+plot_cluster_distributions
+                        Title
+plot_combined           Title
+plot_dot_dendro         Title
+plot_dot_dendro_multi   Title
+plot_dot_dendro_split   Title
+plot_gene_markers_with_dendro
+                        Title
+plot_gene_pair_correlations
+                        Title
+plot_metadata_stats     Title
+plot_pc_metadata_correlation
+                        Title
+plot_split_dotplots_by_gene_cluster
+                        Title
+plot_stacked_technical_contribution
+                        Title
+plot_technical_contribution
+                        Title
+plot_violin_qc_single   Title
+plot_vizdimloadings     Title
+prepare_soupx_inputs    Title
+process_soupx_samples   Title
+run_global_gsea         Title
+run_global_ora          Title
+run_soupx_post_clustering
+                        Title

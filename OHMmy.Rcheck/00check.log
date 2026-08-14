@@ -1,0 +1,634 @@
+* using log directory 'C:/Users/ADMIN/Desktop/Dengue_summer/Code/OHMmy/OHMmy.Rcheck'
+* using R version 4.5.0 (2025-04-11 ucrt)
+* using platform: x86_64-w64-mingw32
+* R was compiled by
+    gcc.exe (GCC) 14.2.0
+    GNU Fortran (GCC) 14.2.0
+* running under: Windows 11 x64 (build 26200)
+* using session charset: UTF-8
+* using options '--no-manual --as-cran'
+* checking for file 'OHMmy/DESCRIPTION' ... OK
+* this is package 'OHMmy' version '0.0.0.9000'
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking serialization versions ... OK
+* checking whether package 'OHMmy' can be installed ... [34s] OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking for future file timestamps ... OK
+* checking DESCRIPTION meta-information ... WARNING
+Non-standard license specification:
+  `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+  license
+Standardizable: FALSE
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... WARNING
+Found the following files with non-ASCII characters:
+  R/Annotation_visualization.R
+  R/GSEA_ORA_DEseq2.R
+  R/General_visualizations.R
+  R/Marker_visualizations.R
+  R/Processing.R
+  R/Technical_noise_screening.R
+Portable packages must use only ASCII characters in their R code and
+NAMESPACE directives, except perhaps in comments.
+Use \uxxxx escapes for other characters.
+Function 'tools::showNonASCIIfile' can help in finding non-ASCII
+characters in files.
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... WARNING
+'::' or ':::' imports not declared from:
+  'BiocParallel' 'RColorBrewer' 'ggdendro' 'patchwork' 'pheatmap'
+  'progress' 'scales' 'tibble' 'tidyr'
+'library' or 'require' calls not declared from:
+  'Nebulosa' 'Seurat' 'clustree' 'dplyr' 'ggdendro' 'ggplot2'
+  'lubridate' 'patchwork' 'progress' 'rlang' 'stringr' 'tibble' 'tidyr'
+'loadNamespace' or 'requireNamespace' calls not declared from:
+  'pheatmap' 'progress'
+'library' or 'require' calls in package code:
+  'Nebulosa' 'Seurat' 'clustree' 'dplyr' 'ggdendro' 'ggplot2'
+  'lubridate' 'patchwork' 'progress' 'rlang' 'stringr' 'tibble' 'tidyr'
+  Please use :: or requireNamespace() instead.
+  See section 'Suggested packages' in the 'Writing R Extensions' manual.
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... [51s] NOTE
+.blend_feature_plot_v5 : apply_cutoff: no visible global function
+  definition for 'quantile'
+.blend_feature_plot_v5: no visible global function definition for
+  'col2rgb'
+.blend_feature_plot_v5 : blend_one: no visible global function
+  definition for 'rgb'
+.blend_feature_plot_v5: no visible global function definition for
+  'wrap_plots'
+ClusterAndUMAP: no visible global function definition for
+  'txtProgressBar'
+ClusterAndUMAP: no visible global function definition for
+  'setTxtProgressBar'
+ClusterAndUMAP: no visible global function definition for 'clustree'
+ClusterAndUMAP: no visible global function definition for 'rtrim'
+FindTopMarkersAndHeatmap: no visible global function definition for
+  'write.csv'
+PlotDimByFactors: no visible global function definition for
+  'txtProgressBar'
+PlotDimByFactors: no visible global function definition for
+  'setTxtProgressBar'
+ProcessSeuratLOG: no visible global function definition for
+  'JoinLayers'
+ProcessSeuratSCT: no visible global function definition for 'Layers'
+ProcessSeuratSCT: no visible global function definition for
+  'JoinLayers'
+addSoupXMetaToSeurat: no visible global function definition for
+  'JoinLayers'
+create_final_seurat: no visible global function definition for
+  'txtProgressBar'
+create_final_seurat: no visible global function definition for
+  'adjustCounts'
+create_final_seurat: no visible global function definition for
+  'setTxtProgressBar'
+create_seurat_for_clustering: no visible global function definition for
+  'txtProgressBar'
+create_seurat_for_clustering: no visible global function definition for
+  'setTxtProgressBar'
+create_soup_channels: no visible global function definition for
+  'txtProgressBar'
+create_soup_channels: no visible global function definition for
+  'SoupChannel'
+create_soup_channels: no visible global function definition for
+  'setTxtProgressBar'
+estimate_contamination: no visible global function definition for
+  'txtProgressBar'
+estimate_contamination: no visible global function definition for
+  'setClusters'
+estimate_contamination: no visible global function definition for
+  'autoEstCont'
+estimate_contamination: no visible global function definition for
+  'setContaminationFraction'
+estimate_contamination: no visible global function definition for
+  'adjustCounts'
+estimate_contamination: no visible global function definition for
+  'setTxtProgressBar'
+extract_binned_expression: no visible global function definition for
+  'quantile'
+generate_and_save_heatmap: no visible global function definition for
+  'assay'
+generate_and_save_heatmap: no visible global function definition for
+  'pheatmap'
+generate_and_save_heatmap: no visible global function definition for
+  'colorRampPalette'
+generate_and_save_heatmap: no visible global function definition for
+  'arrangeGrob'
+generate_dimheatmaps: no visible global function definition for
+  'install.packages'
+generate_dimheatmaps: no visible global function definition for 'jpeg'
+generate_dimheatmaps: no visible global function definition for
+  'dev.off'
+generate_dimheatmaps : <anonymous>: no visible global function
+  definition for 'dev.off'
+generate_volcano_trio: no visible global function definition for 'head'
+generate_volcano_trio: no visible global function definition for
+  'EnhancedVolcano'
+generate_volcano_trio: no visible global function definition for
+  'plot_annotation'
+get_top_mixed_genes: no visible global function definition for 'head'
+load_counts: no visible global function definition for 'txtProgressBar'
+load_counts: no visible global function definition for
+  'setTxtProgressBar'
+make_cluster_palette: no visible global function definition for
+  'colorRampPalette'
+plot_blend_nebulosa: no visible global function definition for
+  'txtProgressBar'
+plot_blend_nebulosa: no visible global function definition for
+  'plot_density'
+plot_blend_nebulosa: no visible global function definition for
+  'wrap_plots'
+plot_blend_nebulosa: no visible global function definition for
+  'plot_annotation'
+plot_blend_nebulosa: no visible global function definition for
+  'setTxtProgressBar'
+plot_cell_abundance: no visible global function definition for
+  'kruskal_test'
+plot_cell_abundance: no visible global function definition for
+  'dunn_test'
+plot_cell_abundance: no visible global function definition for
+  'anova_test'
+plot_cell_abundance: no visible global function definition for
+  'tukey_hsd'
+plot_cell_abundance: no visible global function definition for
+  'wilcox_test'
+plot_cell_abundance: no visible global function definition for 't_test'
+plot_cell_abundance: no visible global function definition for
+  'add_significance'
+plot_cell_abundance: no visible global function definition for
+  'add_xy_position'
+plot_cell_abundance: no visible global function definition for
+  'stat_compare_means'
+plot_cell_abundance: no visible global function definition for
+  'stat_pvalue_manual'
+plot_cluster_distributions: no visible binding for global variable
+  'Cluster'
+plot_cluster_distributions: no visible global function definition for
+  'plot_layout'
+plot_combined: no visible global function definition for
+  'txtProgressBar'
+plot_combined: no visible global function definition for
+  'setTxtProgressBar'
+plot_combined : <anonymous>: no visible global function definition for
+  'Plot_Density_Custom'
+plot_combined: no visible global function definition for 'wrap_plots'
+plot_combined: no visible global function definition for
+  'plot_annotation'
+plot_dot_dendro: no visible global function definition for
+  'pivot_wider'
+plot_dot_dendro: no visible global function definition for
+  'column_to_rownames'
+plot_dot_dendro: no visible global function definition for 'hclust'
+plot_dot_dendro: no visible global function definition for 'dist'
+plot_dot_dendro: no visible global function definition for
+  'as.dendrogram'
+plot_dot_dendro_multi: no visible global function definition for
+  'pivot_wider'
+plot_dot_dendro_multi: no visible global function definition for
+  'hclust'
+plot_dot_dendro_multi: no visible global function definition for 'dist'
+plot_dot_dendro_multi: no visible global function definition for
+  'dendro_data'
+plot_dot_dendro_multi: no visible global function definition for
+  'as.dendrogram'
+plot_dot_dendro_multi: no visible global function definition for
+  'plot_spacer'
+plot_dot_dendro_multi: no visible global function definition for
+  'plot_layout'
+plot_dot_dendro_split: no visible global function definition for
+  'pivot_wider'
+plot_dot_dendro_split: no visible global function definition for
+  'column_to_rownames'
+plot_dot_dendro_split: no visible global function definition for
+  'hclust'
+plot_dot_dendro_split: no visible global function definition for 'dist'
+plot_dot_dendro_split: no visible global function definition for
+  'as.dendrogram'
+plot_gene_markers_with_dendro: no visible global function definition
+  for 'pivot_wider'
+plot_gene_markers_with_dendro: no visible global function definition
+  for 'column_to_rownames'
+plot_gene_markers_with_dendro: no visible global function definition
+  for 'dist'
+plot_gene_markers_with_dendro: no visible global function definition
+  for 'as.dendrogram'
+plot_gene_pair_correlations: no visible global function definition for
+  'txtProgressBar'
+plot_gene_pair_correlations: no visible global function definition for
+  'quantile'
+plot_gene_pair_correlations: no visible binding for global variable
+  'Cluster'
+plot_gene_pair_correlations: no visible global function definition for
+  'cor'
+plot_gene_pair_correlations: no visible global function definition for
+  'setTxtProgressBar'
+plot_metadata_stats: no visible global function definition for
+  'as.formula'
+plot_metadata_stats: no visible global function definition for
+  'wilcox_test'
+plot_metadata_stats: no visible global function definition for
+  'add_significance'
+plot_metadata_stats: no visible global function definition for 't_test'
+plot_metadata_stats: no visible global function definition for
+  'kruskal_test'
+plot_metadata_stats: no visible global function definition for
+  'dunn_test'
+plot_metadata_stats: no visible global function definition for
+  'anova_test'
+plot_metadata_stats: no visible global function definition for
+  'tukey_hsd'
+plot_metadata_stats: no visible global function definition for
+  'add_xy_position'
+plot_metadata_stats: no visible global function definition for
+  'ggboxplot'
+plot_metadata_stats: no visible global function definition for
+  'stat_compare_means'
+plot_metadata_stats: no visible global function definition for
+  'stat_pvalue_manual'
+plot_metadata_stats : run_cat_test: no visible global function
+  definition for 'fisher.test'
+plot_metadata_stats : run_cat_test : <anonymous>: no visible global
+  function definition for 'fisher.test'
+plot_metadata_stats : run_cat_test: no visible global function
+  definition for 'chisq.test'
+plot_metadata_stats: no visible global function definition for 'combn'
+plot_metadata_stats: no visible global function definition for
+  'p.adjust'
+plot_metadata_stats: no visible global function definition for
+  'percent_format'
+plot_metadata_stats: no visible global function definition for
+  'scale_fill_npg'
+plot_pc_metadata_correlation : <anonymous> : <anonymous>: no visible
+  global function definition for 'cor'
+plot_pc_metadata_correlation: no visible global function definition for
+  'jpeg'
+plot_pc_metadata_correlation: no visible global function definition for
+  'dev.off'
+plot_split_dotplots_by_gene_cluster: no visible global function
+  definition for 'str_detect'
+plot_split_dotplots_by_gene_cluster: no visible global function
+  definition for 'regex'
+plot_split_dotplots_by_gene_cluster: no visible global function
+  definition for 'pivot_wider'
+plot_split_dotplots_by_gene_cluster: no visible global function
+  definition for 'column_to_rownames'
+plot_split_dotplots_by_gene_cluster: no visible global function
+  definition for 'dist'
+plot_split_dotplots_by_gene_cluster: no visible global function
+  definition for 'as.dendrogram'
+plot_stacked_technical_contribution: no visible global function
+  definition for 'txtProgressBar'
+plot_stacked_technical_contribution: no visible global function
+  definition for 'setTxtProgressBar'
+plot_technical_contribution: no visible global function definition for
+  'txtProgressBar'
+plot_technical_contribution: no visible global function definition for
+  'setTxtProgressBar'
+plot_violin_qc_single: no visible global function definition for 'head'
+plot_violin_qc_single: no visible global function definition for
+  'wrap_plots'
+plot_violin_qc_single: no visible global function definition for 'pdf'
+plot_violin_qc_single: no visible global function definition for
+  'dev.off'
+plot_vizdimloadings: no visible global function definition for
+  'install.packages'
+plot_vizdimloadings: no visible global function definition for 'jpeg'
+plot_vizdimloadings: no visible global function definition for
+  'dev.off'
+plot_vizdimloadings : <anonymous>: no visible global function
+  definition for 'dev.cur'
+plot_vizdimloadings : <anonymous>: no visible global function
+  definition for 'dev.off'
+run_global_gsea: no visible global function definition for 'setNames'
+run_global_gsea: no visible global function definition for 'GSEA'
+run_global_gsea: no visible global function definition for 'str_count'
+run_global_gsea: no visible binding for global variable 'p.adjust'
+run_global_gsea: no visible global function definition for 'head'
+run_global_gsea: no visible global function definition for 'gseaplot2'
+run_global_gsea: no visible global function definition for 'write.csv'
+run_global_gsea: no visible global function definition for 'hclust'
+run_global_gsea: no visible global function definition for 'dist'
+run_global_gsea: no visible global function definition for
+  'plot_layout'
+run_global_gsea: no visible global function definition for
+  'plot_annotation'
+run_global_ora: no visible global function definition for 'enricher'
+run_global_ora: no visible binding for global variable 'p.adjust'
+run_global_ora: no visible global function definition for 'write.csv'
+run_global_ora : get_top_pathways: no visible global function
+  definition for 'head'
+run_global_ora: no visible global function definition for 'str_extract'
+run_global_ora : generate_clustered_plot: no visible global function
+  definition for 'hclust'
+run_global_ora : generate_clustered_plot: no visible global function
+  definition for 'dist'
+run_global_ora : generate_clustered_plot: no visible global function
+  definition for 'plot_layout'
+run_global_ora : generate_clustered_plot: no visible global function
+  definition for 'plot_annotation'
+Undefined global functions or variables:
+  Cluster EnhancedVolcano GSEA JoinLayers Layers Plot_Density_Custom
+  SoupChannel add_significance add_xy_position adjustCounts anova_test
+  arrangeGrob as.dendrogram as.formula assay autoEstCont chisq.test
+  clustree col2rgb colorRampPalette column_to_rownames combn cor
+  dendro_data dev.cur dev.off dist dunn_test enricher fisher.test
+  ggboxplot gseaplot2 hclust head install.packages jpeg kruskal_test
+  p.adjust pdf percent_format pheatmap pivot_wider plot_annotation
+  plot_density plot_layout plot_spacer quantile regex rgb rtrim
+  scale_fill_npg setClusters setContaminationFraction setNames
+  setTxtProgressBar stat_compare_means stat_pvalue_manual str_count
+  str_detect str_extract t_test tukey_hsd txtProgressBar wilcox_test
+  wrap_plots write.csv
+Consider adding
+  importFrom("grDevices", "col2rgb", "colorRampPalette", "dev.cur",
+             "dev.off", "jpeg", "pdf", "rgb")
+  importFrom("stats", "as.dendrogram", "as.formula", "chisq.test", "cor",
+             "dist", "fisher.test", "hclust", "p.adjust", "quantile",
+             "setNames")
+  importFrom("utils", "combn", "head", "install.packages",
+             "setTxtProgressBar", "txtProgressBar", "write.csv")
+to your NAMESPACE file.
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in Rd file 'ClusterAndUMAP.Rd'
+  'seurat_obj' 'sample_name' 'dims' 'k.param' 'reduction' 'umap_name'
+  'cluster_prefix' 'graph_name' 'cluster_resolutions'
+  'final_resolution' 'save_path' 'force_neighbors' 'force_clustering'
+  'plot_dir' 'return.model' 'plot_format' 'width' 'height'
+
+Undocumented arguments in Rd file 'FindTopMarkersAndHeatmap.Rd'
+  'seurat_obj' 'sample_name' 'marker_diff_thresh' 'marker_pval_adj'
+  'marker_avg_log2FC_thresh' 'top_n' 'output_dir_base' 'plot_format'
+  'width' 'height' 'dpi' 'compare' 'add_timestamp'
+
+Undocumented arguments in Rd file 'PlotDimByFactors.Rd'
+  'seurat_obj' 'factors' 'sample_name' 'reduction' 'raster' 'label'
+  'repel' 'output_dir' 'plot_format' 'width' 'height' 'dpi'
+  'add_timestamp'
+
+Undocumented arguments in Rd file 'ProcessSeuratLOG.Rd'
+  'seurat_obj' 'batch_col' 'vars_to_regress' 'tcr_bcr_patterns'
+  'reduction_name' 'integration_method' 'integration_reduction' 'dims'
+  'interactive_mode' 'elbow_plot_dir' 'k.weight' 'k.anchor' 'k.filter'
+  'k.score' 'clustering_resolution' 'verbose'
+
+Undocumented arguments in Rd file 'ProcessSeuratSCT.Rd'
+  'seurat_obj' 'batch_col' 'vars_to_regress' 'tcr_bcr_patterns'
+  'reduction_name' 'integration_method' 'integration_reduction' 'dims'
+  'interactive_mode' 'elbow_plot_dir' 'k.weight' 'k.anchor' 'k.filter'
+  'k.score' 'clustering_resolution' 'verbose'
+
+Undocumented arguments in Rd file 'addSoupXMetaToSeurat.Rd'
+  'original_seurat' 'soupx_seurat_list' 'mito_colname' 'counts_assay'
+  'rename_barcodes'
+
+Undocumented arguments in Rd file 'create_final_seurat.Rd'
+  'soup_list_all'
+
+Undocumented arguments in Rd file 'create_seurat_for_clustering.Rd'
+  'cts_filtered_list'
+
+Undocumented arguments in Rd file 'create_soup_channels.Rd'
+  'cts_raw_list' 'cts_filtered_list'
+
+Undocumented arguments in Rd file 'dot-blend_feature_plot_v5.Rd'
+  'seurat_obj' 'gene1' 'gene2' 'reduction' 'cols' 'blend_threshold'
+  'min_cutoff' 'gamma'
+
+Undocumented arguments in Rd file 'estimate_contamination.Rd'
+  'soup_list' 'seurat_list' 'cts_filtered_list' 'sample_names' 'mulFac'
+  'manual_contam' 'manual' 'methods'
+
+Undocumented arguments in Rd file 'extract_binned_expression.Rd'
+  'seurat_obj' 'gene_list'
+
+Undocumented arguments in Rd file 'generate_and_save_heatmap.Rd'
+  'res_obj' 'comp_name' 'comp_title' 'vsd_data' 'anno_col'
+  'ordered_samps' 'n_padj' 'n_lfc' 'out_dir' 'ts'
+
+Undocumented arguments in Rd file 'generate_dimheatmaps.Rd'
+  'seurat_obj' 'sample_name' 'reduction' 'pc_windows' 'output_dir'
+  'nfeatures' 'cells' 'width_in' 'height_in'
+
+Undocumented arguments in Rd file 'generate_volcano_trio.Rd'
+  'res' 'main_title'
+
+Undocumented arguments in Rd file 'get_top_mixed_genes.Rd'
+  'res_obj' 'n_padj'
+
+Undocumented arguments in Rd file 'load_counts.Rd'
+  'sample_names' 'filtered_dir'
+
+Undocumented arguments in Rd file 'make_cluster_palette.Rd'
+  'n'
+
+Undocumented arguments in Rd file 'plot_blend_nebulosa.Rd'
+  'seurat_obj' 'cluster_col' 'gene_pairs' 'sample_name' 'reduction'
+  'blend_cols' 'blend_threshold' 'min_cutoff' 'output_dir'
+  'save_format' 'width' 'dpi' 'add_timestamp'
+
+Undocumented arguments in Rd file 'plot_cell_abundance.Rd'
+  'seurat_obj' 'sample_col' 'condition_col' 'celltype_col'
+  'global_test' 'strict_posthoc' 'pairwise_test' 'p_adjust'
+  'facet_by_cluster' 'facet_scales' 'pairwise_label' 'y_expand'
+  'output_dir' 'base_size'
+
+Undocumented arguments in Rd file 'plot_cluster_distributions.Rd'
+  'seurat_obj' 'cluster_col' 'batch_col' 'output_dir'
+
+Undocumented arguments in Rd file 'plot_combined.Rd'
+  'seurat_obj' 'cluster_col' 'genes_list' 'sample_name' 'reduction'
+  'viridis_palette' 'output_dir' 'save_format' 'width' 'dpi'
+  'add_timestamp'
+
+Undocumented arguments in Rd file 'plot_dot_dendro.Rd'
+  'seurat_obj' 'meta_col' 'feature_df' 'scale' 'pct_threshold'
+  'output_dir'
+
+Undocumented arguments in Rd file 'plot_dot_dendro_multi.Rd'
+  'seurat_obj' 'meta_cols' 'feature_df' 'scale' 'pct_threshold'
+  'output_dir' 'prefix' 'base_size' 'range'
+
+Undocumented arguments in Rd file 'plot_dot_dendro_split.Rd'
+  'seurat_obj' 'meta_col' 'feature_df' 'scale' 'pct_threshold'
+  'output_dir' 'prefix'
+
+Undocumented arguments in Rd file 'plot_gene_markers_with_dendro.Rd'
+  'df' 'genes' 'id_col' 'output_dir' 'plot_title' 'dendro_side'
+  'label_space' 'width_scale' 'height_scale' 'min_width'
+
+Undocumented arguments in Rd file 'plot_gene_pair_correlations.Rd'
+  'seurat_obj' 'cluster_col' 'gene_pairs' 'sample_name' 'cor_method'
+  'quantile_thresh' 'fill_palette' 'output_dir' 'save_format' 'width'
+  'height' 'dpi' 'add_timestamp'
+
+Undocumented arguments in Rd file 'plot_metadata_stats.Rd'
+  'seurat_obj' 'sample_col' 'condition_col' 'metadata_vars'
+  'continuous_test_n2' 'continuous_test_n3' 'categorical_test'
+  'strict_posthoc' 'p_adjust' 'add_facet' 'output_dir' 'plot_width'
+  'plot_height'
+
+Undocumented arguments in Rd file 'plot_pc_metadata_correlation.Rd'
+  'seurat_obj' 'sample_name' 'vars_to_test' 'reduction' 'n_pcs'
+  'output_dir' 'plot_width_in' 'plot_height_in'
+
+Undocumented arguments in Rd file 'plot_split_dotplots_by_gene_cluster.Rd'
+  'df' 'gene_list' 'gene_regex' 'id_col' 'output_dir' 'n_splits'
+  'plot_title_prefix' 'width_scale' 'height_scale' 'min_width'
+  'min_height'
+
+Undocumented arguments in Rd file 'plot_stacked_technical_contribution.Rd'
+  'seurat_obj' 'sample_name' 'reduction' 'technical_keywords'
+  'gene_depths' 'max_pcs' 'cutoff' 'output_dir' 'plot_width'
+  'plot_height'
+
+Undocumented arguments in Rd file 'plot_technical_contribution.Rd'
+  'seurat_obj' 'sample_name' 'output_dir' 'technical_keywords'
+  'max_pcs' 'n_top_genes'
+
+Undocumented arguments in Rd file 'plot_violin_qc_single.Rd'
+  'seurat_obj' 'sample_name' 'qc_meta_features' 'gene_features'
+  'res_col' 'assay' 'output_dir' 'save_format' 'width' 'dpi'
+
+Undocumented arguments in Rd file 'plot_vizdimloadings.Rd'
+  'seurat_obj' 'sample_name' 'reduction' 'pc_windows' 'output_dir'
+  'nfeatures' 'width_in' 'height_in' 'res'
+
+Undocumented arguments in Rd file 'prepare_soupx_inputs.Rd'
+  'filtered_dir' 'raw_dir'
+
+Undocumented arguments in Rd file 'process_soupx_samples.Rd'
+  'filtered_dir' 'raw_dir'
+
+Undocumented arguments in Rd file 'run_global_gsea.Rd'
+  'GSEA_df' 'm_t2g' 'output_dir' 'title_prefix' 'top_n_per_direction'
+  'padj_cutoff' 'dotplot_width' 'dotplot_height' 'gseaplot_width'
+  'gseaplot_height' 'top_n_overall'
+
+Undocumented arguments in Rd file 'run_global_ora.Rd'
+  'ORA_df' 'm_t2g' 'output_dir' 'title_prefix' 'top_n_global'
+  'top_n_per_cluster' 'log2fc_cutoff' 'padj_cutoff' 'indiv_width'
+  'indiv_height' 'global_width' 'global_height'
+
+Undocumented arguments in Rd file 'run_soupx_post_clustering.Rd'
+  'prep_output' 'multiFac' 'manual_contam' 'pCut'
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter 'Writing R documentation files' in the 'Writing R
+Extensions' manual.
+* checking Rd contents ... NOTE
+Argument items with no description in Rd file 'CleanSeuratReductions.Rd':
+  'seurat_obj'
+Argument items with no description in Rd file 'ClusterAndUMAP.Rd':
+  'dpi'
+Argument items with no description in Rd file 'FindTopMarkersAndHeatmap.Rd':
+  'onlyPos'
+Argument items with no description in Rd file 'PlotDimByFactors.Rd':
+  'verbose'
+Argument items with no description in Rd file 'ProcessSeuratLOG.Rd':
+  'sample_name'
+Argument items with no description in Rd file 'ProcessSeuratSCT.Rd':
+  'sample_name'
+Argument items with no description in Rd file 'addSoupXMetaToSeurat.Rd':
+  'save_path'
+Argument items with no description in Rd file 'create_final_seurat.Rd':
+  'sample_names'
+Argument items with no description in Rd file 'create_seurat_for_clustering.Rd':
+  'sample_names'
+Argument items with no description in Rd file 'create_soup_channels.Rd':
+  'sample_names'
+Argument items with no description in Rd file 'dot-blend_feature_plot_v5.Rd':
+  'pt_size'
+Argument items with no description in Rd file 'estimate_contamination.Rd':
+  'pCut'
+Argument items with no description in Rd file 'extract_binned_expression.Rd':
+  'group_col'
+Argument items with no description in Rd file 'generate_and_save_heatmap.Rd':
+  'clus'
+Argument items with no description in Rd file 'generate_dimheatmaps.Rd':
+  'res'
+Argument items with no description in Rd file 'generate_volcano_trio.Rd':
+  'target_genes'
+Argument items with no description in Rd file 'get_sample_names.Rd':
+  'filtered_dir'
+Argument items with no description in Rd file 'get_top_mixed_genes.Rd':
+  'n_lfc'
+Argument items with no description in Rd file 'load_counts.Rd':
+  'raw_dir'
+Argument items with no description in Rd file 'make_cluster_palette.Rd':
+  'palette'
+Argument items with no description in Rd file 'plot_blend_nebulosa.Rd':
+  'verbose'
+Argument items with no description in Rd file 'plot_cell_abundance.Rd':
+  'dpi'
+Argument items with no description in Rd file 'plot_cluster_distributions.Rd':
+  'file_prefix'
+Argument items with no description in Rd file 'plot_combined.Rd':
+  'verbose'
+Argument items with no description in Rd file 'plot_dot_dendro.Rd':
+  'prefix'
+Argument items with no description in Rd file 'plot_dot_dendro_multi.Rd':
+  'save_options'
+Argument items with no description in Rd file 'plot_dot_dendro_split.Rd':
+  'max_genes_per_plot'
+Argument items with no description in Rd file 'plot_gene_markers_with_dendro.Rd':
+  'min_height'
+Argument items with no description in Rd file 'plot_gene_pair_correlations.Rd':
+  'verbose'
+Argument items with no description in Rd file 'plot_metadata_stats.Rd':
+  'dpi'
+Argument items with no description in Rd file 'plot_pc_metadata_correlation.Rd':
+  'res_dpi'
+Argument items with no description in Rd file 'plot_split_dotplots_by_gene_cluster.Rd':
+  'label_space'
+Argument items with no description in Rd file 'plot_stacked_technical_contribution.Rd':
+  'dpi'
+Argument items with no description in Rd file 'plot_technical_contribution.Rd':
+  'cutoff'
+Argument items with no description in Rd file 'plot_violin_qc_single.Rd':
+  'add_timestamp'
+Argument items with no description in Rd file 'plot_vizdimloadings.Rd':
+  'ncol'
+Argument items with no description in Rd file 'prepare_soupx_inputs.Rd':
+  'manual_contam'
+Argument items with no description in Rd file 'process_soupx_samples.Rd':
+  'multiFac'
+Argument items with no description in Rd file 'run_global_gsea.Rd':
+  'variable_per_clus'
+Argument items with no description in Rd file 'run_global_ora.Rd':
+  'variable_per_clus'
+Argument items with no description in Rd file 'run_soupx_post_clustering.Rd':
+  'methods'
+* checking for unstated dependencies in examples ... OK
+* checking examples ... NONE
+* checking for non-standard things in the check directory ... OK
+* checking for detritus in the temp directory ... OK
+* DONE
+Status: 4 WARNINGs, 2 NOTEs

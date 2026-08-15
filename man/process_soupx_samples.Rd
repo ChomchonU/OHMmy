@@ -2,13 +2,43 @@
 % Please edit documentation in R/Pre-processing_soupX.R
 \name{process_soupx_samples}
 \alias{process_soupx_samples}
-\title{Title}
+\title{Execute the Complete One-Step SoupX Decontamination Pipeline}
 \usage{
 process_soupx_samples(filtered_dir, raw_dir, multiFac = 0)
 }
 \arguments{
-\item{multiFac}{}
+\item{filtered_dir}{Character. The file path to the parent directory containing the Cell Ranger \code{"*_filtered_feature_bc_matrix"} folders.}
+
+\item{raw_dir}{Character. The file path to the parent directory containing the Cell Ranger \code{"*_raw_feature_bc_matrix"} folders.}
+
+\item{multiFac}{Numeric. A percentage to artificially add to the auto-estimated contamination fraction (\code{rho}) across all samples (e.g., passing 5 adds 0.05 to the estimated rho). Default is 0.}
+}
+\value{
+A structured, named list containing three top-level elements:
+\itemize{
+\item \code{final_seurat}: A list of the final, initialized \code{Seurat} objects containing the background-corrected counts and baseline metadata.
+\item \code{soup_objects}: The output list from the contamination estimation step, containing the updated \code{SoupChannel} objects and corrected matrices.
+\item \code{seurat_clustering}: A list of the preliminary \code{Seurat} objects used to generate the high-resolution clusters for ambient RNA estimation.
+}
 }
 \description{
-Title
+A unified master wrapper that executes the entire ambient RNA removal workflow
+in a single command. It automatically extracts sample names from the directory
+structure, loads the raw and filtered Cell Ranger matrices, initializes \code{SoupChannel}
+objects, runs a quick clustering pipeline to define groups, estimates and removes
+ambient RNA contamination, and immediately wraps the cleaned count matrices into
+a list of fresh \code{Seurat} objects ready for downstream quality control.
+}
+\examples{
+\dontrun{
+# Run the entire start-to-finish pipeline in a single line
+final_pipeline_output <- process_soupx_samples(
+  filtered_dir = "data/cellranger/filtered",
+  raw_dir = "data/cellranger/raw",
+  multiFac = 2 # Globally add a 2\% contamination penalty to all samples
+)
+
+# Extract your final cleaned Seurat objects for downstream integration
+my_clean_seurats <- final_pipeline_output$final_seurat
+}
 }

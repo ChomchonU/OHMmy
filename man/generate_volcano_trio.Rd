@@ -2,13 +2,51 @@
 % Please edit documentation in R/Marker_visualizations.R
 \name{generate_volcano_trio}
 \alias{generate_volcano_trio}
-\title{Title}
+\title{Generate a Trio of Volcano Plots for Differential Expression}
 \usage{
 generate_volcano_trio(res, main_title, target_genes)
 }
 \arguments{
-\item{target_genes}{}
+\item{res}{A data frame containing differential expression results. Must contain row names as gene symbols, and the columns \code{padj} (adjusted p-value) and \code{log2FoldChange}.}
+
+\item{main_title}{Character. The overarching title displayed at the very top of the combined plot.}
+
+\item{target_genes}{Character vector. A specific list of genes of interest to highlight (e.g., functional pathway markers). Only genes in this list that meet the strict significance thresholds will be labeled.}
+}
+\value{
+A \code{patchwork} object containing three horizontally aligned \code{ggplot}/volcano plot panels.
 }
 \description{
-Title
+Takes a differential expression results data frame (e.g., from DESeq2 or Seurat)
+and generates a three-panel volcano plot using \code{EnhancedVolcano} and \code{patchwork}.
+It applies strict significance thresholds (\code{padj < 0.05} and \code{abs(log2FoldChange) >= 1.0})
+to automatically extract and label:
+\enumerate{
+\item The top 10 significantly upregulated and downregulated genes.
+\item A user-provided list of target functional genes (filtered to only show significant ones).
+\item A combined view of both the top 20 genes and the significant target genes.
+}
+}
+\examples{
+\dontrun{
+# Assuming 'de_results' is a data frame from DESeq2 or Seurat FindMarkers
+# (Make sure your Seurat output column 'avg_log2FC' is renamed to 'log2FoldChange'
+# and 'p_val_adj' to 'padj' before passing it to this function!)
+
+# Define a list of functional genes you care about for your specific subset
+nk_functional_genes <- c("NKG7", "GNLY", "PRF1", "GZMB", "GZMH", "IFNG", "KLRK1")
+
+# Generate the 3-panel plot
+volcano_trio <- generate_volcano_trio(
+  res = de_results,
+  main_title = "Differential Expression: NK Cells (Infected vs Control)",
+  target_genes = nk_functional_genes
+)
+
+# Display the plot
+print(volcano_trio)
+
+# Save the wide format plot
+ggsave("Volcano_Trio.png", plot = volcano_trio, width = 24, height = 8, dpi = 300)
+}
 }

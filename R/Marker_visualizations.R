@@ -1,22 +1,51 @@
-#' Title
+#' Generate Split DotPlots and Global Dendrogram for Marker Genes
 #'
-#' @param df
-#' @param gene_list
-#' @param gene_regex
-#' @param id_col
-#' @param output_dir
-#' @param n_splits
-#' @param plot_title_prefix
-#' @param width_scale
-#' @param height_scale
-#' @param min_width
-#' @param min_height
-#' @param label_space
+#' Filters a differential expression results data frame for specific genes (via list or regex),
+#' performs hierarchical clustering on the specified identity column based on average log2FC,
+#' and generates a global dendrogram. To prevent unreadable, overcrowded x-axes, the target
+#' gene-cluster combinations are automatically split into multiple chunked dotplots.
+#' All plots are automatically sized and saved directly to the specified output directory.
 #'
-#' @returns
+#' @param df A data frame of differential expression results. Must contain the columns \code{gene}, \code{cluster}, \code{avg_log2FC}, \code{diff}, and the column specified in \code{id_col}.
+#' @param gene_list Character vector. A specific list of genes to filter and plot. Default is NULL.
+#' @param gene_regex Character string. A regular expression to match target genes (e.g., \code{"^TR[AB][VD]"} for T cell receptor genes or "^KLR" for Killer-cell receptors). Default is NULL.
+#' @param id_col Character string. The name of the column in \code{df} to map to the y-axis and use for hierarchical clustering. Default is "integration_method".
+#' @param output_dir Character. Directory path where the generated PNGs will be saved. Default is "Markers_Plots/Split".
+#' @param n_splits Integer. The number of parts to split the horizontal axis (gene-cluster pairs) into. Default is 4.
+#' @param plot_title_prefix Character. The base string used for the title of each split plot. Default is "Gene DotPlot".
+#' @param width_scale Numeric. A scaling multiplier to dynamically calculate plot width based on the number of x-axis items. Default is 0.3.
+#' @param height_scale Numeric. A scaling multiplier to dynamically calculate plot height based on the number of y-axis items. Default is 0.5.
+#' @param min_width Numeric. The absolute minimum width (in inches) for the saved plots. Default is 5.
+#' @param min_height Numeric. The absolute minimum height (in inches) for the saved plots. Default is 5.
+#' @param label_space Numeric. The spatial padding multiplier for the text labels on the global dendrogram. Default is 1.
+#'
+#' @return Invisibly returns \code{NULL}. Plots are directly written to disk.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Assuming 'marker_df' contains combined FindMarkers output across multiple
+#' # integration methods or conditions.
+#'
+#' # Example 1: Plot specific T/NK cell markers, split into 2 plots
+#' plot_split_dotplots_by_gene_cluster(
+#'   df = marker_df,
+#'   gene_list = c("CD3E", "CD4", "CD8A", "NKG7", "GNLY", "GZMB", "PRF1"),
+#'   id_col = "Condition",
+#'   output_dir = "Results/DotPlots",
+#'   n_splits = 2,
+#'   plot_title_prefix = "Cytotoxic Markers"
+#' )
+#'
+#' # Example 2: Plot all genes starting with "KLR" using Regex
+#' plot_split_dotplots_by_gene_cluster(
+#'   df = marker_df,
+#'   gene_regex = "^KLR",
+#'   id_col = "integration_method",
+#'   n_splits = 3
+#' )
+#' }
 plot_split_dotplots_by_gene_cluster <- function(df,
                                                 gene_list = NULL,
                                                 gene_regex = NULL,
@@ -167,27 +196,61 @@ plot_split_dotplots_by_gene_cluster <- function(df,
 
 # -------------------------------------------
 
-#' Title
+#' Find and Visualize Top Cluster Markers
 #'
-#' @param seurat_obj
-#' @param sample_name
-#' @param marker_diff_thresh
-#' @param marker_pval_adj
-#' @param marker_avg_log2FC_thresh
-#' @param top_n
-#' @param output_dir_base
-#' @param plot_format
-#' @param width
-#' @param height
-#' @param dpi
-#' @param compare
-#' @param add_timestamp
-#' @param onlyPos
+#' Computes differential gene expression for a Seurat object-either across all clusters
+#' (\code{FindAllMarkers}) or as a specific pairwise comparison. It calculates a custom
+#' biological relevance score (combining log2 fold change, percentage difference, and
+#' adjusted p-value) to strictly filter and rank the top \code{n} markers per cluster.
+#' The function automatically generates a Seurat \code{DoHeatmap} and exports multiple
+#' CSV tables containing both the filtered and unfiltered marker lists (ready for GSEA/ORA).
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data with active identities (\code{Idents}) set.
+#' @param sample_name Character. The name of the biological sample, used for plot titles, filenames, and sub-directory routing. Default is "Sample".
+#' @param marker_diff_thresh Numeric. The minimum required absolute difference in the percentage of expressing cells between groups (\code{abs(pct.1 - pct.2)}). Default is 0.1.
+#' @param marker_pval_adj Numeric. The maximum adjusted p-value allowed for a gene to be considered a significant marker. Default is 0.05.
+#' @param marker_avg_log2FC_thresh Numeric. The minimum absolute log2 fold change required. Default is 0.5.
+#' @param top_n Integer. The number of top-scoring marker genes to select per cluster for plotting on the heatmap. Default is 20.
+#' @param output_dir_base Character. The base directory path where outputs (plots and CSVs) will be saved. Default is "Plots_heatmap".
+#' @param plot_format Character. The file format for the saved heatmap ("jpg", "png", or "pdf"). Default is "jpg".
+#' @param width Numeric. The width of the saved heatmap. Default is 10.
+#' @param height Numeric. The height of the saved heatmap. Default is 20.
+#' @param dpi Numeric. The resolution of the saved heatmap. Default is 300.
+#' @param compare Character vector of length 2. If provided, performs a pairwise \code{FindMarkers} test between these two specific identities (e.g., \code{c("Effector_T", "Naive_T")}). If \code{NULL}, runs \code{FindAllMarkers} across all clusters. Default is NULL.
+#' @param add_timestamp Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.
+#' @param onlyPos Logical. If TRUE, only identifies positive markers (upregulated genes). Passed to the \code{only.pos} argument in Seurat. Default is TRUE.
+#'
+#' @return A list containing four elements:
+#' \itemize{
+#'   \item \code{top_markers}: A \code{tibble} of the highly filtered, top-scoring marker genes used for the heatmap.
+#'   \item \code{heatmap}: The \code{ggplot} object of the generated \code{DoHeatmap}.
+#'   \item \code{markers}: A data frame of the full, unfiltered differential expression results.
+#'   \item \code{output_dir}: A character string of the specific path where the files were saved.
+#' }
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Example 1: Find top 10 positive markers for ALL clusters in the object
+#' all_markers_res <- FindTopMarkersAndHeatmap(
+#'   seurat_obj = my_seurat,
+#'   sample_name = "PBMC_Global",
+#'   top_n = 10,
+#'   onlyPos = TRUE
+#' )
+#'
+#' # Example 2: Perform a specific pairwise comparison (e.g., CD8+ Effector vs Naive)
+#' # Capturing both up and downregulated genes
+#' pairwise_res <- FindTopMarkersAndHeatmap(
+#'   seurat_obj = my_seurat,
+#'   sample_name = "CD8_Subset",
+#'   compare = c("CD8_Effector", "CD8_Naive"),
+#'   onlyPos = FALSE,
+#'   marker_avg_log2FC_thresh = 0.25,
+#'   save_format = "png"
+#' )
+#' }
 FindTopMarkersAndHeatmap <- function(
     seurat_obj,
     sample_name = "Sample",
@@ -249,7 +312,7 @@ FindTopMarkersAndHeatmap <- function(
 
   message(" [", sample_name, "] Plotting heatmap...")
   heatmap <- DoHeatmap(seurat_obj, features = top_markers$gene) +
-    ggtitle(paste0("Top Markers – ", sample_name))
+    ggtitle(paste0("Top Markers - ", sample_name))
 
   # Prepare output path
   sample_path <- gsub("\\|", "/", sample_name)
@@ -292,24 +355,58 @@ FindTopMarkersAndHeatmap <- function(
 
 # ------------------------------------------------
 
-#' Title
+#' Generate a Gene Marker DotPlot with Aligned Dendrogram
 #'
-#' @param df
-#' @param genes
-#' @param id_col
-#' @param output_dir
-#' @param plot_title
-#' @param dendro_side
-#' @param label_space
-#' @param width_scale
-#' @param height_scale
-#' @param min_width
-#' @param min_height
+#' Filters a differential expression data frame for target genes (using either a specific
+#' vector of genes or a regular expression), calculates average expression metrics, and
+#' performs Ward.D2 hierarchical clustering on the specified condition/identity column.
+#' It generates a customized dot plot (with clusters labeled directly on the points)
+#' and aligns it side-by-side with the hierarchical dendrogram using \code{patchwork}.
+#' The individual components and the combined layout are automatically saved to disk.
 #'
-#' @returns
+#' @param df A data frame containing differential expression results. Must contain \code{gene}, \code{cluster}, \code{avg_log2FC}, \code{diff}, and the column specified in \code{id_col}.
+#' @param genes Character vector or string. Can be a specific vector of gene names (e.g., \code{c("CD4", "CD8A")}) or a single regular expression string (e.g., \code{"^TR[AB][VD]"}).
+#' @param id_col Character. The name of the column in \code{df} representing the experimental condition or identity to cluster on the y-axis. Default is "short_id".
+#' @param output_dir Character. Directory path where the generated PNGs will be saved. Default is "Markers_Plots".
+#' @param plot_title Character. The title displayed at the top of the dot plot. Default is "Marker Genes Plot".
+#' @param dendro_side Character. Which side of the dot plot to attach the dendrogram. Options are "left" or "right". Default is "right".
+#' @param label_space Numeric. The horizontal padding multiplier for the text labels on the dendrogram to prevent truncation. Default is 1.
+#' @param width_scale Numeric. A scaling multiplier to dynamically calculate plot width based on the number of genes. Default is 0.5.
+#' @param height_scale Numeric. A scaling multiplier to dynamically calculate plot height based on the number of conditions (\code{id_col}). Default is 0.5.
+#' @param min_width Numeric. The absolute minimum width (in inches) for the saved plots. Default is 5.
+#' @param min_height Numeric. The absolute minimum height (in inches) for the saved plots. Default is 4.
+#'
+#' @return Invisibly returns a list containing three \code{patchwork}/\code{ggplot} objects:
+#' \itemize{
+#'   \item \code{dotplot}: The gene expression dot plot.
+#'   \item \code{dendrogram}: The hierarchical clustering dendrogram.
+#'   \item \code{combined}: The side-by-side aligned layout of both plots.
+#' }
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Assuming 'marker_results' is a dataframe combining FindMarkers output
+#' # across multiple datasets or integration methods.
+#'
+#' # Example 1: Using a specific list of T cell exhaustion and activation markers
+#' plot_gene_markers_with_dendro(
+#'   df = marker_results,
+#'   genes = c("PDCD1", "HAVCR2", "LAG3", "TOX", "IFNG", "GZMB"),
+#'   id_col = "integration_method",
+#'   plot_title = "Exhaustion Markers Across Integrations",
+#'   dendro_side = "left"
+#' )
+#'
+#' # Example 2: Using a Regex search to pull all Killer-cell immunoglobulin-like receptors
+#' plot_gene_markers_with_dendro(
+#'   df = marker_results,
+#'   genes = "^KIR",
+#'   id_col = "Condition",
+#'   output_dir = "NK_Cell_Analysis"
+#' )
+#' }
 plot_gene_markers_with_dendro <- function(df, genes,
                                           id_col = "short_id",
                                           output_dir = "Markers_Plots",
@@ -452,17 +549,49 @@ plot_gene_markers_with_dendro <- function(df, genes,
 
 # ---------------------------------------------------------
 
-# Function to extract, average, and bin gene expression
-#' Title
+#' Extract and Bin Average Gene Expression into Terciles
 #'
-#' @param seurat_obj
-#' @param gene_list
-#' @param group_col
+#' Leverages the internal data extraction of Seurat's \code{DotPlot} function to calculate
+#' the unscaled average expression and percent expressed for a specified list of genes
+#' across cell groups. It then evaluates each gene independently, calculates its expression
+#' terciles (33rd and 67th percentiles), and categorizes each cluster's expression into
+#' "Low", "Int" (Intermediate), or "High" bins. This is highly useful for converting
+#' continuous transcriptomic data into discrete categories for simplified metadata assignment
+#' or categorical plotting.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data.
+#' @param gene_list Character vector. A list of specific gene names to extract and bin (e.g., \code{c("CD3E", "CD8A")}).
+#' @param group_col Character. The metadata column name defining the cell groups or clusters to aggregate the expression by. Default is "seurat_clusters".
+#'
+#' @return A data frame (\code{tibble}) containing the following columns:
+#' \itemize{
+#'   \item \code{Cluster}: The identity class / group.
+#'   \item \code{Gene}: The feature name.
+#'   \item \code{AvgExpression}: The raw average expression within the group.
+#'   \item \code{PctExpress}: The percentage of cells in the group expressing the gene.
+#'   \item \code{Expression_Level}: An ordered factor (\code{"Low", "Int", "High"}) representing the binned category.
+#' }
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Define a few key functional markers
+#' target_genes <- c("CD8A", "GZMB", "PRF1", "IFNG")
+#'
+#' # Extract and bin the expression across fine-resolution clusters
+#' binned_data <- extract_binned_expression(
+#'   seurat_obj = my_seurat,
+#'   gene_list = target_genes,
+#'   group_col = "T_Cell_Subsets"
+#' )
+#'
+#' # View the resulting data frame
+#' head(binned_data)
+#'
+#' # Filter to find which clusters have "High" expression of GZMB
+#' subset(binned_data, Gene == "GZMB" & Expression_Level == "High")
+#' }
 extract_binned_expression <- function(seurat_obj, gene_list, group_col = "seurat_clusters") {
 
   # 1. Use Seurat's internal DotPlot extraction to safely grab both Average Expression and Percent Expressed
@@ -495,16 +624,46 @@ extract_binned_expression <- function(seurat_obj, gene_list, group_col = "seurat
 
 #------------------------------------------------------------------
 
-#' Title
+#' Generate a Trio of Volcano Plots for Differential Expression
 #'
-#' @param res
-#' @param main_title
-#' @param target_genes
+#' Takes a differential expression results data frame (e.g., from DESeq2 or Seurat)
+#' and generates a three-panel volcano plot using \code{EnhancedVolcano} and \code{patchwork}.
+#' It applies strict significance thresholds (\code{padj < 0.05} and \code{abs(log2FoldChange) >= 1.0})
+#' to automatically extract and label:
+#' 1) The top 10 significantly upregulated and downregulated genes.
+#' 2) A user-provided list of target functional genes (filtered to only show significant ones).
+#' 3) A combined view of both the top 20 genes and the significant target genes.
 #'
-#' @returns
+#' @param res A data frame containing differential expression results. Must contain row names as gene symbols, and the columns \code{padj} (adjusted p-value) and \code{log2FoldChange}.
+#' @param main_title Character. The overarching title displayed at the very top of the combined plot.
+#' @param target_genes Character vector. A specific list of genes of interest to highlight (e.g., functional pathway markers). Only genes in this list that meet the strict significance thresholds will be labeled.
+#'
+#' @return A \code{patchwork} object containing three horizontally aligned \code{ggplot}/volcano plot panels.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Assuming 'de_results' is a data frame from DESeq2 or Seurat FindMarkers
+#' # (Make sure your Seurat output column 'avg_log2FC' is renamed to 'log2FoldChange'
+#' # and 'p_val_adj' to 'padj' before passing it to this function!)
+#'
+#' # Define a list of functional genes you care about for your specific subset
+#' nk_functional_genes <- c("NKG7", "GNLY", "PRF1", "GZMB", "GZMH", "IFNG", "KLRK1")
+#'
+#' # Generate the 3-panel plot
+#' volcano_trio <- generate_volcano_trio(
+#'   res = de_results,
+#'   main_title = "Differential Expression: NK Cells (Infected vs Control)",
+#'   target_genes = nk_functional_genes
+#' )
+#'
+#' # Display the plot
+#' print(volcano_trio)
+#'
+#' # Save the wide format plot
+#' ggsave("Volcano_Trio.png", plot = volcano_trio, width = 24, height = 8, dpi = 300)
+#' }
 generate_volcano_trio <- function(res, main_title, target_genes) {
 
   # 1. STRICT FILTER: Keep only genes significant in BOTH padj AND Fold Change

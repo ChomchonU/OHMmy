@@ -2,7 +2,7 @@
 % Please edit documentation in R/Stat_plot.R
 \name{plot_cell_abundance}
 \alias{plot_cell_abundance}
-\title{Title}
+\title{Calculate, Test, and Visualize Cell Type Abundances}
 \usage{
 plot_cell_abundance(
   seurat_obj,
@@ -23,8 +23,65 @@ plot_cell_abundance(
 )
 }
 \arguments{
-\item{dpi}{}
+\item{seurat_obj}{A Seurat object containing single-cell data with populated metadata.}
+
+\item{sample_col}{Character. The metadata column containing unique sample IDs (used to calculate independent proportions).}
+
+\item{condition_col}{Character. The metadata column containing the experimental conditions or groups to compare.}
+
+\item{celltype_col}{Character. The metadata column containing cell type or cluster labels.}
+
+\item{global_test}{Character. The overarching statistical test to use if there are >2 conditions. Options: "kruskal.test" (uses Dunn's for post-hoc) or "anova" (uses Tukey's HSD). Default is "kruskal.test".}
+
+\item{strict_posthoc}{Logical. If TRUE, post-hoc pairwise tests and brackets are ONLY generated for cell types that pass the global test significance threshold (p < 0.05). Default is TRUE.}
+
+\item{pairwise_test}{Character. The statistical test to use if there are exactly 2 conditions. Options: "mann_whitney", "wilcoxon_paired", or "t_test". Default is "mann_whitney".}
+
+\item{p_adjust}{Character. The multiple testing correction method to pass to \code{rstatix} (e.g., "BH", "bonferroni"). Default is "BH".}
+
+\item{facet_by_cluster}{Logical. If TRUE, creates a faceted plot where each panel is a cell type. If FALSE, plots all cell types grouped on the x-axis. Default is TRUE.}
+
+\item{facet_scales}{Character. The \code{scales} argument passed to \code{facet_wrap}. Default is "free_y".}
+
+\item{pairwise_label}{Character. What to display on the significance brackets. Options: "p.adj" (numeric), "p.format" (raw p-value), or "p.signif" (stars). Default is "p.signif".}
+
+\item{y_expand}{Numeric. A multiplier used to expand the top of the Y-axis to ensure significance brackets are not cut off. Default is 0.2.}
+
+\item{output_dir}{Character. Directory path where the generated JPEG will be saved. Default is the current working directory (".").}
+
+\item{base_size}{Numeric. A baseline metric used to dynamically calculate the width and height of the saved plot based on the number of panels. Default is 3.5.}
+
+\item{dpi}{Numeric. The resolution of the saved JPEG. Default is 300.}
+}
+\value{
+Returns the generated \code{ggplot} object. The function also saves the plot to disk as a JPEG as a side effect.
 }
 \description{
-Title
+Computes the fractional proportion of each cell type per sample from a Seurat object's
+metadata. It automatically detects the number of experimental conditions and applies
+the appropriate statistical framework using \code{rstatix} (e.g., Kruskal-Wallis + Dunn's
+test for >2 conditions, or Mann-Whitney for 2 conditions). It generates highly customized,
+publication-ready boxplots with jittered points and automatically positions significance
+brackets (\code{ggpubr}) dynamically per facet to avoid overlapping.
+}
+\examples{
+\dontrun{
+# Assuming your Seurat object 'my_seurat' has metadata columns:
+# "Patient_ID", "Disease_State" (e.g., Healthy, Mild, Severe), and "Cell_Subset"
+
+abundance_plot <- plot_cell_abundance(
+  seurat_obj = my_seurat,
+  sample_col = "Patient_ID",
+  condition_col = "Disease_State",
+  celltype_col = "Cell_Subset",
+  global_test = "kruskal.test",
+  strict_posthoc = TRUE,
+  p_adjust = "BH",
+  pairwise_label = "p.signif",
+  output_dir = "Results/Abundance"
+)
+
+# Display the plot in the R viewer
+print(abundance_plot)
+}
 }

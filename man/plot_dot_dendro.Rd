@@ -2,7 +2,7 @@
 % Please edit documentation in R/Annotation_visualization.R
 \name{plot_dot_dendro}
 \alias{plot_dot_dendro}
-\title{Title}
+\title{Generate a Bidirectionally Clustered DotPlot with Dendrograms}
 \usage{
 plot_dot_dendro(
   seurat_obj,
@@ -15,8 +15,51 @@ plot_dot_dendro(
 )
 }
 \arguments{
-\item{prefix}{}
+\item{seurat_obj}{A Seurat object containing single-cell data.}
+
+\item{meta_col}{Character. The metadata column used to group cells (e.g., "seurat_clusters" or "CellType").}
+
+\item{feature_df}{A data frame mapping genes to categories. Must contain a \code{group} column (to filter by prefix) and a \code{feature} column (containing the gene names).}
+
+\item{scale}{Logical. Whether to scale the average expression values (z-score) across groups before plotting and clustering. Default is TRUE.}
+
+\item{pct_threshold}{Numeric. The minimum percentage of cells expressing the gene in at least one cluster required to retain the gene. Default is 15.}
+
+\item{output_dir}{Character. Directory path where the generated JPEGs and text file will be saved. Default is "Output_R".}
+
+\item{prefix}{Character. A string used to filter the \code{group} column in \code{feature_df}. If \code{NULL}, it automatically attempts to derive the prefix by removing "label_" from \code{meta_col}. Default is NULL.}
+}
+\value{
+A \code{patchwork} object representing the final combined layout (dot plot + column dendrogram + row dendrogram).
 }
 \description{
-Title
+Extracts expression data via Seurat's \code{DotPlot} function, filters out lowly
+expressed genes based on a minimum percentage threshold, and performs two-way
+hierarchical clustering on both the features (genes) and the identities (clusters).
+It assembles a comprehensive \code{patchwork} layout featuring the central dot plot
+flanked by column and row dendrograms. The function automatically saves the combined
+plot, standalone dendrograms, and a text file of the final clustered gene order.
+}
+\examples{
+\dontrun{
+# Create a mock mapping dataframe for subset markers
+marker_mapping <- data.frame(
+  group = c("Effector_T", "Effector_NK", "Naive_T"),
+  feature = c("GZMB", "NKG7", "CCR7")
+)
+
+# Generate the bi-clustered dotplot
+clustered_plot <- plot_dot_dendro(
+  seurat_obj = my_seurat,
+  meta_col = "Subset_Labels",
+  feature_df = marker_mapping,
+  scale = TRUE,
+  pct_threshold = 10,
+  output_dir = "Results/DotPlots",
+  prefix = "Effector" # Will selectively plot and cluster the first two genes
+)
+
+# Display the assembled plot in the R viewer
+print(clustered_plot)
+}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/General_visualizations.R
 \name{.blend_feature_plot_v5}
 \alias{.blend_feature_plot_v5}
-\title{Title}
+\title{Generate a 4-Panel Blended Feature Plot (Seurat v5 Compatible)}
 \usage{
 .blend_feature_plot_v5(
   seurat_obj,
@@ -17,8 +17,49 @@
 )
 }
 \arguments{
-\item{pt_size}{}
+\item{seurat_obj}{A Seurat object containing single-cell data.}
+
+\item{gene1}{Character. The name of the first feature/gene to plot (mapped to the x-axis of the color key).}
+
+\item{gene2}{Character. The name of the second feature/gene to plot (mapped to the y-axis of the color key).}
+
+\item{reduction}{Character. The dimensionality reduction to visualize (e.g., "umap", "pca").}
+
+\item{cols}{Character vector of length 3. Specifies the colors for the background (double-negative), gene 1, and gene 2. Default is c("lightgrey", "#00ff00", "#ff0000").}
+
+\item{blend_threshold}{Numeric. A scaling threshold (0 to 1) below which normalized expression values are visually suppressed to 0. Default is 0.1.}
+
+\item{min_cutoff}{Character or Numeric. The lowest expression cutoff (e.g., "q10" for the 10th quantile). Values below this are set to zero before scaling. Default is "q10".}
+
+\item{gamma}{Numeric. The exponent used to adjust the brightness and saturation of the blended colors. Default is 1.}
+
+\item{pt_size}{Numeric. The point size for cells in the scatter plots. Default is 1.}
+}
+\value{
+A \code{patchwork} object containing four aligned \code{ggplot} panels.
 }
 \description{
-Title
+Replicates and enhances the behavior of Seurat's original \code{FeaturePlot(blend = TRUE, combine = TRUE)}
+functionality, with built-in compatibility for Seurat v5's new \code{layer} architecture
+(while maintaining a v4 \code{slot} fallback). It computes normalized, thresholded expression
+and generates a 1x4 \code{patchwork} grid containing: individual expression of gene 1,
+individual expression of gene 2, their blended co-expression on the embedding, and a customized
+2D color threshold key.
+}
+\examples{
+\dontrun{
+# Visualize co-expression of cytotoxic markers
+blend_plot <- .blend_feature_plot_v5(
+  seurat_obj = my_seurat,
+  gene1 = "CD8A",
+  gene2 = "GZMB",
+  reduction = "umap",
+  cols = c("lightgrey", "#ff0000", "#0000ff"), # Custom red and blue blend
+  blend_threshold = 0.15,
+  pt_size = 0.5
+)
+
+# Display the 4-panel plot
+print(blend_plot)
+}
 }

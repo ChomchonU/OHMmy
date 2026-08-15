@@ -2,7 +2,7 @@
 % Please edit documentation in R/Annotation_visualization.R
 \name{plot_dot_dendro_split}
 \alias{plot_dot_dendro_split}
-\title{Title}
+\title{Generate Split Clustered DotPlots with Row Dendrograms}
 \usage{
 plot_dot_dendro_split(
   seurat_obj,
@@ -16,8 +16,53 @@ plot_dot_dendro_split(
 )
 }
 \arguments{
-\item{max_genes_per_plot}{}
+\item{seurat_obj}{A Seurat object containing single-cell data.}
+
+\item{meta_col}{Character. The metadata column used to group cells (e.g., "seurat_clusters").}
+
+\item{feature_df}{A data frame mapping genes to categories. Must contain a \code{group} column (to filter by prefix) and a \code{feature} column (containing the gene names).}
+
+\item{scale}{Logical. Whether to scale the average expression values (z-score) across groups before plotting. Default is TRUE.}
+
+\item{pct_threshold}{Numeric. The minimum percentage of cells expressing the gene in at least one cluster required to retain the gene. Default is 15.}
+
+\item{output_dir}{Character. Directory path where the generated JPEGs and text file will be saved. Default is "Output_R".}
+
+\item{prefix}{Character. A string used to filter the \code{group} column in \code{feature_df}. If \code{NULL}, it automatically derives the prefix by removing "label_" from \code{meta_col}. Default is NULL.}
+
+\item{max_genes_per_plot}{Integer. The maximum number of genes to display per plot. If the filtered gene list exceeds this number, the output is split into multiple chunked plots. Default is NULL (no splitting).}
+}
+\value{
+A list of \code{patchwork} objects, where each element represents a specific chunk of the x-axis (dot plot) combined with the global row (cluster) dendrogram.
 }
 \description{
-Title
+An extension of the bidirectionally clustered DotPlot, specifically designed to handle
+massive gene lists without overcrowding the x-axis. It performs global hierarchical
+clustering on both genes and clusters to establish the true biological ordering.
+If the number of filtered genes exceeds \code{max_genes_per_plot}, it chunks the x-axis
+into multiple separate plots. The global cluster dendrogram (y-axis) is identically
+attached to each chunk for easy cross-referencing.
+}
+\examples{
+\dontrun{
+# Assuming marker_mapping is a dataframe with 'group' and 'feature' columns
+
+# Generate chunked dotplots, forcing a maximum of 25 genes per plot
+chunked_plots <- plot_dot_dendro_split(
+  seurat_obj = my_seurat,
+  meta_col = "T_Cell_States",
+  feature_df = marker_mapping,
+  scale = TRUE,
+  pct_threshold = 10,
+  output_dir = "Results/Split_DotPlots",
+  prefix = "Exhaustion",
+  max_genes_per_plot = 25
+)
+
+# View the first chunk directly in R
+chunked_plots[[1]]
+
+# View the second chunk
+chunked_plots[[2]]
+}
 }

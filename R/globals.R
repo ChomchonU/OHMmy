@@ -18,5 +18,5 @@ utils::globalVariables(c(
   "PercentTechnical", "progress_bar", "core_enrichment", "setSize",
   "NES", "Description", "neg_log10_padj", "GeneRatio", "Signed_log10_padj",
   "mean_sig", "Abs_NES", ".", "n_clusters", "mean_neg_logp", "DIM1", "DIM2",
-  "g1", "g2"
+  "g1", "g2", "Cluster"
 ))

@@ -1,11 +1,29 @@
-#' Title
+#' Clean and Standardize Seurat Dimensional Reductions
 #'
-#' @param seurat_obj
+#' Automatically detects, renames, and rebuilds dimensional reductions within a Seurat
+#' object to ensure they comply with Seurat's strict internal naming conventions. It
+#' converts reduction names containing dots or underscores (e.g., "pca.log") into
+#' standard camelCase (e.g., "pcaLog"). Crucially, it extracts the raw matrices and
+#' completely rebuilds the \code{DimReduc} object to guarantee that the internal key
+#' and the column names of both the embeddings and loadings correctly match the new name.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing one or more dimensional reductions.
+#'
+#' @return An updated \code{Seurat} object where all dimensional reductions have been cleanly renamed and rebuilt. The old misnamed reductions are safely removed.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Inspect current reduction names (e.g., "pca.log", "umap_integration")
+#' Reductions(my_seurat)
+#'
+#' # Clean and rebuild all reductions
+#' my_seurat <- CleanSeuratReductions(my_seurat)
+#'
+#' # Inspect the new names (e.g., "pcaLog", "umapIntegration")
+#' Reductions(my_seurat)
+#' }
 CleanSeuratReductions <- function(seurat_obj) {
   red_names <- Reductions(seurat_obj)
 
@@ -56,32 +74,65 @@ CleanSeuratReductions <- function(seurat_obj) {
 
 #------------------------------------------------------------------
 
-#' Title
+#' Automate Multi-Resolution Clustering, Clustree Visualization, and UMAP
 #'
-#' @param seurat_obj
-#' @param sample_name
-#' @param dims
-#' @param k.param
-#' @param reduction
-#' @param umap_name
-#' @param cluster_prefix
-#' @param graph_name
-#' @param cluster_resolutions
-#' @param final_resolution
-#' @param save_path
-#' @param force_neighbors
-#' @param force_clustering
-#' @param plot_dir
-#' @param return.model
-#' @param plot_format
-#' @param width
-#' @param height
-#' @param dpi
+#' A comprehensive wrapper for Seurat's graph-based clustering and UMAP workflow.
+#' It intelligently checks for existing Nearest Neighbor graphs and cluster resolutions
+#' to avoid redundant computations unless explicitly forced. The function sweeps through
+#' a provided sequence of clustering resolutions, generates and saves a \code{clustree}
+#' plot to help visualize cluster stability, and computes a final UMAP embedding at a
+#' specified resolution.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing the dimensional reduction specified in \code{reduction}.
+#' @param sample_name Character. The identifier for the sample or dataset, used for console logging, plot titles, and file naming. Default is "Sample".
+#' @param dims Numeric vector. The dimensions of the reduction to use as input for constructing the neighbor graph and UMAP (e.g., \code{1:50}). Default is \code{1:50}.
+#' @param k.param Integer. The number of nearest neighbors to compute during \code{FindNeighbors}. Default is 20.
+#' @param reduction Character. The name of the dimensional reduction to use (e.g., "pca", "integrated.har", "harmony"). Default is "integrated.har".
+#' @param umap_name Character. The name to assign to the generated UMAP reduction. Default is "umap.har".
+#' @param cluster_prefix Character. The prefix to use for naming the cluster metadata columns. Default is "RNA_snn_res.".
+#' @param graph_name Character. The name to assign to the generated Shared Nearest Neighbor (SNN) graph. Default is "RNA_snn".
+#' @param cluster_resolutions Numeric vector. A sequence of resolutions to sweep through for clustering. Default is \code{seq(0.1, 2, by = 0.1)}.
+#' @param final_resolution Numeric. The specific resolution to use for the final clustering step immediately prior to calculating the UMAP. Default is 0.7.
+#' @param save_path Character. An optional file path (.rds) to save the updated Seurat object. Default is \code{NULL} (does not save).
+#' @param force_neighbors Logical. If \code{TRUE}, forces recalculation of the neighbor graph even if \code{graph_name} already exists. Default is \code{FALSE}.
+#' @param force_clustering Logical. If \code{TRUE}, forces recalculation of clusters even if the resolution columns already exist in the metadata. Default is \code{FALSE}.
+#' @param plot_dir Character. Directory path where the generated \code{clustree} plot will be saved. Default is "Plots_clustree".
+#' @param return.model Logical. If \code{TRUE}, retains the UMAP model in the Seurat object (useful for projecting new data later). Default is \code{TRUE}.
+#' @param plot_format Character. The file format for the saved \code{clustree} plot (e.g., "jpg", "png", "pdf"). Default is "jpg".
+#' @param width Numeric. The width of the saved plot in inches. Default is 10.
+#' @param height Numeric. The height of the saved plot in inches. Default is 15.
+#' @param dpi Numeric. The resolution (dpi) of the saved plot. Default is 300.
+#'
+#' @return A named list containing three elements:
+#' \itemize{
+#'   \item \code{seurat}: The updated \code{Seurat} object containing the new graph, clusters, and UMAP reduction.
+#'   \item \code{clustree}: The generated \code{ggplot} object containing the clustering tree.
+#'   \item \code{plot_file}: A character string of the exact file path where the plot was saved.
+#' }
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Assuming 'my_seurat' has already undergone PCA or Harmony integration
+#'
+#' clustering_results <- ClusterAndUMAP(
+#'   seurat_obj = my_seurat,
+#'   sample_name = "PBMC_Donor_1",
+#'   dims = 1:30,
+#'   reduction = "pca",
+#'   umap_name = "umap",
+#'   cluster_resolutions = seq(0.2, 1.2, by = 0.2),
+#'   final_resolution = 0.6,
+#'   plot_dir = "Results/Clustree"
+#' )
+#'
+#' # Extract the updated Seurat object for downstream analysis
+#' updated_seurat <- clustering_results$seurat
+#'
+#' # View the clustree plot in R
+#' print(clustering_results$clustree)
+#' }
 ClusterAndUMAP <- function(seurat_obj,
                            sample_name = "Sample",
                            dims = 1:50,
@@ -158,7 +209,7 @@ ClusterAndUMAP <- function(seurat_obj,
     ggtitle(paste("Clustree:", sample_name))
 
   timestamp <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
-  plot_dir <- paste0(rtrim(plot_dir, "/"), "/")
+  plot_dir <- paste0(sub("/$", "", plot_dir), "/")
   dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
   plot_file <- paste0(plot_dir, sample_name, "_clustree_", timestamp, ".", plot_format)
 
@@ -167,7 +218,7 @@ ClusterAndUMAP <- function(seurat_obj,
 
   # Step 4: Final clustering & UMAP
   if (!umap_name %in% names(seurat_obj@reductions)) {
-    message("🗺️ [", sample_name, "] Running UMAP + clustering at final resolution = ", final_resolution)
+    message("[MAP] [", sample_name, "] Running UMAP + clustering at final resolution = ", final_resolution)
     seurat_obj <- seurat_obj %>%
       FindClusters(resolution = final_resolution, graph.name = graph_name) %>%
       RunUMAP(dims = dims, reduction = reduction, reduction.name = umap_name, return.model = return.model)
@@ -190,30 +241,54 @@ ClusterAndUMAP <- function(seurat_obj,
 
 # -------------------------------------------------------------
 
-#' Title
+#' Execute Comprehensive SCTransform and Integration Pipeline (Seurat v5)
 #'
-#' @param seurat_obj
-#' @param batch_col
-#' @param vars_to_regress
-#' @param tcr_bcr_patterns
-#' @param reduction_name
-#' @param integration_method
-#' @param integration_reduction
-#' @param dims
-#' @param interactive_mode
-#' @param elbow_plot_dir
-#' @param k.weight
-#' @param k.anchor
-#' @param k.filter
-#' @param k.score
-#' @param clustering_resolution
-#' @param verbose
-#' @param sample_name
+#' A unified wrapper for preprocessing and integrating multiple batches or samples using
+#' Seurat v5's \code{IntegrateLayers} framework. The pipeline automatically splits the
+#' RNA assay by batch, normalizes via \code{SCTransform}, and surgically removes TCR/BCR
+#' genes from the variable feature list to prevent clustering based on clonotype. It then
+#' computes PCA and executes the chosen integration algorithm (Harmony, RPCA, CCA, or FastMNN).
+#' Crucially, it dynamically scales integration \code{k} parameters (e.g., \code{k.weight})
+#' downwards to accommodate the smallest batch size, preventing common integration failures.
+#' It also features an interactive mode to manually select optimal PC dimensions via an elbow plot.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing raw count data in the "RNA" assay.
+#' @param batch_col Character. The name of the metadata column defining the biological batches or samples to split and integrate across. Default is "batch".
+#' @param vars_to_regress Character vector. Variables to regress out during \code{SCTransform} (e.g., cell cycle scores or mitochondrial percentage). Default is "pct_counts_mt".
+#' @param tcr_bcr_patterns Character. A regular expression matching TCR and BCR gene segments (e.g., TRAV, TRBV, IGHV) to exclude them from the variable features list. Default is \code{"^TR[ABDG]|^IG[HKL]"}.
+#' @param reduction_name Character. The name to assign to the pre-integration PCA reduction. Default is "pca.SCT".
+#' @param integration_method Character. The integration algorithm to use in \code{IntegrateLayers}. Options: "HarmonyIntegration", "RPCAIntegration", "CCAIntegration", or "FastMNNIntegration". Default is "HarmonyIntegration".
+#' @param integration_reduction Character. The name to assign to the final integrated dimensional reduction. Default is "integrated.har.SCT".
+#' @param dims Numeric vector. The dimensions (PCs) to use for the integration step. Default is \code{1:50}.
+#' @param interactive_mode Logical. If \code{TRUE} and running in an interactive session, pauses to prompt the user for the optimal number of PCs and k-parameters after computing the initial PCA. Default is \code{FALSE}.
+#' @param elbow_plot_dir Character. An optional directory path to save a JPG of the PCA elbow plot. Default is \code{NULL} (does not save).
+#' @param k.weight Integer. The number of neighbors to consider when weighting anchors. If \code{NULL}, defaults to 100 or the size of the smallest batch minus 1.
+#' @param k.anchor Integer. The number of neighbors to use for picking anchors (RPCA/CCA). If \code{NULL}, defaults to 5.
+#' @param k.filter Integer. The number of neighbors to use for filtering anchors (RPCA/CCA). If \code{NULL}, defaults to 200.
+#' @param k.score Integer. The number of neighbors to use for scoring anchors (RPCA/CCA). If \code{NULL}, defaults to 30.
+#' @param clustering_resolution Numeric. Included for pipeline compatibility; sets the target resolution (though actual clustering is typically handled downstream). Default is 0.8.
+#' @param verbose Logical. If \code{TRUE}, outputs progress messages and Seurat logs to the console. Default is \code{TRUE}.
+#' @param sample_name Character. A prefix used for saving the elbow plot file. Default is "seurat".
+#'
+#' @return An integrated \code{Seurat} object with the \code{DefaultAssay} set to "SCT". The split RNA and SCT layers are automatically re-joined at the end of the pipeline.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Standard Harmony integration across patients
+#' integrated_seurat <- ProcessSeuratSCT(
+#'   seurat_obj = raw_seurat,
+#'   batch_col = "Patient_ID",
+#'   vars_to_regress = c("pct_counts_mt", "S.Score", "G2M.Score"),
+#'   integration_method = "HarmonyIntegration",
+#'   dims = 1:30,
+#'   elbow_plot_dir = "QC_Plots/Integrations/"
+#' )
+#'
+#' # The returned object is ready for downstream UMAP and Clustering:
+#' integrated_seurat <- RunUMAP(integrated_seurat, dims = 1:30, reduction = "integrated.har.SCT")
+#' }
 ProcessSeuratSCT <- function(
     seurat_obj,
     batch_col = "batch",
@@ -344,7 +419,7 @@ ProcessSeuratSCT <- function(
   }
 
   message(" Running integration using ", integration_method,
-          " → new reduction: ", integration_reduction)
+          " -> new reduction: ", integration_reduction)
 
   DefaultAssay(seurat_obj) <- "SCT"
 
@@ -408,30 +483,56 @@ ProcessSeuratSCT <- function(
 
 # -------------------------------------------------------------
 
-#' Title
+#' Execute Comprehensive LogNormalization and Integration Pipeline (Seurat v5)
 #'
-#' @param seurat_obj
-#' @param batch_col
-#' @param vars_to_regress
-#' @param tcr_bcr_patterns
-#' @param reduction_name
-#' @param integration_method
-#' @param integration_reduction
-#' @param dims
-#' @param interactive_mode
-#' @param elbow_plot_dir
-#' @param k.weight
-#' @param k.anchor
-#' @param k.filter
-#' @param k.score
-#' @param clustering_resolution
-#' @param verbose
-#' @param sample_name
+#' A unified wrapper for preprocessing and integrating multiple batches or samples using
+#' Seurat v5's \code{IntegrateLayers} framework with standard LogNormalization. The pipeline
+#' automatically splits the RNA assay by batch, normalizes, and removes TCR/BCR genes from
+#' the variable feature list to prevent clustering driven by clonotype. It then scales the data,
+#' computes PCA, and executes the chosen integration algorithm (Harmony, RPCA, CCA, or FastMNN).
+#' Crucially, it dynamically scales integration \code{k} parameters (e.g., \code{k.weight})
+#' downwards to accommodate the smallest batch size, preventing common integration failures.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing raw count data in the "RNA" assay.
+#' @param batch_col Character. The name of the metadata column defining the biological batches or samples to split and integrate across. Default is "batch".
+#' @param vars_to_regress Character vector. Variables to regress out during \code{ScaleData} (e.g., cell cycle scores or mitochondrial percentage). Default is \code{NULL}.
+#' @param tcr_bcr_patterns Character. A regular expression matching TCR and BCR gene segments (e.g., TRAV, TRBV, IGHV) to exclude them from the variable features list. Default is \code{"^TR[ABDG]|^IG[HKL]"}.
+#' @param reduction_name Character. The name to assign to the pre-integration PCA reduction. Default is "pca.SCT" (Note: you may want to rename this default to "pca" since this is the LogNormalize workflow).
+#' @param integration_method Character. The integration algorithm to use in \code{IntegrateLayers}. Options: "HarmonyIntegration", "RPCAIntegration", "CCAIntegration", or "FastMNNIntegration". Default is "HarmonyIntegration".
+#' @param integration_reduction Character. The name to assign to the final integrated dimensional reduction. Default is "integrated.har.SCT" (Note: you may want to adjust this default for standard RNA).
+#' @param dims Numeric vector. The dimensions (PCs) to use for the integration step. Default is \code{1:30}.
+#' @param interactive_mode Logical. If \code{TRUE} and running in an interactive session, pauses to prompt the user for the optimal number of PCs and k-parameters after computing the initial PCA. Default is \code{FALSE}.
+#' @param elbow_plot_dir Character. An optional directory path to save a JPG of the PCA elbow plot. Default is \code{NULL} (does not save).
+#' @param k.weight Integer. The number of neighbors to consider when weighting anchors. If \code{NULL}, defaults to 100 or the size of the smallest batch minus 1.
+#' @param k.anchor Integer. The number of neighbors to use for picking anchors (RPCA/CCA). If \code{NULL}, defaults to 5.
+#' @param k.filter Integer. The number of neighbors to use for filtering anchors (RPCA/CCA). If \code{NULL}, defaults to 200.
+#' @param k.score Integer. The number of neighbors to use for scoring anchors (RPCA/CCA). If \code{NULL}, defaults to 30.
+#' @param clustering_resolution Numeric. Included for pipeline compatibility; sets the target resolution. Default is 1.
+#' @param verbose Logical. If \code{TRUE}, outputs progress messages and Seurat logs to the console. Default is \code{TRUE}.
+#' @param sample_name Character. A prefix used for saving the elbow plot file. Default is "seurat".
+#'
+#' @return An integrated \code{Seurat} object with the \code{DefaultAssay} set to "RNA". The split RNA layers are automatically re-joined at the end of the pipeline.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Standard Harmony integration across batches using LogNormalization
+#' integrated_seurat <- ProcessSeuratLOG(
+#'   seurat_obj = raw_seurat,
+#'   batch_col = "Batch_ID",
+#'   vars_to_regress = "pct_counts_mt",
+#'   reduction_name = "pca",
+#'   integration_method = "HarmonyIntegration",
+#'   integration_reduction = "integrated.har",
+#'   dims = 1:30,
+#'   interactive_mode = TRUE,
+#'   elbow_plot_dir = "QC_Plots/Integrations/"
+#' )
+#'
+#' # The returned object is ready for downstream UMAP and Clustering:
+#' integrated_seurat <- RunUMAP(integrated_seurat, dims = 1:30, reduction = "integrated.har")
+#' }
 ProcessSeuratLOG <- function(
     seurat_obj,
     batch_col = "batch",
@@ -571,7 +672,7 @@ ProcessSeuratLOG <- function(
   # ====================================================================
 
   message(" Running integration using ", integration_method,
-          " → new reduction: ", integration_reduction)
+          " -> new reduction: ", integration_reduction)
 
   DefaultAssay(seurat_obj) <- "RNA"
 

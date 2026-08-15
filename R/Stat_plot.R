@@ -1,25 +1,52 @@
-#' Title
+#' Calculate, Test, and Visualize Cell Type Abundances
 #'
-#' @param seurat_obj
-#' @param sample_col
-#' @param condition_col
-#' @param celltype_col
-#' @param global_test
-#' @param strict_posthoc
-#' @param pairwise_test
-#' @param p_adjust
-#' @param facet_by_cluster
-#' @param facet_scales
-#' @param pairwise_label
-#' @param y_expand
-#' @param output_dir
-#' @param base_size
-#' @param dpi
+#' Computes the fractional proportion of each cell type per sample from a Seurat object's
+#' metadata. It automatically detects the number of experimental conditions and applies
+#' the appropriate statistical framework using \code{rstatix} (e.g., Kruskal-Wallis + Dunn's
+#' test for >2 conditions, or Mann-Whitney for 2 conditions). It generates highly customized,
+#' publication-ready boxplots with jittered points and automatically positions significance
+#' brackets (\code{ggpubr}) dynamically per facet to avoid overlapping.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data with populated metadata.
+#' @param sample_col Character. The metadata column containing unique sample IDs (used to calculate independent proportions).
+#' @param condition_col Character. The metadata column containing the experimental conditions or groups to compare.
+#' @param celltype_col Character. The metadata column containing cell type or cluster labels.
+#' @param global_test Character. The overarching statistical test to use if there are >2 conditions. Options: "kruskal.test" (uses Dunn's for post-hoc) or "anova" (uses Tukey's HSD). Default is "kruskal.test".
+#' @param strict_posthoc Logical. If TRUE, post-hoc pairwise tests and brackets are ONLY generated for cell types that pass the global test significance threshold (p < 0.05). Default is TRUE.
+#' @param pairwise_test Character. The statistical test to use if there are exactly 2 conditions. Options: "mann_whitney", "wilcoxon_paired", or "t_test". Default is "mann_whitney".
+#' @param p_adjust Character. The multiple testing correction method to pass to \code{rstatix} (e.g., "BH", "bonferroni"). Default is "BH".
+#' @param facet_by_cluster Logical. If TRUE, creates a faceted plot where each panel is a cell type. If FALSE, plots all cell types grouped on the x-axis. Default is TRUE.
+#' @param facet_scales Character. The \code{scales} argument passed to \code{facet_wrap}. Default is "free_y".
+#' @param pairwise_label Character. What to display on the significance brackets. Options: "p.adj" (numeric), "p.format" (raw p-value), or "p.signif" (stars). Default is "p.signif".
+#' @param y_expand Numeric. A multiplier used to expand the top of the Y-axis to ensure significance brackets are not cut off. Default is 0.2.
+#' @param output_dir Character. Directory path where the generated JPEG will be saved. Default is the current working directory (".").
+#' @param base_size Numeric. A baseline metric used to dynamically calculate the width and height of the saved plot based on the number of panels. Default is 3.5.
+#' @param dpi Numeric. The resolution of the saved JPEG. Default is 300.
+#'
+#' @return Returns the generated \code{ggplot} object. The function also saves the plot to disk as a JPEG as a side effect.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Assuming your Seurat object 'my_seurat' has metadata columns:
+#' # "Patient_ID", "Disease_State" (e.g., Healthy, Mild, Severe), and "Cell_Subset"
+#'
+#' abundance_plot <- plot_cell_abundance(
+#'   seurat_obj = my_seurat,
+#'   sample_col = "Patient_ID",
+#'   condition_col = "Disease_State",
+#'   celltype_col = "Cell_Subset",
+#'   global_test = "kruskal.test",
+#'   strict_posthoc = TRUE,
+#'   p_adjust = "BH",
+#'   pairwise_label = "p.signif",
+#'   output_dir = "Results/Abundance"
+#' )
+#'
+#' # Display the plot in the R viewer
+#' print(abundance_plot)
+#' }
 plot_cell_abundance <- function(seurat_obj, sample_col, condition_col, celltype_col,
                                 global_test = "kruskal.test",
                                 strict_posthoc = TRUE, # NEW: Only calculate post-hoc if global is sig (p < 0.05)
@@ -32,6 +59,11 @@ plot_cell_abundance <- function(seurat_obj, sample_col, condition_col, celltype_
                                 output_dir = ".",
                                 base_size = 3.5,
                                 dpi = 300) {
+
+  require(dplyr)
+  require(tidyr)
+  require(rstatix)
+  require(ggpubr)
 
   # =======================================================================
   # AVAILABLE STATISTICAL PARAMETERS:
@@ -303,27 +335,62 @@ plot_cell_abundance <- function(seurat_obj, sample_col, condition_col, celltype_
 
 #--------------------------------------------------
 
-#' Title
+#' Evaluate and Visualize Sample-Level Metadata Statistics
 #'
-#' @param seurat_obj
-#' @param sample_col
-#' @param condition_col
-#' @param metadata_vars
-#' @param continuous_test_n2
-#' @param continuous_test_n3
-#' @param categorical_test
-#' @param strict_posthoc
-#' @param p_adjust
-#' @param add_facet
-#' @param output_dir
-#' @param plot_width
-#' @param plot_height
-#' @param dpi
+#' Automatically computes statistical differences and generates plots for sample-level
+#' metadata covariates (e.g., Age, Gender, Clinical Scores) across experimental conditions.
+#' Crucially, it deduplicates the Seurat metadata down to the unique sample level prior
+#' to testing, preventing false discoveries caused by single-cell pseudoreplication.
+#' The function automatically routes continuous variables to boxplots (using parametric
+#' or non-parametric tests like ANOVA/Kruskal-Wallis) and categorical variables to
+#' stacked proportional bar charts (using Fisher's Exact or Chi-Square tests).
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data with populated metadata.
+#' @param sample_col Character. The metadata column identifying unique biological samples. Used to deduplicate the data so that N equals the number of patients/samples, not the number of cells. Default is "Sample".
+#' @param condition_col Character. The metadata column defining the experimental groups to compare (e.g., "Severity", "Treatment"). Default is "Severity".
+#' @param metadata_vars Character vector. The specific metadata columns to evaluate (e.g., \code{c("Age", "Gender")}). The function will automatically detect if each is continuous or categorical.
+#' @param continuous_test_n2 Character. The statistical test for continuous variables when there are exactly 2 conditions. Options: "mann_whitney" or "t_test". Default is "mann_whitney".
+#' @param continuous_test_n3 Character. The global statistical test for continuous variables when there are >2 conditions. Options: "kruskal.test" or "anova". Default is "kruskal.test".
+#' @param categorical_test Character. The statistical test for categorical variables. Options: "fisher" (recommended for imbalanced/small N) or "chisq". Default is "chisq".
+#' @param strict_posthoc Logical. If TRUE, pairwise post-hoc tests (and plot brackets) are only executed if the global test (e.g., ANOVA/Kruskal) is significant (\code{p < 0.05}). Default is TRUE.
+#' @param p_adjust Character. The multiple testing correction method for post-hoc pairwise comparisons (e.g., "BH", "bonferroni"). Default is "BH".
+#' @param add_facet Character. An optional metadata column to facet the plots and stratify the statistical tests by (e.g., faceting by "Tissue"). Default is NULL.
+#' @param output_dir Character. Directory path where the generated JPEGs will be saved. Default is "metadata_plots".
+#' @param plot_width Numeric. The width of the saved JPEGs in inches. Default is 6.
+#' @param plot_height Numeric. The height of the saved JPEGs in inches. Default is 5.
+#' @param dpi Numeric. The resolution of the saved JPEGs. Default is 300.
+#'
+#' @return A list containing two elements:
+#' \itemize{
+#'   \item \code{plots}: A named list of the generated \code{ggplot} objects.
+#'   \item \code{stats}: A named list of statistical results, where each element contains data frames for both the \code{Global} test and the \code{PostHoc} pairwise tests.
+#' }
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Assuming your metadata has sample-level metrics like Age (numeric)
+#' # and Sex (categorical/character)
+#'
+#' metadata_results <- plot_metadata_stats(
+#'   seurat_obj = my_seurat,
+#'   sample_col = "PatientID",
+#'   condition_col = "Disease_Status",
+#'   metadata_vars = c("Age", "Sex", "BMI", "Smoking_Status"),
+#'   continuous_test_n3 = "anova",  # Use parametric ANOVA for continuous
+#'   categorical_test = "fisher",   # Use Fisher's exact for categorical
+#'   strict_posthoc = TRUE,
+#'   output_dir = "Results/Demographics"
+#' )
+#'
+#' # Extract and view the exact statistical p-values for Age
+#' print(metadata_results$stats[["Age"]]$Global)
+#' print(metadata_results$stats[["Age"]]$PostHoc)
+#'
+#' # View the generated plot for Sex within R
+#' print(metadata_results$plots[["Sex"]])
+#' }
 plot_metadata_stats <- function(seurat_obj,
                                 sample_col = "Sample",
                                 condition_col = "Severity",
@@ -338,6 +405,12 @@ plot_metadata_stats <- function(seurat_obj,
                                 plot_width = 6,
                                 plot_height = 5,
                                 dpi = 300) {
+
+  require(dplyr)
+  require(rstatix)
+  require(ggpubr)
+  require(scales)
+  require(ggsci)
 
   # =======================================================================
   # AVAILABLE STATISTICAL PARAMETERS:

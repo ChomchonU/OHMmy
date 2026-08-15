@@ -2,7 +2,7 @@
 % Please edit documentation in R/General_visualizations.R
 \name{plot_blend_nebulosa}
 \alias{plot_blend_nebulosa}
-\title{Title}
+\title{Generate Combined Blend and Nebulosa Density Plots}
 \usage{
 plot_blend_nebulosa(
   seurat_obj,
@@ -22,8 +22,69 @@ plot_blend_nebulosa(
 )
 }
 \arguments{
-\item{verbose}{}
+\item{seurat_obj}{A Seurat object containing single-cell data.}
+
+\item{cluster_col}{Character. The name of the metadata column to set as the active identity (\code{Idents}).}
+
+\item{gene_pairs}{A list of character vectors, where each vector contains exactly two gene names to visualize (e.g., \code{list(c("GeneA", "GeneB"))}).}
+
+\item{sample_name}{Character. The name of the biological sample, used for plot titles and file naming. Default is "Sample".}
+
+\item{reduction}{Character. The dimensionality reduction to visualize (e.g., "umap.cca"). Default is "umap.cca".}
+
+\item{blend_cols}{Character vector of length 3. Colors for the background, gene 1, and gene 2 in the blend plot. Default is \code{c("lightgrey", "#00ff00", "#ff0000")}.}
+
+\item{blend_threshold}{Numeric. The scaling threshold (0 to 1) for the blended feature plot. Default is 0.1.}
+
+\item{min_cutoff}{Character or Numeric. The lowest expression cutoff before scaling (e.g., "q10"). Default is "q10".}
+
+\item{output_dir}{Character. Directory path where the generated plots will be saved. Default is "Plots_blend_nebulosa".}
+
+\item{save_format}{Character. The file format for the saved plots ("jpg", "png", or "pdf"). Default is "jpg".}
+
+\item{width}{Numeric. The base width of the saved plot. Note: Default is 36 inches to accommodate 6 horizontal panels.}
+
+\item{dpi}{Numeric. The resolution of the saved plots. Default is 300.}
+
+\item{add_timestamp}{Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.}
+
+\item{verbose}{Logical. Whether to print progress messages and display a progress bar. Default is TRUE.}
+}
+\value{
+A list containing four elements:
+\itemize{
+\item \code{plot}: The final combined \code{patchwork} object containing all stacked rows.
+\item \code{rows}: A list of the individual \code{patchwork} row plots for each gene pair.
+\item \code{output_dir}: A character string of the path where the plot was saved.
+\item \code{dimensions}: A list containing the final \code{width} and calculated \code{height} of the saved plot.
+}
 }
 \description{
-Title
+Iterates over a list of gene pairs to generate a comprehensive 6-panel visualization
+per pair. For each pair, it creates a 4-panel Seurat v5-compatible blended feature plot
+(showing individual and co-expression) alongside two \code{Nebulosa} density plots.
+All gene pairs are stacked vertically into a single massive \code{patchwork} figure
+and automatically saved to disk with dynamically calculated dimensions.
+}
+\examples{
+\dontrun{
+# Define pairs of genes to evaluate for co-expression
+target_pairs <- list(
+  c("CD8A", "GZMB"),
+  c("NKG7", "GNLY")
+)
+
+# Generate the master plot
+master_blend <- plot_blend_nebulosa(
+  seurat_obj = my_seurat,
+  cluster_col = "seurat_clusters",
+  gene_pairs = target_pairs,
+  sample_name = "Donor_1",
+  reduction = "umap",
+  save_format = "png"
+)
+
+# Extract just the first row (CD8A vs GZMB) if you want to view it directly in R
+master_blend$rows[[1]]
+}
 }

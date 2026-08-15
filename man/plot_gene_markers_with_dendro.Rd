@@ -2,7 +2,7 @@
 % Please edit documentation in R/Marker_visualizations.R
 \name{plot_gene_markers_with_dendro}
 \alias{plot_gene_markers_with_dendro}
-\title{Title}
+\title{Generate a Gene Marker DotPlot with Aligned Dendrogram}
 \usage{
 plot_gene_markers_with_dendro(
   df,
@@ -19,8 +19,64 @@ plot_gene_markers_with_dendro(
 )
 }
 \arguments{
-\item{min_height}{}
+\item{df}{A data frame containing differential expression results. Must contain \code{gene}, \code{cluster}, \code{avg_log2FC}, \code{diff}, and the column specified in \code{id_col}.}
+
+\item{genes}{Character vector or string. Can be a specific vector of gene names (e.g., \code{c("CD4", "CD8A")}) or a single regular expression string (e.g., \code{"^TR[AB][VD]"}).}
+
+\item{id_col}{Character. The name of the column in \code{df} representing the experimental condition or identity to cluster on the y-axis. Default is "short_id".}
+
+\item{output_dir}{Character. Directory path where the generated PNGs will be saved. Default is "Markers_Plots".}
+
+\item{plot_title}{Character. The title displayed at the top of the dot plot. Default is "Marker Genes Plot".}
+
+\item{dendro_side}{Character. Which side of the dot plot to attach the dendrogram. Options are "left" or "right". Default is "right".}
+
+\item{label_space}{Numeric. The horizontal padding multiplier for the text labels on the dendrogram to prevent truncation. Default is 1.}
+
+\item{width_scale}{Numeric. A scaling multiplier to dynamically calculate plot width based on the number of genes. Default is 0.5.}
+
+\item{height_scale}{Numeric. A scaling multiplier to dynamically calculate plot height based on the number of conditions (\code{id_col}). Default is 0.5.}
+
+\item{min_width}{Numeric. The absolute minimum width (in inches) for the saved plots. Default is 5.}
+
+\item{min_height}{Numeric. The absolute minimum height (in inches) for the saved plots. Default is 4.}
+}
+\value{
+Invisibly returns a list containing three \code{patchwork}/\code{ggplot} objects:
+\itemize{
+\item \code{dotplot}: The gene expression dot plot.
+\item \code{dendrogram}: The hierarchical clustering dendrogram.
+\item \code{combined}: The side-by-side aligned layout of both plots.
+}
 }
 \description{
-Title
+Filters a differential expression data frame for target genes (using either a specific
+vector of genes or a regular expression), calculates average expression metrics, and
+performs Ward.D2 hierarchical clustering on the specified condition/identity column.
+It generates a customized dot plot (with clusters labeled directly on the points)
+and aligns it side-by-side with the hierarchical dendrogram using \code{patchwork}.
+The individual components and the combined layout are automatically saved to disk.
+}
+\examples{
+\dontrun{
+# Assuming 'marker_results' is a dataframe combining FindMarkers output
+# across multiple datasets or integration methods.
+
+# Example 1: Using a specific list of T cell exhaustion and activation markers
+plot_gene_markers_with_dendro(
+  df = marker_results,
+  genes = c("PDCD1", "HAVCR2", "LAG3", "TOX", "IFNG", "GZMB"),
+  id_col = "integration_method",
+  plot_title = "Exhaustion Markers Across Integrations",
+  dendro_side = "left"
+)
+
+# Example 2: Using a Regex search to pull all Killer-cell immunoglobulin-like receptors
+plot_gene_markers_with_dendro(
+  df = marker_results,
+  genes = "^KIR",
+  id_col = "Condition",
+  output_dir = "NK_Cell_Analysis"
+)
+}
 }

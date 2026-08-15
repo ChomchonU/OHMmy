@@ -2,7 +2,7 @@
 % Please edit documentation in R/General_visualizations.R
 \name{plot_cluster_distributions}
 \alias{plot_cluster_distributions}
-\title{Title}
+\title{Plot Cell Counts and Proportions Across Clusters and Batches}
 \usage{
 plot_cluster_distributions(
   seurat_obj,
@@ -14,8 +14,43 @@ plot_cluster_distributions(
 )
 }
 \arguments{
-\item{file_prefix}{}
+\item{seurat_obj}{A Seurat object containing single-cell data.}
+
+\item{cluster_col}{Character. The name of the metadata column representing cell clusters or identity classes. Default is "label_T3_log_rpca".}
+
+\item{batch_col}{Character. The name of the metadata column representing batches, samples, or conditions (e.g., "exist_GTS"). Default is "exist_GTS".}
+
+\item{output_dir}{Character. The directory path where the generated JPEGs will be saved. Default is a specific local directory path.}
+
+\item{file_prefix}{Character. A prefix string to append to the saved filenames to help identify the analysis run. Default is "ind_label".}
+}
+\value{
+Invisibly returns a list containing two \code{patchwork} plot objects:
+\itemize{
+\item \code{proportions}: The combined plot showing relative percentages.
+\item \code{counts}: The combined plot showing absolute cell counts.
+}
 }
 \description{
-Title
+Generates stacked bar charts to visualize the distribution of cells between two
+metadata variables (typically cell clusters and experimental batches/conditions).
+It calculates and plots both absolute cell counts and relative percentages (proportions),
+assembling them into two separate dual-panel figures using \code{patchwork}.
+The resulting plots are automatically saved to the specified output directory.
+}
+\examples{
+\dontrun{
+# Compare CD8 T cell distributions across different disease states or batches
+distribution_plots <- plot_cluster_distributions(
+  seurat_obj = my_seurat,
+  cluster_col = "CD8_Subsets",
+  batch_col = "Disease_Status",
+  output_dir = "Plots_Distributions",
+  file_prefix = "CD8_analysis"
+)
+
+# The function saves the JPEGs automatically, but you can also view them in R:
+distribution_plots$proportions
+distribution_plots$counts
+}
 }

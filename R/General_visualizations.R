@@ -1,22 +1,53 @@
-#' Title
+#' Generate Paired Feature and Density Plots
 #'
-#' @param seurat_obj
-#' @param cluster_col
-#' @param genes_list
-#' @param sample_name
-#' @param reduction
-#' @param viridis_palette
-#' @param output_dir
-#' @param save_format
-#' @param width
-#' @param dpi
-#' @param add_timestamp
-#' @param verbose
+#' This function takes a Seurat object and a named list of features (which can
+#' include both gene names and metadata columns). For each feature, it generates
+#' a side-by-side composite of a standard Seurat `FeaturePlot` and a custom density
+#' plot. The resulting interleaved plots are stitched together using `patchwork`
+#' and automatically saved to disk.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data.
+#' @param cluster_col Character. The name of the metadata column to set as the active identity (\code{Idents}).
+#' @param genes_list A named list where each element is a character vector of features (e.g., genes or metadata columns). The names of the list (e.g., "T_cell_markers") are used for plot titles and file naming.
+#' @param sample_name Character. The name of the biological sample, used for plot titles and file naming. Default is "Sample".
+#' @param reduction Character. The dimensionality reduction to use for plotting (e.g., "umap", "umap.cca"). Default is "umap.cca".
+#' @param viridis_palette Character. The viridis color palette to use for the density plots (e.g., "viridis", "magma", "plasma"). Default is "viridis".
+#' @param output_dir Character. The directory path where the generated plots will be saved. Default is "Plots_feat_dens".
+#' @param save_format Character. The file format for the saved plots. Options are "jpg", "png", or "pdf". Default is "jpg".
+#' @param width Numeric. The base width multiplier for the saved plot dimensions. Default is 20.
+#' @param dpi Numeric. The resolution of the saved plots. Default is 300.
+#' @param add_timestamp Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.
+#' @param verbose Logical. Whether to display progress bars and console messages. Default is TRUE.
+#'
+#' @return A list containing two elements:
+#' \itemize{
+#'   \item \code{combined_plots}: A named list of the generated \code{patchwork} plot objects, where names correspond to the names of \code{genes_list}.
+#'   \item \code{output_dir}: A character string of the path where the plots were saved.
+#' }
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Define a named list of features containing both genes and metadata
+#' marker_list <- list(
+#'   T_Cells = c("CD3E", "CD4", "CD8A", "percent.mt"),
+#'   NK_Cells = c("NCAM1", "NKG7", "GNLY")
+#' )
+#'
+#' # Run the plotting function
+#' plot_results <- plot_combined(
+#'   seurat_obj = my_seurat,
+#'   cluster_col = "seurat_clusters",
+#'   genes_list = marker_list,
+#'   sample_name = "Donor_1",
+#'   reduction = "umap",
+#'   save_format = "png"
+#' )
+#'
+#' # Access a specific plot directly in R without opening the saved file
+#' plot_results$combined_plots$T_Cells
+#' }
 plot_combined <- function(seurat_obj,
                           cluster_col,
                           genes_list , # Changed from genes_list to reflect it takes metadata too
@@ -76,14 +107,14 @@ plot_combined <- function(seurat_obj,
         label = TRUE,
         repel = TRUE,
         order = TRUE
-      ) + ggtitle(paste(feat, "– Feature"))
+      ) + ggtitle(paste(feat, "- Feature"))
 
       p_dens <- Plot_Density_Custom(
         seurat_obj,
         reduction = reduction,
         features = feat,
         viridis_palette = viridis_palette
-      ) + ggtitle(paste(feat, "– Density"))
+      ) + ggtitle(paste(feat, "- Density"))
 
       list(p_feat, p_dens)
     })
@@ -91,7 +122,7 @@ plot_combined <- function(seurat_obj,
     # Flatten: [feat1, dens1, feat2, dens2, feat3, dens3, ...]
     plot_list_flat <- unlist(interleaved_plots, recursive = FALSE)
 
-    # 6 cols → 3 features per row; each feature takes 2 slots (feat + dens)
+    # 6 cols -> 3 features per row; each feature takes 2 slots (feat + dens)
     ncol   <- 6
     nrow   <- ceiling(n_features / 3)
     height <- nrow * (width / ncol) * 2  # approximate square panels
@@ -139,24 +170,49 @@ sanitize <- function(x) gsub("[^A-Za-z0-9_.-]+", "_", x)
 
 # ----------------------------------------------------
 
-#' Title
+#' Generate Violin Plots for QC Metrics and Gene Expression
 #'
-#' @param seurat_obj
-#' @param sample_name
-#' @param qc_meta_features
-#' @param gene_features
-#' @param res_col
-#' @param assay
-#' @param output_dir
-#' @param save_format
-#' @param width
-#' @param dpi
-#' @param add_timestamp
+#' This function generates highly customized violin plots for both quality control
+#' (QC) metadata and specific gene expression markers across cell clusters.
+#' It enhances standard Seurat `VlnPlot` outputs by adding faded, size-adjusted
+#' jittered points to better visualize true single-cell distributions. Plots are
+#' combined via `patchwork` and safely saved to disk with an automatic PDF fallback.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data.
+#' @param sample_name Character. The name of the biological sample, used for plot titles and file naming. Default is "Sample".
+#' @param qc_meta_features Character vector. Metadata columns to plot for quality control (e.g., "nCount_RNA", "nFeature_RNA"). Default is c("nCount_RNA", "nFeature_RNA", "pct_counts_mt").
+#' @param gene_features Character vector. Specific genes to visualize across clusters. Default is NULL.
+#' @param res_col Character. The metadata column containing cluster assignments or cell identities. Default is "seurat_clusters".
+#' @param assay Character. The assay to pull gene expression data from. Default is "RNA".
+#' @param output_dir Character. Directory path where the generated plots will be saved. Default is "Plots_violin_qc".
+#' @param save_format Character. The file format for the saved plots ("jpg", "png", or "pdf"). Default is "jpg".
+#' @param width Numeric. The base width of the saved plot. Default is 20.
+#' @param dpi Numeric. The resolution of the saved plots. Default is 300.
+#' @param add_timestamp Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.
+#'
+#' @return Invisibly returns \code{NULL}. The primary purpose of this function is its side effect of saving combined plots to the specified output directory.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Plot basic QC metrics across clusters
+#' plot_violin_qc_single(
+#'   seurat_obj = my_seurat,
+#'   sample_name = "Donor_1",
+#'   res_col = "seurat_clusters"
+#' )
+#'
+#' # Plot both QC metrics AND specific T/NK cell markers
+#' plot_violin_qc_single(
+#'   seurat_obj = my_seurat,
+#'   sample_name = "Donor_1",
+#'   qc_meta_features = c("nCount_RNA", "nFeature_RNA", "percent.mt"),
+#'   gene_features = c("CD3E", "CD8A", "NKG7", "GNLY"),
+#'   res_col = "CellType",
+#'   save_format = "png"
+#' )
+#' }
 plot_violin_qc_single <- function(seurat_obj,
                                   sample_name = "Sample",
                                   qc_meta_features = c("nCount_RNA", "nFeature_RNA", "pct_counts_mt"),
@@ -284,7 +340,7 @@ plot_violin_qc_single <- function(seurat_obj,
 
       tryCatch({
         ggsave(file_path, plot = p_gene,
-               width = 20,  # fixed 2 cols (2 × 8)
+               width = 20,  # fixed 2 cols (2  8)
                height = height,
                dpi = dpi, limitsize = FALSE)
         if (file.exists(file_path)) {
@@ -310,27 +366,46 @@ plot_violin_qc_single <- function(seurat_obj,
 
 # ------------------------------------------------
 
-#' Title
+#' Generate Dimensionality Reduction Plots by Metadata Factors
 #'
-#' @param seurat_obj
-#' @param factors
-#' @param sample_name
-#' @param reduction
-#' @param raster
-#' @param label
-#' @param repel
-#' @param output_dir
-#' @param plot_format
-#' @param width
-#' @param height
-#' @param dpi
-#' @param add_timestamp
-#' @param verbose
+#' This function iterates through a specified list of metadata columns (factors)
+#' in a Seurat object and generates a dimensionality reduction plot (e.g., UMAP)
+#' for each. It automatically handles filename sanitization, saves the plots to
+#' a designated directory, and provides console progress updates.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data and the specified reduction.
+#' @param factors Character vector. The names of the metadata columns to group the cells by (e.g., c("seurat_clusters", "Phase")).
+#' @param sample_name Character. The name of the biological sample, used for plot titles and file naming. Default is "Sample".
+#' @param reduction Character. The dimensionality reduction to visualize (e.g., "umap", "umap.har" for Harmony). Default is "umap.har".
+#' @param raster Logical. Whether to rasterize the points (useful for massive datasets to speed up plotting). Default is FALSE.
+#' @param label Logical. Whether to label the clusters/groups directly on the plot. Default is TRUE.
+#' @param repel Logical. Whether to repel the labels to prevent overlapping. Default is TRUE.
+#' @param output_dir Character. Directory path where the generated plots will be saved. Default is "Plots_umap".
+#' @param plot_format Character. The file format for the saved plots ("jpg", "png", or "pdf"). Default is "jpg".
+#' @param width Numeric. The width of the saved plot. Default is 10.
+#' @param height Numeric. The height of the saved plot. Default is 10.
+#' @param dpi Numeric. The resolution of the saved plots. Default is 300.
+#' @param add_timestamp Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.
+#' @param verbose Logical. Whether to print progress messages, display a progress bar, and print the plots to the console. Default is TRUE.
+#'
+#' @return Invisibly returns a named list of the generated \code{ggplot} objects, where names correspond to the provided \code{factors}.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Plot UMAPs colored by multiple different metadata factors
+#' my_plots <- PlotDimByFactors(
+#'   seurat_obj = my_seurat,
+#'   factors = c("seurat_clusters", "CellType", "Condition"),
+#'   sample_name = "Donor_1",
+#'   reduction = "umap",
+#'   plot_format = "png"
+#' )
+#'
+#' # The function saves the plots to disk, but you can also view one in R:
+#' my_plots$CellType
+#' }
 PlotDimByFactors <- function(
     seurat_obj,
     factors,                        # <-- moved up: now 2nd arg
@@ -397,7 +472,7 @@ PlotDimByFactors <- function(
       label = label,
       repel = repel
     ) +
-      ggtitle(paste0(sample_name, " – ", fac))
+      ggtitle(paste0(sample_name, " - ", fac))
 
     plots[[fac]] <- p
     if (verbose) print(p)
@@ -438,16 +513,37 @@ PlotDimByFactors <- function(
 
 # -------------------------------------------
 
-# ── Palette helper (add this alongside sanitize()) ────────────────────────────
-#' Title
+# -- Palette helper (add this alongside sanitize()) ----------------------------
+#' Generate a Discrete Color Palette for Clustering
 #'
-#' @param n
-#' @param palette
+#' Creates a maximally distinct color palette tailored for high-dimensional single-cell
+#' clustering visualizations. Users can choose from curated categorical palettes
+#' (Kelly, Alphabet, Polychrome) or an "auto" mode that combines multiple \code{RColorBrewer}
+#' sets. If the requested number of colors (\code{n}) exceeds the available base colors
+#' in a given palette, the function automatically interpolates using \code{colorRampPalette}
+#' to generate the required amount.
 #'
-#' @returns
+#' @param n Integer. The number of distinct colors required (e.g., the number of Seurat clusters).
+#' @param palette Character. The specific discrete palette to use. Options are \code{"auto"} (default), \code{"kelly"}, \code{"alphabet"}, or \code{"polychrome"}.
+#'
+#' @return A character vector of length \code{n} containing hexadecimal color codes.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Generate a 12-color palette using the default hybrid RColorBrewer sets
+#' auto_colors <- make_cluster_palette(n = 12, palette = "auto")
+#'
+#' # Generate a 20-color palette using the Kelly distinct color list
+#' kelly_colors <- make_cluster_palette(n = 20, palette = "kelly")
+#'
+#' # Pass the colors directly into a Seurat plotting function
+#' DimPlot(my_seurat, cols = make_cluster_palette(15, "alphabet"))
+#'
+#' # Requesting 50 colors will automatically trigger interpolation
+#' massive_palette <- make_cluster_palette(n = 50, palette = "polychrome")
+#' }
 make_cluster_palette <- function(n, palette = "auto") {
 
   # --- Curated 36-colour palette combining Kelly + Alphabet + extras ----------
@@ -499,34 +595,68 @@ make_cluster_palette <- function(n, palette = "auto") {
 
 #----------------------------------------------
 
-#' Title
+#' Calculate and Plot Gene-Pair Correlations Across Clusters
 #'
-#' @param seurat_obj
-#' @param cluster_col
-#' @param gene_pairs
-#' @param sample_name
-#' @param cor_method
-#' @param quantile_thresh
-#' @param fill_palette
-#' @param output_dir
-#' @param save_format
-#' @param width
-#' @param height
-#' @param dpi
-#' @param add_timestamp
-#' @param verbose
+#' Computes the expression correlation (e.g., Pearson or Spearman) between specified
+#' pairs of genes within each cell cluster. To mitigate zero-inflation artifacts common
+#' in scRNA-seq data, it filters cells based on a defined quantile expression threshold
+#' before calculating the correlation. The results are visualized as faceted bar plots
+#' and automatically saved to disk.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell expression data.
+#' @param cluster_col Character. The name of the metadata column defining cell clusters to group the correlations by.
+#' @param gene_pairs A list of character vectors, where each vector contains exactly two gene names to correlate (e.g., \code{list(c("GeneA", "GeneB"))}).
+#' @param sample_name Character. The name of the biological sample, used for plot titles and file naming. Default is "Sample".
+#' @param cor_method Character. The correlation method to use, passed to \code{cor()}. Options include "pearson", "spearman", or "kendall". Default is "pearson".
+#' @param quantile_thresh Numeric. The expression quantile threshold (0 to 1) used to filter out lowly expressing cells before correlation calculations. Default is 0.01.
+#' @param fill_palette Character. The discrete color palette to pass to \code{make_cluster_palette()}. Default is "auto".
+#' @param output_dir Character. Directory path where the generated plots will be saved. Default is "Plots_gene_pair_cor".
+#' @param save_format Character. The file format for the saved plots ("jpg", "png", or "pdf"). Default is "jpg".
+#' @param width Numeric. The width of the saved plot. Default is 14.
+#' @param height Numeric. The height of the saved plot. Default is 8.
+#' @param dpi Numeric. The resolution of the saved plots. Default is 300.
+#' @param add_timestamp Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.
+#' @param verbose Logical. Whether to print progress messages and display a progress bar. Default is TRUE.
+#'
+#' @return A list containing three elements:
+#' \itemize{
+#'   \item \code{plot}: The generated \code{ggplot} object containing the faceted bar charts.
+#'   \item \code{data}: A \code{tibble} (data frame) containing the calculated correlation values and cell counts per cluster for each valid gene pair.
+#'   \item \code{output_dir}: A character string of the path where the plot was saved.
+#' }
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Define pairs of genes expected to co-express in specific subsets
+#' t_nk_pairs <- list(
+#'   c("CD8A", "GZMB"),   # Cytotoxic T cell markers
+#'   c("NKG7", "GNLY"),   # NK cell effectors
+#'   c("CD4", "IL7R")     # Naive/Memory CD4 T cell markers
+#' )
+#'
+#' # Run the correlation analysis across predefined clusters
+#' cor_results <- plot_gene_pair_correlations(
+#'   seurat_obj = my_seurat,
+#'   cluster_col = "CellType_Subset",
+#'   gene_pairs = t_nk_pairs,
+#'   sample_name = "Donor_1",
+#'   cor_method = "spearman",
+#'   quantile_thresh = 0.05,
+#'   save_format = "png"
+#' )
+#'
+#' # View the raw correlation dataframe directly
+#' head(cor_results$data)
+#' }
 plot_gene_pair_correlations <- function(seurat_obj,
                                         cluster_col,
                                         gene_pairs,
                                         sample_name = "Sample",
                                         cor_method = "pearson",
                                         quantile_thresh = 0.01,
-                                        fill_palette = "auto",   # ← was "Set2"
+                                        fill_palette = "auto",   #  was "Set2"
                                         output_dir = "Plots_gene_pair_cor",
                                         save_format = "jpg",
                                         width = 14,
@@ -540,7 +670,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
   require(dplyr)
   require(lubridate)
 
-  # ── Validation ────────────────────────────────────────────────────────────────
+  # -- Validation ----------------------------------------------------------------
   if (!is.list(gene_pairs) || !all(lengths(gene_pairs) == 2)) {
     stop("`gene_pairs` must be a list of character vectors, each of length 2.")
   }
@@ -548,7 +678,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
     stop("`cluster_col` '", cluster_col, "' not found in Seurat object metadata.")
   }
 
-  # ── Setup ─────────────────────────────────────────────────────────────────────
+  # -- Setup ---------------------------------------------------------------------
   Idents(seurat_obj) <- cluster_col
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   timestamp <- if (isTRUE(add_timestamp)) format(Sys.time(), "%Y-%m-%d_%H-%M-%S") else NULL
@@ -578,12 +708,12 @@ plot_gene_pair_correlations <- function(seurat_obj,
     pb <- txtProgressBar(min = 0, max = length(valid_pairs), style = 3)
   }
 
-  # ── Fetch expression + cluster data once ──────────────────────────────────────
+  # -- Fetch expression + cluster data once --------------------------------------
   fetch_genes <- unique(unlist(valid_pairs))
   exp_data    <- FetchData(seurat_obj, vars = c(fetch_genes, cluster_col))
   colnames(exp_data)[ncol(exp_data)] <- "Cluster"
 
-  # ── Loop over pairs ───────────────────────────────────────────────────────────
+  # -- Loop over pairs -----------------------------------------------------------
   cor_results <- list()
 
   for (i in seq_along(valid_pairs)) {
@@ -613,7 +743,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
 
   final_cor_df <- dplyr::bind_rows(cor_results)
 
-  # ── Plot ───────────────────────────────────────────────────────────────────────
+  # -- Plot -----------------------------------------------------------------------
   n_clusters   <- length(unique(final_cor_df$Cluster))
   cluster_cols <- make_cluster_palette(n_clusters, palette = fill_palette)
 
@@ -628,7 +758,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
     scale_fill_manual(values = cluster_cols) +
     theme_minimal() +
     labs(
-      title    = paste(sample_name, "– Gene Pair Correlations by Cluster"),
+      title    = paste(sample_name, "- Gene Pair Correlations by Cluster"),
       subtitle = paste0("Method: ", cor_method,
                         "  |  Quantile threshold: ", quantile_thresh),
       x = "Cluster",
@@ -644,7 +774,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
       panel.border     = element_rect(color = "black", fill = NA, linewidth = 0.5)
     )
 
-  # ── Save ───────────────────────────────────────────────────────────────────────
+  # -- Save -----------------------------------------------------------------------
   file_out <- file.path(output_dir, paste0(
     paste(
       sanitize(sample_name),
@@ -662,34 +792,57 @@ plot_gene_pair_correlations <- function(seurat_obj,
     message("Plot saved to: ", file_out)
   }
 
-  return(list(          # ← must be AFTER ggsave and the verbose message
+  return(list(          #  must be AFTER ggsave and the verbose message
     plot       = p,
     data       = final_cor_df,
     output_dir = output_dir
   ))
-}                       # ← closing brace of the function
+}                       #  closing brace of the function
 
 #------------------------------------------
 
-# ── Private helper: Seurat-v5-safe blend plot ──────────────────────────────────
+# -- Private helper: Seurat-v5-safe blend plot ----------------------------------
 # Returns a patchwork of 4 panels (gene1 | gene2 | blend | colour-key),
 # matching the shape that FeaturePlot(blend=TRUE, combine=TRUE) used to give.
-#' Title
+#' Generate a 4-Panel Blended Feature Plot (Seurat v5 Compatible)
 #'
-#' @param seurat_obj
-#' @param gene1
-#' @param gene2
-#' @param reduction
-#' @param cols
-#' @param blend_threshold
-#' @param min_cutoff
-#' @param gamma
-#' @param pt_size
+#' Replicates and enhances the behavior of Seurat's original \code{FeaturePlot(blend = TRUE, combine = TRUE)}
+#' functionality, with built-in compatibility for Seurat v5's new \code{layer} architecture
+#' (while maintaining a v4 \code{slot} fallback). It computes normalized, thresholded expression
+#' and generates a 1x4 \code{patchwork} grid containing: individual expression of gene 1,
+#' individual expression of gene 2, their blended co-expression on the embedding, and a customized
+#' 2D color threshold key.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data.
+#' @param gene1 Character. The name of the first feature/gene to plot (mapped to the x-axis of the color key).
+#' @param gene2 Character. The name of the second feature/gene to plot (mapped to the y-axis of the color key).
+#' @param reduction Character. The dimensionality reduction to visualize (e.g., "umap", "pca").
+#' @param cols Character vector of length 3. Specifies the colors for the background (double-negative), gene 1, and gene 2. Default is c("lightgrey", "#00ff00", "#ff0000").
+#' @param blend_threshold Numeric. A scaling threshold (0 to 1) below which normalized expression values are visually suppressed to 0. Default is 0.1.
+#' @param min_cutoff Character or Numeric. The lowest expression cutoff (e.g., "q10" for the 10th quantile). Values below this are set to zero before scaling. Default is "q10".
+#' @param gamma Numeric. The exponent used to adjust the brightness and saturation of the blended colors. Default is 1.
+#' @param pt_size Numeric. The point size for cells in the scatter plots. Default is 1.
+#'
+#' @return A \code{patchwork} object containing four aligned \code{ggplot} panels.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Visualize co-expression of cytotoxic markers
+#' blend_plot <- .blend_feature_plot_v5(
+#'   seurat_obj = my_seurat,
+#'   gene1 = "CD8A",
+#'   gene2 = "GZMB",
+#'   reduction = "umap",
+#'   cols = c("lightgrey", "#ff0000", "#0000ff"), # Custom red and blue blend
+#'   blend_threshold = 0.15,
+#'   pt_size = 0.5
+#' )
+#'
+#' # Display the 4-panel plot
+#' print(blend_plot)
+#' }
 .blend_feature_plot_v5 <- function(seurat_obj, gene1, gene2, reduction,
                                    cols            = c("lightgrey", "#00ff00", "#ff0000"),
                                    blend_threshold = 0.1,
@@ -697,13 +850,13 @@ plot_gene_pair_correlations <- function(seurat_obj,
                                    gamma           = 1,
                                    pt_size         = 1) {
 
-  # ── Coordinates ───────────────────────────────────────────────────────────────
+  # -- Coordinates ---------------------------------------------------------------
   emb       <- Embeddings(seurat_obj, reduction = reduction)
   dim_names <- colnames(emb)[1:2]
   df        <- as.data.frame(emb[, 1:2])
   colnames(df) <- c("DIM1", "DIM2")
 
-  # ── Expression (v5 uses layer=, v4 used slot=) ────────────────────────────────
+  # -- Expression (v5 uses layer=, v4 used slot=) --------------------------------
   expr_mat <- tryCatch(
     GetAssayData(seurat_obj, layer = "data"),
     error = function(e) GetAssayData(seurat_obj, slot = "data")
@@ -712,7 +865,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
   e1 <- as.numeric(expr_mat[gene1, rownames(df)])
   e2 <- as.numeric(expr_mat[gene2, rownames(df)])
 
-  # ── Apply quantile min-cutoff ─────────────────────────────────────────────────
+  # -- Apply quantile min-cutoff -------------------------------------------------
   apply_cutoff <- function(x, co) {
     if (is.character(co) && grepl("^q", co)) {
       q      <- as.numeric(sub("q", "", co)) / 100
@@ -724,23 +877,23 @@ plot_gene_pair_correlations <- function(seurat_obj,
   e1 <- apply_cutoff(e1, min_cutoff)
   e2 <- apply_cutoff(e2, min_cutoff)
 
-  # ── Scale each gene to [0, 1] ─────────────────────────────────────────────────
+  # -- Scale each gene to [0, 1] -------------------------------------------------
   scale01 <- function(x) { mx <- max(x, na.rm = TRUE); if (mx == 0) x else x / mx }
   s1 <- scale01(e1)
   s2 <- scale01(e2)
 
-  # ── Remap: values below threshold → 0, threshold → 0, max → 1 ────────────────
+  # -- Remap: values below threshold -> 0, threshold -> 0, max -> 1 ----------------
   remap <- function(x) pmax(0, (x - blend_threshold) / (1 - blend_threshold))
   s1r <- remap(s1)
   s2r <- remap(s2)
 
-  # ── Quantize remapped values to 10 steps ─────────────────────────────────────
+  # -- Quantize remapped values to 10 steps -------------------------------------
   steps <- 10L
   snap  <- function(x) ceiling(x * steps) / steps
   s1q <- snap(s1r)
   s2q <- snap(s2r)
 
-  # ── Colour setup ──────────────────────────────────────────────────────────────
+  # -- Colour setup --------------------------------------------------------------
   col_neither <- cols[1]
   col_g1      <- cols[2]
   col_g2      <- cols[3]
@@ -748,7 +901,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
   rgb_g1      <- col2rgb(col_g1)      / 255
   rgb_g2      <- col2rgb(col_g2)      / 255
 
-  # ── Blend function ────────────────────────────────────────────────────────────
+  # -- Blend function ------------------------------------------------------------
   blend_one <- function(v1, v2) {
     if (v1 == 0 && v2 == 0) return(col_neither)
 
@@ -762,7 +915,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
     rgb(final[1], final[2], final[3])
   }
 
-  # ── Populate data frame ───────────────────────────────────────────────────────
+  # -- Populate data frame -------------------------------------------------------
   df$gene1     <- s1r
   df$gene2     <- s2r
   df$gene1q    <- s1q
@@ -772,7 +925,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
   df$expressed <- (s1q > 0) | (s2q > 0)
   df <- df[order(df$expressed, s1q + s2q), ]   # background cells plotted first
 
-  # ── Shared theme ──────────────────────────────────────────────────────────────
+  # -- Shared theme --------------------------------------------------------------
   base_thm <- theme_classic(base_size = 10) + theme(
     plot.title        = element_text(hjust = 0.5, face = "bold", size = 11),
     legend.position   = "none",
@@ -780,24 +933,24 @@ plot_gene_pair_correlations <- function(seurat_obj,
   )
   ax <- labs(x = dim_names[1], y = dim_names[2])
 
-  # ── Panel 1: gene 1 ──────────────────────────────────────────────────────────
+  # -- Panel 1: gene 1 ----------------------------------------------------------
   p1 <- ggplot(df[order(df$gene1), ], aes(x = DIM1, y = DIM2, colour = gene1)) +
     geom_point(size = pt_size, stroke = 0) +
     scale_colour_gradient(low = col_neither, high = col_g1, limits = c(0, 1)) +
     labs(title = gene1) + ax + base_thm
 
-  # ── Panel 2: gene 2 ──────────────────────────────────────────────────────────
+  # -- Panel 2: gene 2 ----------------------------------------------------------
   p2 <- ggplot(df[order(df$gene2), ], aes(x = DIM1, y = DIM2, colour = gene2)) +
     geom_point(size = pt_size, stroke = 0) +
     scale_colour_gradient(low = col_neither, high = col_g2, limits = c(0, 1)) +
     labs(title = gene2) + ax + base_thm
 
-  # ── Panel 3: blend ────────────────────────────────────────────────────────────
+  # -- Panel 3: blend ------------------------------------------------------------
   p_bl <- ggplot(df, aes(x = DIM1, y = DIM2)) +
     geom_point(colour = df$blend_col, size = pt_size, stroke = 0) +
     labs(title = paste(gene1, "+", gene2)) + ax + base_thm
 
-  # ── Panel 4: Colour key (Matching full 0-1 scale with threshold mask) ─────────
+  # -- Panel 4: Colour key (Matching full 0-1 scale with threshold mask) ---------
   # Generate a high-res grid over the ORIGINAL 0-1 scale
   leg_vals <- seq(0, 1, length.out = 100)
   leg_df   <- expand.grid(g1 = leg_vals, g2 = leg_vals)
@@ -828,28 +981,61 @@ plot_gene_pair_correlations <- function(seurat_obj,
 
 #--------------------------------------------------------------------------------------
 
-# ── Main function (only the FeaturePlot call is changed) ───────────────────────
-#' Title
+# -- Main function (only the FeaturePlot call is changed) -----------------------
+#' Generate Combined Blend and Nebulosa Density Plots
 #'
-#' @param seurat_obj
-#' @param cluster_col
-#' @param gene_pairs
-#' @param sample_name
-#' @param reduction
-#' @param blend_cols
-#' @param blend_threshold
-#' @param min_cutoff
-#' @param output_dir
-#' @param save_format
-#' @param width
-#' @param dpi
-#' @param add_timestamp
-#' @param verbose
+#' Iterates over a list of gene pairs to generate a comprehensive 6-panel visualization
+#' per pair. For each pair, it creates a 4-panel Seurat v5-compatible blended feature plot
+#' (showing individual and co-expression) alongside two \code{Nebulosa} density plots.
+#' All gene pairs are stacked vertically into a single massive \code{patchwork} figure
+#' and automatically saved to disk with dynamically calculated dimensions.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data.
+#' @param cluster_col Character. The name of the metadata column to set as the active identity (\code{Idents}).
+#' @param gene_pairs A list of character vectors, where each vector contains exactly two gene names to visualize (e.g., \code{list(c("GeneA", "GeneB"))}).
+#' @param sample_name Character. The name of the biological sample, used for plot titles and file naming. Default is "Sample".
+#' @param reduction Character. The dimensionality reduction to visualize (e.g., "umap.cca"). Default is "umap.cca".
+#' @param blend_cols Character vector of length 3. Colors for the background, gene 1, and gene 2 in the blend plot. Default is \code{c("lightgrey", "#00ff00", "#ff0000")}.
+#' @param blend_threshold Numeric. The scaling threshold (0 to 1) for the blended feature plot. Default is 0.1.
+#' @param min_cutoff Character or Numeric. The lowest expression cutoff before scaling (e.g., "q10"). Default is "q10".
+#' @param output_dir Character. Directory path where the generated plots will be saved. Default is "Plots_blend_nebulosa".
+#' @param save_format Character. The file format for the saved plots ("jpg", "png", or "pdf"). Default is "jpg".
+#' @param width Numeric. The base width of the saved plot. Note: Default is 36 inches to accommodate 6 horizontal panels.
+#' @param dpi Numeric. The resolution of the saved plots. Default is 300.
+#' @param add_timestamp Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.
+#' @param verbose Logical. Whether to print progress messages and display a progress bar. Default is TRUE.
+#'
+#' @return A list containing four elements:
+#' \itemize{
+#'   \item \code{plot}: The final combined \code{patchwork} object containing all stacked rows.
+#'   \item \code{rows}: A list of the individual \code{patchwork} row plots for each gene pair.
+#'   \item \code{output_dir}: A character string of the path where the plot was saved.
+#'   \item \code{dimensions}: A list containing the final \code{width} and calculated \code{height} of the saved plot.
+#' }
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Define pairs of genes to evaluate for co-expression
+#' target_pairs <- list(
+#'   c("CD8A", "GZMB"),
+#'   c("NKG7", "GNLY")
+#' )
+#'
+#' # Generate the master plot
+#' master_blend <- plot_blend_nebulosa(
+#'   seurat_obj = my_seurat,
+#'   cluster_col = "seurat_clusters",
+#'   gene_pairs = target_pairs,
+#'   sample_name = "Donor_1",
+#'   reduction = "umap",
+#'   save_format = "png"
+#' )
+#'
+#' # Extract just the first row (CD8A vs GZMB) if you want to view it directly in R
+#' master_blend$rows[[1]]
+#' }
 plot_blend_nebulosa <- function(seurat_obj,
                                 cluster_col,
                                 gene_pairs,
@@ -870,13 +1056,13 @@ plot_blend_nebulosa <- function(seurat_obj,
   require(patchwork)
   require(Nebulosa)
 
-  # ── Validation ────────────────────────────────────────────────────────────────
+  # -- Validation ----------------------------------------------------------------
   if (!is.list(gene_pairs) || !all(lengths(gene_pairs) == 2))
     stop("`gene_pairs` must be a list of character vectors, each of length 2.")
   if (!cluster_col %in% colnames(seurat_obj@meta.data))
     stop("`cluster_col` '", cluster_col, "' not found in Seurat object metadata.")
 
-  # ── Setup ─────────────────────────────────────────────────────────────────────
+  # -- Setup ---------------------------------------------------------------------
   Idents(seurat_obj) <- cluster_col
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   timestamp <- if (isTRUE(add_timestamp)) format(Sys.time(), "%Y-%m-%d_%H-%M-%S") else NULL
@@ -889,7 +1075,7 @@ plot_blend_nebulosa <- function(seurat_obj,
   valid_pairs <- Filter(function(p) all(p %in% rownames(seurat_obj)), gene_pairs)
   if (length(valid_pairs) == 0) stop("No valid gene pairs after filtering.")
 
-  # ── Layout math ───────────────────────────────────────────────────────────────
+  # -- Layout math ---------------------------------------------------------------
   n_panels_per_row <- 6
   panel_width      <- width / n_panels_per_row
   panel_height     <- panel_width * 0.9
@@ -897,7 +1083,7 @@ plot_blend_nebulosa <- function(seurat_obj,
 
   if (verbose) {
     message(" Plotting all pairs in one figure for sample: ", sample_name)
-    message("   Layout   : ", length(valid_pairs), " rows × ", n_panels_per_row, " panels")
+    message("   Layout   : ", length(valid_pairs), " rows  ", n_panels_per_row, " panels")
     message("   Width    : ", width, "in  |  Total height: ", round(total_height, 2), "in")
     pb <- txtProgressBar(min = 0, max = length(valid_pairs), style = 3)
   }
@@ -909,7 +1095,7 @@ plot_blend_nebulosa <- function(seurat_obj,
     gene2     <- valid_pairs[[i]][2]
     pair_name <- paste(gene1, "vs", gene2)
 
-    # ── CHANGED: use v5-safe manual blend instead of FeaturePlot ─────────────
+    # -- CHANGED: use v5-safe manual blend instead of FeaturePlot -------------
     p_blend <- .blend_feature_plot_v5(
       seurat_obj      = seurat_obj,
       gene1           = gene1,
@@ -920,7 +1106,7 @@ plot_blend_nebulosa <- function(seurat_obj,
       min_cutoff      = min_cutoff
     )
 
-    # ── Nebulosa — gene 1 ────────────────────────────────────────────────────────
+    # -- Nebulosa - gene 1 --------------------------------------------------------
     p_neb1 <- plot_density(seurat_obj, features = gene1, reduction = reduction) +
       labs(title = paste(gene1, "density")) +
       theme(
@@ -932,7 +1118,7 @@ plot_blend_nebulosa <- function(seurat_obj,
         legend.text       = element_text(size = 7)
       )
 
-    # ── Nebulosa — gene 2 ────────────────────────────────────────────────────────
+    # -- Nebulosa - gene 2 --------------------------------------------------------
     p_neb2 <- plot_density(seurat_obj, features = gene2, reduction = reduction) +
       labs(title = paste(gene2, "density")) +
       theme(
@@ -944,7 +1130,7 @@ plot_blend_nebulosa <- function(seurat_obj,
         legend.text       = element_text(size = 7)
       )
 
-    # ── Assemble row ──────────────────────────────────────────────────────────────
+    # -- Assemble row --------------------------------------------------------------
     p_row <- wrap_plots(
       p_blend, p_neb1, p_neb2,
       nrow   = 1,
@@ -960,10 +1146,10 @@ plot_blend_nebulosa <- function(seurat_obj,
 
   if (verbose) close(pb)
 
-  # ── Stack all rows ─────────────────────────────────────────────────────────────
+  # -- Stack all rows -------------------------------------------------------------
   p_final <- wrap_plots(all_rows, ncol = 1) +
     plot_annotation(
-      title    = paste(sample_name, "— Blend + Density"),
+      title    = paste(sample_name, "- Blend + Density"),
       subtitle = paste0("Reduction: ", reduction,
                         "  |  Blend threshold: ", blend_threshold,
                         "  |  Min cutoff: ", min_cutoff),
@@ -973,7 +1159,7 @@ plot_blend_nebulosa <- function(seurat_obj,
       )
     )
 
-  # ── Save ──────────────────────────────────────────────────────────────────────
+  # -- Save ----------------------------------------------------------------------
   file_out <- file.path(output_dir, paste0(
     paste(
       sanitize(sample_name),
@@ -1003,18 +1189,43 @@ plot_blend_nebulosa <- function(seurat_obj,
 
 #---------------------------------------------------------
 
-#' Title
+#' Plot Cell Counts and Proportions Across Clusters and Batches
 #'
-#' @param seurat_obj
-#' @param cluster_col
-#' @param batch_col
-#' @param output_dir
-#' @param file_prefix
+#' Generates stacked bar charts to visualize the distribution of cells between two
+#' metadata variables (typically cell clusters and experimental batches/conditions).
+#' It calculates and plots both absolute cell counts and relative percentages (proportions),
+#' assembling them into two separate dual-panel figures using \code{patchwork}.
+#' The resulting plots are automatically saved to the specified output directory.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data.
+#' @param cluster_col Character. The name of the metadata column representing cell clusters or identity classes. Default is "label_T3_log_rpca".
+#' @param batch_col Character. The name of the metadata column representing batches, samples, or conditions (e.g., "exist_GTS"). Default is "exist_GTS".
+#' @param output_dir Character. The directory path where the generated JPEGs will be saved. Default is a specific local directory path.
+#' @param file_prefix Character. A prefix string to append to the saved filenames to help identify the analysis run. Default is "ind_label".
+#'
+#' @return Invisibly returns a list containing two \code{patchwork} plot objects:
+#' \itemize{
+#'   \item \code{proportions}: The combined plot showing relative percentages.
+#'   \item \code{counts}: The combined plot showing absolute cell counts.
+#' }
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Compare CD8 T cell distributions across different disease states or batches
+#' distribution_plots <- plot_cluster_distributions(
+#'   seurat_obj = my_seurat,
+#'   cluster_col = "CD8_Subsets",
+#'   batch_col = "Disease_Status",
+#'   output_dir = "Plots_Distributions",
+#'   file_prefix = "CD8_analysis"
+#' )
+#'
+#' # The function saves the JPEGs automatically, but you can also view them in R:
+#' distribution_plots$proportions
+#' distribution_plots$counts
+#' }
 plot_cluster_distributions <- function(
     seurat_obj,
     cluster_col = "label_T3_log_rpca",

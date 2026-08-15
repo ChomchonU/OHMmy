@@ -1,23 +1,55 @@
-#' Title
+#' Run Comprehensive Global Over-Representation Analysis (ORA)
 #'
-#' @param ORA_df
-#' @param m_t2g
-#' @param output_dir
-#' @param title_prefix
-#' @param top_n_global
-#' @param top_n_per_cluster
-#' @param log2fc_cutoff
-#' @param padj_cutoff
-#' @param indiv_width
-#' @param indiv_height
-#' @param global_width
-#' @param global_height
-#' @param variable_per_clus
+#' This function acts as an end-to-end pipeline for performing Over-Representation
+#' Analysis (ORA) on differential expression results across multiple clusters.
+#' It automatically splits genes into upregulated (Activated) and downregulated
+#' (Suppressed) sets based on user-defined log2FC and p-value cutoffs. Using
+#' \code{clusterProfiler::enricher}, it tests against a provided term-to-gene
+#' database. The function automatically generates and saves an extensive suite of
+#' visualizations: per-cluster dotplots and barplots, global summary dotplots,
+#' hierarchically clustered pathway dendrograms, and a unique "signed significance"
+#' dotplot. If a cell type column is detected, it can also split the signed
+#' significance plots by cell type.
 #'
-#' @returns
+#' @param ORA_df A data frame containing differential expression results. Must contain columns \code{gene}, \code{cluster}, \code{avg_log2FC}, and \code{p_val_adj}. Optionally, a column containing "cell_type" or "celltype" in its name can be included for nested plotting.
+#' @param m_t2g A two-column data frame mapping pathways/terms to genes (TERM2GENE format), typically sourced from MSigDB via the \code{msigdbr} package.
+#' @param output_dir Character. Directory path where all plots and CSV summaries will be saved.
+#' @param title_prefix Character. A prefix used for plot titles and file naming to identify the pathway database (e.g., "Hallmark", "KEGG"). Default is "Hallmark".
+#' @param top_n_global Integer. The maximum number of top pathways to display on the global summary plots. Default is 40.
+#' @param top_n_per_cluster Integer. The maximum number of top pathways to display per direction on the individual cluster plots. Default is 10.
+#' @param log2fc_cutoff Numeric. The minimum absolute log2 fold change required to include a gene in the ORA test. Default is 0.25.
+#' @param padj_cutoff Numeric. The maximum adjusted p-value required to include a gene in the ORA test. Default is 0.05.
+#' @param indiv_width Numeric. The width (in inches) of the per-cluster plots. Default is 12.
+#' @param indiv_height Numeric. The height (in inches) of the per-cluster plots. Default is 8.
+#' @param global_width Numeric. The width (in inches) of the global summary plots. Default is 15.
+#' @param global_height Numeric. The height (in inches) of the global summary plots. Default is 15.
+#' @param variable_per_clus Logical. If \code{TRUE} and a cell type column is detected in \code{ORA_df}, it generates separate signed significance dotplots for each cell type. Default is FALSE.
+#'
+#' @return Invisibly returns a \code{tibble} (\code{combined_df}) containing the concatenated enrichment results across all clusters and directions. Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Fetch MSigDB Hallmark gene sets
+#' library(msigdbr)
+#' m_df <- msigdbr(species = "Homo sapiens", category = "H")
+#' m_t2g <- m_df[, c("gs_name", "gene_symbol")]
+#'
+#' # Assume 'find_markers_output' is a dataframe resulting from Seurat's FindAllMarkers
+#' # Ensure it has 'gene', 'cluster', 'avg_log2FC', and 'p_val_adj' columns.
+#'
+#' global_ora_results <- run_global_ora(
+#'   ORA_df = find_markers_output,
+#'   m_t2g = m_t2g,
+#'   output_dir = "Results/Pathways_ORA/",
+#'   title_prefix = "Hallmark",
+#'   top_n_global = 30,
+#'   top_n_per_cluster = 15,
+#'   log2fc_cutoff = 0.5,
+#'   variable_per_clus = TRUE
+#' )
+#' }
 run_global_ora <- function(ORA_df,
                            m_t2g,
                            output_dir,
@@ -68,7 +100,7 @@ run_global_ora <- function(ORA_df,
 
     print(paste("  Total genes in cluster:", nrow(cluster_df)))
 
-    # ── Gene lists ──
+    # -- Gene lists --
     up_genes <- cluster_df %>%
       filter(avg_log2FC > log2fc_cutoff, p_val_adj < padj_cutoff) %>%
       pull(gene) %>% unique()
@@ -79,7 +111,7 @@ run_global_ora <- function(ORA_df,
 
     print(paste("  UP genes:", length(up_genes), "| DN genes:", length(dn_genes)))
 
-    # ── ORA Upregulated ──
+    # -- ORA Upregulated --
     ora_up <- if (length(up_genes) >= 5) {
       tryCatch(
         enricher(
@@ -96,7 +128,7 @@ run_global_ora <- function(ORA_df,
       )
     } else NULL
 
-    # ── ORA Downregulated ──
+    # -- ORA Downregulated --
     ora_dn <- if (length(dn_genes) >= 5) {
       tryCatch(
         enricher(
@@ -119,12 +151,12 @@ run_global_ora <- function(ORA_df,
     print(paste("  Enriched UP pathways:", n_up))
     print(paste("  Enriched DN pathways:", n_dn))
 
-    # ── Collect results ──
+    # -- Collect results --
     result_rows <- list()
     if (n_up > 0) result_rows[["up"]] <- as.data.frame(ora_up) %>% mutate(cluster = current_cluster, Direction = "Activated")
     if (n_dn > 0) result_rows[["dn"]] <- as.data.frame(ora_dn) %>% mutate(cluster = current_cluster, Direction = "Suppressed")
 
-    # ── G. Store Summary Data ──
+    # -- G. Store Summary Data --
     summary_list[[current_cluster]] <- data.frame(
       cluster       = current_cluster,
       status        = ifelse(n_up == 0 && n_dn == 0, "no_pathways", "success"),
@@ -139,7 +171,7 @@ run_global_ora <- function(ORA_df,
       next
     }
 
-    # ── Combine & Calculate Stats for the Cluster ──
+    # -- Combine & Calculate Stats for the Cluster --
     cluster_combined <- bind_rows(result_rows) %>%
       mutate(
         GeneRatio = sapply(GeneRatio, function(x) {
@@ -174,7 +206,7 @@ run_global_ora <- function(ORA_df,
       )) %>%
       mutate(Description = factor(Description, levels = rev(unique(Description))))
 
-    # ── Per-Cluster Dotplot ──
+    # -- Per-Cluster Dotplot --
     tryCatch({
       p_dot <- ggplot(plot_df_cluster, aes(x = GeneRatio, y = Description, color = neg_log10_padj, size = Count)) +
         geom_point() +
@@ -203,7 +235,7 @@ run_global_ora <- function(ORA_df,
              plot = p_dot, width = indiv_width, height = indiv_height, dpi = 300, limitsize = FALSE)
     }, error = function(e) { print(paste("  [ERROR] Cluster Dotplot failed:", e$message)) })
 
-    # ── Per-Cluster Barplot ──
+    # -- Per-Cluster Barplot --
     tryCatch({
       p_bar <- ggplot(plot_df_cluster, aes(x = neg_log10_padj, y = Description, fill = Direction)) +
         geom_bar(stat = "identity", width = 0.7) +
@@ -320,7 +352,7 @@ run_global_ora <- function(ORA_df,
     plot.margin      = ggplot2::margin(t = 15, r = 10, b = 10, l = 10)
   )
 
-  # ── Save Global Activated Plot ──
+  # -- Save Global Activated Plot --
   if (nrow(plot_df_up) > 0) {
     p_up <- ggplot(plot_df_up, aes(x = cluster, y = Description, color = neg_log10_padj, size = GeneRatio)) +
       geom_point() +
@@ -336,7 +368,7 @@ run_global_ora <- function(ORA_df,
     ggsave(filename = path_up, plot = p_up, width = global_width, height = global_height, dpi = 300, limitsize = FALSE)
   }
 
-  # ── Save Global Suppressed Plot ──
+  # -- Save Global Suppressed Plot --
   if (nrow(plot_df_dn) > 0) {
     p_dn <- ggplot(plot_df_dn, aes(x = cluster, y = Description, color = neg_log10_padj, size = GeneRatio)) +
       geom_point() +
@@ -560,7 +592,7 @@ run_global_ora <- function(ORA_df,
   }
 
 
-  # ── Save Combined Data CSV ──
+  # -- Save Combined Data CSV --
   write.csv(combined_df,
             file      = paste0(output_dir, title_prefix, "_Global_Combined_Data_", ts, ".csv"),
             row.names = FALSE)
@@ -572,25 +604,58 @@ run_global_ora <- function(ORA_df,
 
 # -------------------------------------------------------------
 
-#' Title
+#' Run Comprehensive Global Gene Set Enrichment Analysis (GSEA)
 #'
-#' @param GSEA_df
-#' @param m_t2g
-#' @param output_dir
-#' @param title_prefix
-#' @param top_n_per_direction
-#' @param padj_cutoff
-#' @param dotplot_width
-#' @param dotplot_height
-#' @param gseaplot_width
-#' @param gseaplot_height
-#' @param top_n_overall
-#' @param variable_per_clus
+#' An end-to-end pipeline for performing Gene Set Enrichment Analysis (GSEA) on
+#' differential expression results across multiple clusters or cell types. Unlike ORA,
+#' which relies on strict significance thresholds, this function ranks all available
+#' genes by their average log2 fold change and evaluates the entire spectrum using
+#' \code{clusterProfiler::GSEA}. It performs a "pre-pass" calculation to establish a
+#' global Normalized Enrichment Score (NES) range, ensuring all subsequent per-cluster
+#' dotplots share a unified, directly comparable x-axis. It automatically generates
+#' standard NES dotplots, classic GSEA enrichment ridge plots, hierarchically clustered
+#' global dotplots, and signed significance plots.
 #'
-#' @returns
+#' @note This function automatically registers a serial \code{BiocParallel} parameter
+#' at the start of the run to prevent common parallel backend connection errors on Windows environments.
+#'
+#' @param GSEA_df A data frame containing differential expression results. Must contain columns \code{gene}, \code{cluster}, and \code{avg_log2FC}. Optionally, a column containing "cell_type" or "celltype" can be included for nested plotting.
+#' @param m_t2g A two-column data frame mapping pathways/terms to genes (TERM2GENE format), typically sourced from MSigDB.
+#' @param output_dir Character. Directory path where all plots and CSV summaries will be saved.
+#' @param title_prefix Character. A prefix used for plot titles and file naming to identify the pathway database (e.g., "Hallmark", "KEGG"). Default is "Hallmark".
+#' @param top_n_per_direction Integer. The maximum number of top activated and top suppressed pathways to display on individual cluster dotplots. Default is 10.
+#' @param padj_cutoff Numeric. The adjusted p-value cutoff for statistical significance in the GSEA test. Default is 0.05.
+#' @param dotplot_width Numeric. The width (in inches) of the per-cluster NES dotplots. Default is 12.
+#' @param dotplot_height Numeric. The height (in inches) of the per-cluster NES dotplots. Default is 8.
+#' @param gseaplot_width Numeric. The width (in inches) of the classic GSEA enrichment plot for the top pathway. Default is 8.
+#' @param gseaplot_height Numeric. The height (in inches) of the classic GSEA enrichment plot for the top pathway. Default is 6.
+#' @param top_n_overall Integer. The number of top pathways to extract from *each* cluster to build the combined global summary plots. Default is 5.
+#' @param variable_per_clus Logical. A toggle to dictate specific nested behavior (retained for pipeline compatibility with the ORA function framework). Default is FALSE.
+#'
+#' @return Invisibly returns a \code{tibble} (\code{combined_df}) containing the concatenated GSEA results across all evaluated clusters. Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Fetch MSigDB Hallmark gene sets
+#' library(msigdbr)
+#' m_df <- msigdbr(species = "Homo sapiens", category = "H")
+#' m_t2g <- m_df[, c("gs_name", "gene_symbol")]
+#'
+#' # Assume 'find_markers_output' is your DE results containing 'gene', 'cluster',
+#' # and 'avg_log2FC'. (Do not pre-filter this dataframe for p-value thresholds,
+#' # as GSEA requires the full ranked list of background genes!)
+#'
+#' global_gsea_results <- run_global_gsea(
+#'   GSEA_df = find_markers_output,
+#'   m_t2g = m_t2g,
+#'   output_dir = "Results/Pathways_GSEA/",
+#'   title_prefix = "Hallmark",
+#'   top_n_per_direction = 10,
+#'   top_n_overall = 5
+#' )
+#' }
 run_global_gsea <- function(GSEA_df,
                             m_t2g,
                             output_dir,
@@ -604,10 +669,10 @@ run_global_gsea <- function(GSEA_df,
                             top_n_overall       = 5,
                             variable_per_clus   = FALSE) {
 
-  # ── 1. Fix Windows parallel connection error ───────────────────
+  # -- 1. Fix Windows parallel connection error -------------------
   BiocParallel::register(BiocParallel::SerialParam())
 
-  # ── 2. Setup ───────────────────────────────────────────────────
+  # -- 2. Setup ---------------------------------------------------
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
   ts <- format(Sys.time(), "%Y%m%d_%H%M%S") # Global timestamp for this run
@@ -672,7 +737,7 @@ run_global_gsea <- function(GSEA_df,
     }
   }
 
-  # ── Calculate global NES min/max across ALL clusters ──────────
+  # -- Calculate global NES min/max across ALL clusters ----------
   all_nes_values <- unlist(lapply(all_gsea_results, function(res) {
     if (!is.null(res) && nrow(as.data.frame(res)) > 0) res@result$NES
   }))
@@ -701,14 +766,14 @@ run_global_gsea <- function(GSEA_df,
 
     gsea_results <- all_gsea_results[[current_cluster]]
 
-    # ── Skip if no results ──────────────────────────────────────
+    # -- Skip if no results --------------------------------------
     if (is.null(gsea_results) || nrow(as.data.frame(gsea_results)) == 0) {
       print(paste("  [SKIP] No results for:", current_cluster))
       summary_list[[current_cluster]] <- data.frame(cluster = current_cluster, status = "no_pathways")
       next
     }
 
-    # ── Calculate plotting columns ──────────────────────────────
+    # -- Calculate plotting columns ------------------------------
     gsea_results@result <- gsea_results@result %>%
       mutate(
         Count          = str_count(core_enrichment, "/") + 1,
@@ -741,7 +806,7 @@ run_global_gsea <- function(GSEA_df,
       top_pathway  = res_df$ID[1]
     )
 
-    # ── Select Top N per direction ──────────────────────────────
+    # -- Select Top N per direction ------------------------------
     plot_df <- bind_rows(
       res_df %>% filter(NES > 0) %>% arrange(p.adjust) %>% head(top_n_per_direction),
       res_df %>% filter(NES < 0) %>% arrange(p.adjust) %>% head(top_n_per_direction)
@@ -749,12 +814,12 @@ run_global_gsea <- function(GSEA_df,
 
     if (nrow(plot_df) == 0) plot_df <- res_df %>% arrange(p.adjust) %>% head(top_n_per_direction * 2)
 
-    # ── Order pathways by NES (negative at bottom, positive at top)
+    # -- Order pathways by NES (negative at bottom, positive at top)
     plot_df <- plot_df %>%
       arrange(NES) %>%
       mutate(Description = factor(Description, levels = unique(Description)))
 
-    # ── Build Single Combined Dotplot ───────────────────────────
+    # -- Build Single Combined Dotplot ---------------------------
     tryCatch({
 
       p_dot <- ggplot(plot_df,
@@ -768,8 +833,8 @@ run_global_gsea <- function(GSEA_df,
         annotate("rect", xmin = global_nes_min, xmax = 0, ymin = -Inf, ymax = Inf, fill = "steelblue", alpha = 0.04) +
         annotate("rect", xmin = 0, xmax = global_nes_max, ymin = -Inf, ymax = Inf, fill = "firebrick", alpha = 0.04) +
 
-        annotate("text", x = global_nes_min + 0.05, y = Inf, label = "← Suppressed", hjust = 0, vjust = 1.5, color = "steelblue", fontface = "bold", size = 3.5) +
-        annotate("text", x = global_nes_max - 0.05, y = Inf, label = "Activated →", hjust = 1, vjust = 1.5, color = "firebrick", fontface = "bold", size = 3.5) +
+        annotate("text", x = global_nes_min + 0.05, y = Inf, label = " Suppressed", hjust = 0, vjust = 1.5, color = "steelblue", fontface = "bold", size = 3.5) +
+        annotate("text", x = global_nes_max - 0.05, y = Inf, label = "Activated ->", hjust = 1, vjust = 1.5, color = "firebrick", fontface = "bold", size = 3.5) +
 
         scale_x_continuous(
           limits = c(global_nes_min, global_nes_max),
@@ -801,7 +866,7 @@ run_global_gsea <- function(GSEA_df,
 
     }, error = function(e) { print(paste("  [ERROR] Dotplot failed:", e$message)) })
 
-    # ── Save Top Pathway GSEA Enrichment Plot ───────────────────
+    # -- Save Top Pathway GSEA Enrichment Plot -------------------
     tryCatch({
 
       top_pathway <- gsea_results$ID[1]
@@ -1063,16 +1128,36 @@ run_global_gsea <- function(GSEA_df,
 # -------------------------------------------------------------
 
 # Filter and extract top genes
-#' Title
+#' Extract Top Differentially Expressed Genes by Mixed Criteria
 #'
-#' @param res_obj
-#' @param n_padj
-#' @param n_lfc
+#' Filters a differential expression results data frame for strictly significant genes
+#' (\code{padj < 0.05} and \code{abs(log2FoldChange) >= 1}). It then sorts the remaining
+#' genes using two different metrics: statistical confidence (lowest adjusted p-value)
+#' and effect size (highest absolute log2 fold change). Finally, it returns the unique
+#' union of the top genes from both sorting methods.
 #'
-#' @returns
+#' @param res_obj A data frame containing differential expression results (e.g., from DESeq2). Must contain \code{padj} and \code{log2FoldChange} columns, with gene names set as the row names.
+#' @param n_padj Integer. The number of top genes to extract based on statistical significance (lowest \code{padj}). Default is 40.
+#' @param n_lfc Integer. The number of top genes to extract based on absolute effect size (highest \code{abs(log2FoldChange)}). Default is 40.
+#'
+#' @return A character vector containing the unique combined list of top gene names. Note that the total length of this vector may be less than \code{n_padj + n_lfc} due to overlapping genes between the two lists.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Assuming 'deseq_res' is a DESeqResults object or dataframe
+#'
+#' # Extract a robust list of up to 80 top markers (40 by p-value, 40 by fold change)
+#' top_mixed_markers <- get_top_mixed_genes(
+#'   res_obj = deseq_res,
+#'   n_padj = 40,
+#'   n_lfc = 40
+#' )
+#'
+#' # Use this curated list for a targeted heatmap
+#' pheatmap(assay(vsd)[top_mixed_markers, ])
+#' }
 get_top_mixed_genes <- function(res_obj, n_padj = 40, n_lfc = 40) {
   sig <- res_obj[!is.na(res_obj$padj) &
                    res_obj$padj < 0.05 &
@@ -1091,24 +1176,56 @@ get_top_mixed_genes <- function(res_obj, n_padj = 40, n_lfc = 40) {
 # --------------------------------------------------------------
 
 # Generate and save the side-by-side heatmap
-#' Title
+#' Generate and Save Dual-Layout Differential Expression Heatmaps
 #'
-#' @param res_obj
-#' @param comp_name
-#' @param comp_title
-#' @param vsd_data
-#' @param anno_col
-#' @param ordered_samps
-#' @param n_padj
-#' @param n_lfc
-#' @param out_dir
-#' @param ts
-#' @param clus
+#' Automatically extracts the most biologically and statistically relevant genes for a
+#' given comparison using \code{get_top_mixed_genes()}, pulls their normalized expression
+#' data, and generates two side-by-side \code{pheatmap} visualizations. The left heatmap
+#' forces a specific, user-defined sample order (ideal for gradients or chronological data),
+#' while the right heatmap allows free hierarchical clustering of samples to reveal natural
+#' groupings. The function dynamically scales the height of the output PNG based on the
+#' number of genes to ensure row labels remain readable.
 #'
-#' @returns
+#' @param res_obj A data frame containing differential expression results (must contain \code{padj} and \code{log2FoldChange} columns).
+#' @param comp_name Character. A filesystem-safe string representing the comparison, used for the output filename (e.g., "Infected_vs_Mock").
+#' @param comp_title Character. A human-readable title displayed at the top of the left heatmap.
+#' @param vsd_data A \code{SummarizedExperiment} object or matrix containing normalized expression data (e.g., the output of DESeq2's \code{vst()} or \code{rlog()}).
+#' @param anno_col A data frame containing sample metadata for the heatmap annotations. Row names must match the column names of \code{vsd_data}.
+#' @param ordered_samps Character vector. The exact order of sample IDs (column names) to be plotted in the unclustered (left) heatmap.
+#' @param n_padj Integer. The number of top significant genes to extract based on lowest adjusted p-value.
+#' @param n_lfc Integer. The number of top significant genes to extract based on highest absolute log2 fold change.
+#' @param out_dir Character. Directory path where the generated PNG will be saved.
+#' @param ts Character. A timestamp string appended to the filename for version control.
+#' @param clus Character. An optional identifier (e.g., "CD8_T_Cells") used in the filename if looping across multiple subsets or clusters. Default is "all".
+#'
+#' @return Invisibly returns \code{NULL}. The function is called for its side effect of saving the combined plot to disk.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Assuming 'deseq_res' is your results dataframe and 'vsd' is a DESeqTransform object
+#'
+#' # Define annotation colors and metadata
+#' sample_anno <- data.frame(Condition = colData(vsd)$Condition)
+#' rownames(sample_anno) <- colnames(vsd)
+#'
+#' # Specify the exact order you want samples to appear in the fixed heatmap
+#' ordered_samples <- c("Mock_1", "Mock_2", "Infected_1", "Infected_2")
+#'
+#' generate_and_save_heatmap(
+#'   res_obj = deseq_res,
+#'   comp_name = "Infection_Effect",
+#'   comp_title = "Infected vs Mock (Global)",
+#'   vsd_data = vsd,
+#'   anno_col = sample_anno,
+#'   ordered_samps = ordered_samples,
+#'   n_padj = 40,
+#'   n_lfc = 40,
+#'   out_dir = "Results/Heatmaps",
+#'   ts = format(Sys.time(), "%Y%m%d_%H%M%S")
+#' )
+#' }
 generate_and_save_heatmap <- function(res_obj, comp_name, comp_title, vsd_data, anno_col,
                                       ordered_samps, n_padj, n_lfc, out_dir, ts, clus = "all") {
 

@@ -2,13 +2,38 @@
 % Please edit documentation in R/General_visualizations.R
 \name{make_cluster_palette}
 \alias{make_cluster_palette}
-\title{Title}
+\title{Generate a Discrete Color Palette for Clustering}
 \usage{
 make_cluster_palette(n, palette = "auto")
 }
 \arguments{
-\item{palette}{}
+\item{n}{Integer. The number of distinct colors required (e.g., the number of Seurat clusters).}
+
+\item{palette}{Character. The specific discrete palette to use. Options are \code{"auto"} (default), \code{"kelly"}, \code{"alphabet"}, or \code{"polychrome"}.}
+}
+\value{
+A character vector of length \code{n} containing hexadecimal color codes.
 }
 \description{
-Title
+Creates a maximally distinct color palette tailored for high-dimensional single-cell
+clustering visualizations. Users can choose from curated categorical palettes
+(Kelly, Alphabet, Polychrome) or an "auto" mode that combines multiple \code{RColorBrewer}
+sets. If the requested number of colors (\code{n}) exceeds the available base colors
+in a given palette, the function automatically interpolates using \code{colorRampPalette}
+to generate the required amount.
+}
+\examples{
+\dontrun{
+# Generate a 12-color palette using the default hybrid RColorBrewer sets
+auto_colors <- make_cluster_palette(n = 12, palette = "auto")
+
+# Generate a 20-color palette using the Kelly distinct color list
+kelly_colors <- make_cluster_palette(n = 20, palette = "kelly")
+
+# Pass the colors directly into a Seurat plotting function
+DimPlot(my_seurat, cols = make_cluster_palette(15, "alphabet"))
+
+# Requesting 50 colors will automatically trigger interpolation
+massive_palette <- make_cluster_palette(n = 50, palette = "polychrome")
+}
 }

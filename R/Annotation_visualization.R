@@ -1,17 +1,46 @@
-#' Title
+#' Generate a Bidirectionally Clustered DotPlot with Dendrograms
 #'
-#' @param seurat_obj
-#' @param meta_col
-#' @param feature_df
-#' @param scale
-#' @param pct_threshold
-#' @param output_dir
-#' @param prefix
+#' Extracts expression data via Seurat's \code{DotPlot} function, filters out lowly
+#' expressed genes based on a minimum percentage threshold, and performs two-way
+#' hierarchical clustering on both the features (genes) and the identities (clusters).
+#' It assembles a comprehensive \code{patchwork} layout featuring the central dot plot
+#' flanked by column and row dendrograms. The function automatically saves the combined
+#' plot, standalone dendrograms, and a text file of the final clustered gene order.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data.
+#' @param meta_col Character. The metadata column used to group cells (e.g., "seurat_clusters" or "CellType").
+#' @param feature_df A data frame mapping genes to categories. Must contain a \code{group} column (to filter by prefix) and a \code{feature} column (containing the gene names).
+#' @param scale Logical. Whether to scale the average expression values (z-score) across groups before plotting and clustering. Default is TRUE.
+#' @param pct_threshold Numeric. The minimum percentage of cells expressing the gene in at least one cluster required to retain the gene. Default is 15.
+#' @param output_dir Character. Directory path where the generated JPEGs and text file will be saved. Default is "Output_R".
+#' @param prefix Character. A string used to filter the \code{group} column in \code{feature_df}. If \code{NULL}, it automatically attempts to derive the prefix by removing "label_" from \code{meta_col}. Default is NULL.
+#'
+#' @return A \code{patchwork} object representing the final combined layout (dot plot + column dendrogram + row dendrogram).
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Create a mock mapping dataframe for subset markers
+#' marker_mapping <- data.frame(
+#'   group = c("Effector_T", "Effector_NK", "Naive_T"),
+#'   feature = c("GZMB", "NKG7", "CCR7")
+#' )
+#'
+#' # Generate the bi-clustered dotplot
+#' clustered_plot <- plot_dot_dendro(
+#'   seurat_obj = my_seurat,
+#'   meta_col = "Subset_Labels",
+#'   feature_df = marker_mapping,
+#'   scale = TRUE,
+#'   pct_threshold = 10,
+#'   output_dir = "Results/DotPlots",
+#'   prefix = "Effector" # Will selectively plot and cluster the first two genes
+#' )
+#'
+#' # Display the assembled plot in the R viewer
+#' print(clustered_plot)
+#' }
 plot_dot_dendro <- function(
     seurat_obj,
     meta_col,
@@ -262,21 +291,50 @@ plot_dot_dendro <- function(
 
 # --------------------------------------
 
-#' Title
+#' Generate Split Clustered DotPlots with Row Dendrograms
 #'
-#' @param seurat_obj
-#' @param meta_col
-#' @param feature_df
-#' @param scale
-#' @param pct_threshold
-#' @param output_dir
-#' @param prefix
-#' @param max_genes_per_plot
+#' An extension of the bidirectionally clustered DotPlot, specifically designed to handle
+#' massive gene lists without overcrowding the x-axis. It performs global hierarchical
+#' clustering on both genes and clusters to establish the true biological ordering.
+#' If the number of filtered genes exceeds \code{max_genes_per_plot}, it chunks the x-axis
+#' into multiple separate plots. The global cluster dendrogram (y-axis) is identically
+#' attached to each chunk for easy cross-referencing.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data.
+#' @param meta_col Character. The metadata column used to group cells (e.g., "seurat_clusters").
+#' @param feature_df A data frame mapping genes to categories. Must contain a \code{group} column (to filter by prefix) and a \code{feature} column (containing the gene names).
+#' @param scale Logical. Whether to scale the average expression values (z-score) across groups before plotting. Default is TRUE.
+#' @param pct_threshold Numeric. The minimum percentage of cells expressing the gene in at least one cluster required to retain the gene. Default is 15.
+#' @param output_dir Character. Directory path where the generated JPEGs and text file will be saved. Default is "Output_R".
+#' @param prefix Character. A string used to filter the \code{group} column in \code{feature_df}. If \code{NULL}, it automatically derives the prefix by removing "label_" from \code{meta_col}. Default is NULL.
+#' @param max_genes_per_plot Integer. The maximum number of genes to display per plot. If the filtered gene list exceeds this number, the output is split into multiple chunked plots. Default is NULL (no splitting).
+#'
+#' @return A list of \code{patchwork} objects, where each element represents a specific chunk of the x-axis (dot plot) combined with the global row (cluster) dendrogram.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Assuming marker_mapping is a dataframe with 'group' and 'feature' columns
+#'
+#' # Generate chunked dotplots, forcing a maximum of 25 genes per plot
+#' chunked_plots <- plot_dot_dendro_split(
+#'   seurat_obj = my_seurat,
+#'   meta_col = "T_Cell_States",
+#'   feature_df = marker_mapping,
+#'   scale = TRUE,
+#'   pct_threshold = 10,
+#'   output_dir = "Results/Split_DotPlots",
+#'   prefix = "Exhaustion",
+#'   max_genes_per_plot = 25
+#' )
+#'
+#' # View the first chunk directly in R
+#' chunked_plots[[1]]
+#'
+#' # View the second chunk
+#' chunked_plots[[2]]
+#' }
 plot_dot_dendro_split <- function(
     seurat_obj,
     meta_col,
@@ -436,7 +494,7 @@ plot_dot_dendro_split <- function(
            height = 0.75*nrow(mat_avg_filt),
            dpi = 300, limitsize = FALSE)
 
-    message("Saved chunk ", i, " → ", filename)
+    message("Saved chunk ", i, " -> ", filename)
     plots_out[[i]] <- dot_row
   }
 
@@ -453,30 +511,56 @@ plot_dot_dendro_split <- function(
   }
   sink()
 
-  message(" Gene list saved → ", gene_list_file)
+  message(" Gene list saved -> ", gene_list_file)
 
   return(plots_out)
 }
 
 # -------------------------------------
 
-#' Title
+#' Generate a Multi-Metadata Bidirectionally Clustered DotPlot
 #'
-#' @param seurat_obj
-#' @param meta_cols
-#' @param feature_df
-#' @param scale
-#' @param pct_threshold
-#' @param output_dir
-#' @param prefix
-#' @param base_size
-#' @param range
-#' @param save_options
+#' An advanced extension of the clustered DotPlot function designed to handle and
+#' concatenate multiple metadata groupings simultaneously. It iterates over a vector of
+#' metadata columns, aggregates the expression data using Seurat's \code{DotPlot} engine,
+#' and binds them into a single comprehensive matrix. It then performs 2D hierarchical
+#' clustering across all combined groups and genes. The function features a modular
+#' saving system, allowing users to independently export the combined plot, individual
+#' dendrograms, or the clustered gene list.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data.
+#' @param meta_cols Character vector. A list of metadata columns to evaluate and combine (e.g., \code{c("Condition_A", "Condition_B")} or \code{c("res.0.5", "res.1.0")}).
+#' @param feature_df A data frame mapping genes to categories. Must contain a \code{group} column and a \code{feature} column.
+#' @param scale Logical. Whether to use scaled average expression values (z-scores) for plotting and clustering. Default is TRUE.
+#' @param pct_threshold Numeric. The minimum percentage of cells expressing the gene in at least one cluster/group combination required to retain the gene. Default is 15.
+#' @param output_dir Character. Directory path where the generated outputs will be saved. Default is "Output_R".
+#' @param prefix Character. A string used to filter the \code{group} column in \code{feature_df}. If \code{NULL}, it attempts to derive it from the metadata column names. Default is NULL.
+#' @param base_size Numeric. The base font size for the \code{ggplot2} theme. Default is 12.
+#' @param range Numeric vector of length 2. The minimum and maximum point sizes for the dots (\code{scale_radius}). Default is \code{c(0.25, 6)}.
+#' @param save_options Character vector. Defines which specific outputs to generate and save. Options include "combined", "col_dend", "row_dend", and "gene_list". Default includes all four.
+#'
+#' @return Invisibly returns a \code{tibble} containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in \code{ggplot2}).
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Assuming marker_mapping contains your 'group' and 'feature' columns
+#'
+#' # Compare exhaustion markers across three different metadata cluster resolutions
+#' plot_data <- plot_dot_dendro_multi(
+#'   seurat_obj = my_seurat,
+#'   meta_cols = c("SCT_snn_res.0.4", "SCT_snn_res.0.8", "SCT_snn_res.1.2"),
+#'   feature_df = marker_mapping,
+#'   pct_threshold = 10,
+#'   prefix = "Exhaustion",
+#'   output_dir = "Results/Multi_Resolution",
+#'   save_options = c("combined", "gene_list") # Skip saving standalone dendrograms
+#' )
+#'
+#' # The function invisibly returns the data, which you can inspect:
+#' head(plot_data)
+#' }
 plot_dot_dendro_multi <- function(
     seurat_obj,
     meta_cols,

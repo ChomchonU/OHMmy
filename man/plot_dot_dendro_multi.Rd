@@ -2,7 +2,7 @@
 % Please edit documentation in R/Annotation_visualization.R
 \name{plot_dot_dendro_multi}
 \alias{plot_dot_dendro_multi}
-\title{Title}
+\title{Generate a Multi-Metadata Bidirectionally Clustered DotPlot}
 \usage{
 plot_dot_dendro_multi(
   seurat_obj,
@@ -18,8 +18,54 @@ plot_dot_dendro_multi(
 )
 }
 \arguments{
-\item{save_options}{}
+\item{seurat_obj}{A Seurat object containing single-cell data.}
+
+\item{meta_cols}{Character vector. A list of metadata columns to evaluate and combine (e.g., \code{c("Condition_A", "Condition_B")} or \code{c("res.0.5", "res.1.0")}).}
+
+\item{feature_df}{A data frame mapping genes to categories. Must contain a \code{group} column and a \code{feature} column.}
+
+\item{scale}{Logical. Whether to use scaled average expression values (z-scores) for plotting and clustering. Default is TRUE.}
+
+\item{pct_threshold}{Numeric. The minimum percentage of cells expressing the gene in at least one cluster/group combination required to retain the gene. Default is 15.}
+
+\item{output_dir}{Character. Directory path where the generated outputs will be saved. Default is "Output_R".}
+
+\item{prefix}{Character. A string used to filter the \code{group} column in \code{feature_df}. If \code{NULL}, it attempts to derive it from the metadata column names. Default is NULL.}
+
+\item{base_size}{Numeric. The base font size for the \code{ggplot2} theme. Default is 12.}
+
+\item{range}{Numeric vector of length 2. The minimum and maximum point sizes for the dots (\code{scale_radius}). Default is \code{c(0.25, 6)}.}
+
+\item{save_options}{Character vector. Defines which specific outputs to generate and save. Options include "combined", "col_dend", "row_dend", and "gene_list". Default includes all four.}
+}
+\value{
+Invisibly returns a \code{tibble} containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in \code{ggplot2}).
 }
 \description{
-Title
+An advanced extension of the clustered DotPlot function designed to handle and
+concatenate multiple metadata groupings simultaneously. It iterates over a vector of
+metadata columns, aggregates the expression data using Seurat's \code{DotPlot} engine,
+and binds them into a single comprehensive matrix. It then performs 2D hierarchical
+clustering across all combined groups and genes. The function features a modular
+saving system, allowing users to independently export the combined plot, individual
+dendrograms, or the clustered gene list.
+}
+\examples{
+\dontrun{
+# Assuming marker_mapping contains your 'group' and 'feature' columns
+
+# Compare exhaustion markers across three different metadata cluster resolutions
+plot_data <- plot_dot_dendro_multi(
+  seurat_obj = my_seurat,
+  meta_cols = c("SCT_snn_res.0.4", "SCT_snn_res.0.8", "SCT_snn_res.1.2"),
+  feature_df = marker_mapping,
+  pct_threshold = 10,
+  prefix = "Exhaustion",
+  output_dir = "Results/Multi_Resolution",
+  save_options = c("combined", "gene_list") # Skip saving standalone dendrograms
+)
+
+# The function invisibly returns the data, which you can inspect:
+head(plot_data)
+}
 }

@@ -475,7 +475,7 @@ ProcessSeuratSCT <- function(
   }
 
   message("Joining layers...")
-  seurat_obj[["RNA"]] <- JoinLayers(seurat_obj[["RNA"]])
+  seurat_obj[["RNA"]] <- SeuratObject::JoinLayers(seurat_obj[["RNA"]])
 
   DefaultAssay(seurat_obj) <- "SCT"
   return(seurat_obj)
@@ -725,7 +725,7 @@ ProcessSeuratLOG <- function(
   }
 
   message("Joining layers...")
-  seurat_obj[["RNA"]] <- JoinLayers(seurat_obj[["RNA"]])
+  seurat_obj[["RNA"]] <- SeuratObject::JoinLayers(seurat_obj[["RNA"]])
 
   DefaultAssay(seurat_obj) <- "RNA"
   return(seurat_obj)

@@ -41,7 +41,7 @@ You can install the development version of `OHMmy` directly from GitHub using `p
 
 *(Note: `OHMmy` relies on a modern scRNA-seq stack including Bioconductor packages. We recommend using `renv` if deploying on containerized HPC environments to manage dependencies).*
 
-```r
+``` r
 
 # Using pak (Recommended)
 if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
@@ -56,7 +56,7 @@ remotes::install_github("ChomchonU/OHMmy")
 
 `OHMmy` functions are designed to chain together intuitively. Here is an example of a standard preprocessing and visualization workflow:
 
-```r
+``` r
 
 library(Seurat)
 library(OHMmy)
@@ -85,6 +85,16 @@ plot_cell_abundance(seurat_obj, group.by = "Condition", test = "wilcox")
 
 # Generate advanced feature blend plots for subset markers (e.g., CD8A / XCL1)
 plot_blend_nebulosa(seurat_obj, features = c("CD8A", "XCL1"))
+```
+
+## 📚 Want the full pipeline?
+
+This is just a fraction of what `OHMmy` can do. To see the complete, end-to-end tutorial covering all 41 functions—including complex hierarchical dotplots, advanced diagnostics, and functional enrichment—[**check out the comprehensive vignette here**](vignettes/OHMmy-comprehensive.Rmd)**.**
+
+If you have installed the package, you can also view it directly in R:
+
+``` r
+vignette("OHMmy-comprehensive")
 ```
 
 ## 📦 Package Structure

@@ -99,6 +99,20 @@ plot_cell_abundance(seurat_obj, group.by = "Condition", test = "wilcox")
 plot_blend_nebulosa(seurat_obj, features = c("CD8A", "XCL1"))
 ```
 
+## 📚 Want the full pipeline?
+
+This is just a fraction of what `OHMmy` can do. To see the complete,
+end-to-end tutorial covering all 41 functions—including complex
+hierarchical dotplots, advanced diagnostics, and functional
+enrichment—[**check out the comprehensive vignette
+here**](vignettes/OHMmy-comprehensive.Rmd)**.**
+
+If you have installed the package, you can also view it directly in R:
+
+``` r
+vignette("OHMmy-comprehensive")
+```
+
 ## 📦 Package Structure
 
 - `R/`: Core functional scripts categorized by module (`Processing`,

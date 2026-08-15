@@ -1,9 +1,16 @@
 Package: OHMmy
-Title: What the Package Does (One Line, Title Case)
+Title: Streamlined Single-Cell RNA-Seq Analysis and Visualization for Seurat v5
 Version: 1.0.1
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+    person("Chomchon", "Uansiri", , "chomchom1910travel@gmail.com", role = c("aut", "cre"))
+Description: A comprehensive toolkit engineered for high-resolution single-cell RNA 
+    sequencing (scRNA-seq) analysis. Built natively for 'Seurat' v5, this package 
+    provides reproducible wrappers for ambient RNA decontamination using 'SoupX', 
+    automated multi-modal data processing, and complex cell-state visualizations. 
+    Key features include hierarchical dotplots, density feature blends via 'Nebulosa', 
+    automated cluster demographic statistics, and integrated pipelines for functional 
+    enrichment profiling (ORA and GSEA). It is specifically designed to handle highly 
+    heterogeneous datasets while strictly managing technical noise.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -26,6 +33,7 @@ Imports:
     rstatix,
     scales,
     Seurat,
+    SeuratObject,
     SoupX,
     stringr,
     tibble,
@@ -33,6 +41,9 @@ Imports:
 URL: https://github.com/PicooO12/OHMmy
 BugReports: https://github.com/PicooO12/OHMmy/issues
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.0
+VignetteBuilder: knitr

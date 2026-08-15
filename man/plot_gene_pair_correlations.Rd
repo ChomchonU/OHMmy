@@ -2,7 +2,7 @@
 % Please edit documentation in R/General_visualizations.R
 \name{plot_gene_pair_correlations}
 \alias{plot_gene_pair_correlations}
-\title{Title}
+\title{Calculate and Plot Gene-Pair Correlations Across Clusters}
 \usage{
 plot_gene_pair_correlations(
   seurat_obj,
@@ -22,8 +22,70 @@ plot_gene_pair_correlations(
 )
 }
 \arguments{
-\item{verbose}{}
+\item{seurat_obj}{A Seurat object containing single-cell expression data.}
+
+\item{cluster_col}{Character. The name of the metadata column defining cell clusters to group the correlations by.}
+
+\item{gene_pairs}{A list of character vectors, where each vector contains exactly two gene names to correlate (e.g., \code{list(c("GeneA", "GeneB"))}).}
+
+\item{sample_name}{Character. The name of the biological sample, used for plot titles and file naming. Default is "Sample".}
+
+\item{cor_method}{Character. The correlation method to use, passed to \code{cor()}. Options include "pearson", "spearman", or "kendall". Default is "pearson".}
+
+\item{quantile_thresh}{Numeric. The expression quantile threshold (0 to 1) used to filter out lowly expressing cells before correlation calculations. Default is 0.01.}
+
+\item{fill_palette}{Character. The discrete color palette to pass to \code{make_cluster_palette()}. Default is "auto".}
+
+\item{output_dir}{Character. Directory path where the generated plots will be saved. Default is "Plots_gene_pair_cor".}
+
+\item{save_format}{Character. The file format for the saved plots ("jpg", "png", or "pdf"). Default is "jpg".}
+
+\item{width}{Numeric. The width of the saved plot. Default is 14.}
+
+\item{height}{Numeric. The height of the saved plot. Default is 8.}
+
+\item{dpi}{Numeric. The resolution of the saved plots. Default is 300.}
+
+\item{add_timestamp}{Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.}
+
+\item{verbose}{Logical. Whether to print progress messages and display a progress bar. Default is TRUE.}
+}
+\value{
+A list containing three elements:
+\itemize{
+\item \code{plot}: The generated \code{ggplot} object containing the faceted bar charts.
+\item \code{data}: A \code{tibble} (data frame) containing the calculated correlation values and cell counts per cluster for each valid gene pair.
+\item \code{output_dir}: A character string of the path where the plot was saved.
+}
 }
 \description{
-Title
+Computes the expression correlation (e.g., Pearson or Spearman) between specified
+pairs of genes within each cell cluster. To mitigate zero-inflation artifacts common
+in scRNA-seq data, it filters cells based on a defined quantile expression threshold
+before calculating the correlation. The results are visualized as faceted bar plots
+and automatically saved to disk.
+}
+\examples{
+\dontrun{
+# Define pairs of genes expected to co-express in specific subsets
+t_nk_pairs <- list(
+  c("CD8A", "GZMB"),   # Cytotoxic T cell markers
+  c("NKG7", "GNLY"),   # NK cell effectors
+  c("CD4", "IL7R")     # Naive/Memory CD4 T cell markers
+)
+
+# Run the correlation analysis across predefined clusters
+cor_results <- plot_gene_pair_correlations(
+  seurat_obj = my_seurat,
+  cluster_col = "CellType_Subset",
+  gene_pairs = t_nk_pairs,
+  sample_name = "Donor_1",
+  cor_method = "spearman",
+  quantile_thresh = 0.05,
+  save_format = "png"
+)
+
+# View the raw correlation dataframe directly
+head(cor_results$data)
+}
 }

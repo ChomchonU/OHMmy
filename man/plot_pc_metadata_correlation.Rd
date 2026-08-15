@@ -2,7 +2,7 @@
 % Please edit documentation in R/Technical_noise_screening.R
 \name{plot_pc_metadata_correlation}
 \alias{plot_pc_metadata_correlation}
-\title{Title}
+\title{Calculate and Plot Correlation Between Principal Components and Metadata}
 \usage{
 plot_pc_metadata_correlation(
   seurat_obj,
@@ -18,8 +18,49 @@ plot_pc_metadata_correlation(
 )
 }
 \arguments{
-\item{res_dpi}{}
+\item{seurat_obj}{A Seurat object containing single-cell data.}
+
+\item{sample_name}{Character. The identifier for the biological sample, used for the plot title and file naming.}
+
+\item{vars_to_test}{Character vector. The names of the metadata columns (or specific features in the active assay) to correlate against the PCs. Default includes common technical and cell-cycle covariates: \code{c("pct_counts_mt", "nCount_RNA", "percent.ribo", "percent.ig", "nuclear_rna", "S.Score", "G2M.Score", "MALAT1", "NEAT1", "XIST")}.}
+
+\item{reduction}{Character. The dimensional reduction to extract cell embeddings from. Default is "pca.log".}
+
+\item{n_pcs}{Integer. The number of principal components to evaluate, starting from PC 1. Default is 40.}
+
+\item{output_dir}{Character. Directory path where the generated JPEG heatmap will be saved. Default is "Output_R/Find_vartoregress".}
+
+\item{plot_width_in}{Numeric. The width of the saved JPEG in inches. Default is 15.}
+
+\item{plot_height_in}{Numeric. The height of the saved JPEG in inches. Default is 7.}
+
+\item{res_dpi}{Numeric. The resolution (dpi) of the saved JPEG. Default is 300.}
+}
+\value{
+Invisibly returns a character string containing the exact file path where the correlation heatmap was saved.
 }
 \description{
-Title
+Extracts dimensional reduction embeddings (e.g., PCA cell scores) from a Seurat object
+and computes the Spearman correlation against a specified list of continuous metadata
+covariates (such as sequencing depth, mitochondrial percentage, or cell cycle scores).
+It generates a hierarchically clustered heatmap of the correlation coefficients using
+\code{pheatmap} and automatically saves it to disk. This is a critical QC step for
+identifying whether specific principal components are capturing technical artifacts
+rather than true biological variance.
+}
+\examples{
+\dontrun{
+# Assuming your Seurat object has cell cycle scores (S.Score, G2M.Score)
+# and mitochondrial percentages (percent.mt) calculated in the metadata
+
+plot_pc_metadata_correlation(
+  seurat_obj = my_seurat,
+  sample_name = "PBMC_Condition_A",
+  vars_to_test = c("nCount_RNA", "nFeature_RNA", "percent.mt", "S.Score", "G2M.Score"),
+  reduction = "pca",
+  n_pcs = 30,
+  plot_width_in = 12,
+  plot_height_in = 6
+)
+}
 }

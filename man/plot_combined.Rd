@@ -2,7 +2,7 @@
 % Please edit documentation in R/General_visualizations.R
 \name{plot_combined}
 \alias{plot_combined}
-\title{Title}
+\title{Generate Paired Feature and Density Plots}
 \usage{
 plot_combined(
   seurat_obj,
@@ -20,8 +20,63 @@ plot_combined(
 )
 }
 \arguments{
-\item{verbose}{}
+\item{seurat_obj}{A Seurat object containing single-cell data.}
+
+\item{cluster_col}{Character. The name of the metadata column to set as the active identity (\code{Idents}).}
+
+\item{genes_list}{A named list where each element is a character vector of features (e.g., genes or metadata columns). The names of the list (e.g., "T_cell_markers") are used for plot titles and file naming.}
+
+\item{sample_name}{Character. The name of the biological sample, used for plot titles and file naming. Default is "Sample".}
+
+\item{reduction}{Character. The dimensionality reduction to use for plotting (e.g., "umap", "umap.cca"). Default is "umap.cca".}
+
+\item{viridis_palette}{Character. The viridis color palette to use for the density plots (e.g., "viridis", "magma", "plasma"). Default is "viridis".}
+
+\item{output_dir}{Character. The directory path where the generated plots will be saved. Default is "Plots_feat_dens".}
+
+\item{save_format}{Character. The file format for the saved plots. Options are "jpg", "png", or "pdf". Default is "jpg".}
+
+\item{width}{Numeric. The base width multiplier for the saved plot dimensions. Default is 20.}
+
+\item{dpi}{Numeric. The resolution of the saved plots. Default is 300.}
+
+\item{add_timestamp}{Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.}
+
+\item{verbose}{Logical. Whether to display progress bars and console messages. Default is TRUE.}
+}
+\value{
+A list containing two elements:
+\itemize{
+\item \code{combined_plots}: A named list of the generated \code{patchwork} plot objects, where names correspond to the names of \code{genes_list}.
+\item \code{output_dir}: A character string of the path where the plots were saved.
+}
 }
 \description{
-Title
+This function takes a Seurat object and a named list of features (which can
+include both gene names and metadata columns). For each feature, it generates
+a side-by-side composite of a standard Seurat \code{FeaturePlot} and a custom density
+plot. The resulting interleaved plots are stitched together using \code{patchwork}
+and automatically saved to disk.
+}
+\examples{
+\dontrun{
+# Define a named list of features containing both genes and metadata
+marker_list <- list(
+  T_Cells = c("CD3E", "CD4", "CD8A", "percent.mt"),
+  NK_Cells = c("NCAM1", "NKG7", "GNLY")
+)
+
+# Run the plotting function
+plot_results <- plot_combined(
+  seurat_obj = my_seurat,
+  cluster_col = "seurat_clusters",
+  genes_list = marker_list,
+  sample_name = "Donor_1",
+  reduction = "umap",
+  save_format = "png"
+)
+
+# Access a specific plot directly in R without opening the saved file
+plot_results$combined_plots$T_Cells
+}
 }

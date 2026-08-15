@@ -2,13 +2,37 @@
 % Please edit documentation in R/Pre-processing_soupX.R
 \name{create_final_seurat}
 \alias{create_final_seurat}
-\title{Title}
+\title{Initialize Final Seurat Objects from Decontaminated Counts}
 \usage{
 create_final_seurat(soup_list_all, sample_names)
 }
 \arguments{
-\item{sample_names}{}
+\item{soup_list_all}{A named list of \code{SoupChannel} objects that have their contamination fraction (\code{rho}) set. Typically the \code{soup_list_all} element returned by \code{estimate_contamination()}.}
+
+\item{sample_names}{Character vector. A list of sample identifiers used to match the list elements and assign the \code{project} name to each Seurat object.}
+}
+\value{
+A named list of initialized \code{Seurat} objects containing the decontaminated count matrices and a newly appended \code{mitoPercent} metadata column.
 }
 \description{
-Title
+Takes a list of fully processed \code{SoupChannel} objects (where the contamination
+fraction has already been estimated and set), extracts the background-corrected count
+matrices, and initializes fresh \code{Seurat} objects. During initialization, it applies
+standard baseline filtering (\code{min.cells = 3}, \code{min.features = 200}) and
+automatically calculates the mitochondrial read percentage (\code{mitoPercent}) for
+immediate use in downstream quality control.
+}
+\examples{
+\dontrun{
+# Assuming clean_data is the list returned by estimate_contamination()
+
+final_seurat_list <- create_final_seurat(
+  soup_list_all = clean_data$soup_list_all,
+  sample_names = my_samples
+)
+
+# The objects are now ready for standard Seurat QC filtering!
+patient1_seurat <- final_seurat_list[["Patient_1"]]
+head(patient1_seurat@meta.data)
+}
 }

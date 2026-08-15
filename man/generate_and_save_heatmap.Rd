@@ -2,7 +2,7 @@
 % Please edit documentation in R/GSEA_ORA_DEseq2.R
 \name{generate_and_save_heatmap}
 \alias{generate_and_save_heatmap}
-\title{Title}
+\title{Generate and Save Dual-Layout Differential Expression Heatmaps}
 \usage{
 generate_and_save_heatmap(
   res_obj,
@@ -19,8 +19,62 @@ generate_and_save_heatmap(
 )
 }
 \arguments{
-\item{clus}{}
+\item{res_obj}{A data frame containing differential expression results (must contain \code{padj} and \code{log2FoldChange} columns).}
+
+\item{comp_name}{Character. A filesystem-safe string representing the comparison, used for the output filename (e.g., "Infected_vs_Mock").}
+
+\item{comp_title}{Character. A human-readable title displayed at the top of the left heatmap.}
+
+\item{vsd_data}{A \code{SummarizedExperiment} object or matrix containing normalized expression data (e.g., the output of DESeq2's \code{vst()} or \code{rlog()}).}
+
+\item{anno_col}{A data frame containing sample metadata for the heatmap annotations. Row names must match the column names of \code{vsd_data}.}
+
+\item{ordered_samps}{Character vector. The exact order of sample IDs (column names) to be plotted in the unclustered (left) heatmap.}
+
+\item{n_padj}{Integer. The number of top significant genes to extract based on lowest adjusted p-value.}
+
+\item{n_lfc}{Integer. The number of top significant genes to extract based on highest absolute log2 fold change.}
+
+\item{out_dir}{Character. Directory path where the generated PNG will be saved.}
+
+\item{ts}{Character. A timestamp string appended to the filename for version control.}
+
+\item{clus}{Character. An optional identifier (e.g., "CD8_T_Cells") used in the filename if looping across multiple subsets or clusters. Default is "all".}
+}
+\value{
+Invisibly returns \code{NULL}. The function is called for its side effect of saving the combined plot to disk.
 }
 \description{
-Title
+Automatically extracts the most biologically and statistically relevant genes for a
+given comparison using \code{get_top_mixed_genes()}, pulls their normalized expression
+data, and generates two side-by-side \code{pheatmap} visualizations. The left heatmap
+forces a specific, user-defined sample order (ideal for gradients or chronological data),
+while the right heatmap allows free hierarchical clustering of samples to reveal natural
+groupings. The function dynamically scales the height of the output PNG based on the
+number of genes to ensure row labels remain readable.
+}
+\examples{
+\dontrun{
+# Assuming 'deseq_res' is your results dataframe and 'vsd' is a DESeqTransform object
+
+# Define annotation colors and metadata
+sample_anno <- data.frame(Condition = colData(vsd)$Condition)
+rownames(sample_anno) <- colnames(vsd)
+
+# Specify the exact order you want samples to appear in the fixed heatmap
+ordered_samples <- c("Mock_1", "Mock_2", "Infected_1", "Infected_2")
+
+generate_and_save_heatmap(
+  res_obj = deseq_res,
+  comp_name = "Infection_Effect",
+  comp_title = "Infected vs Mock (Global)",
+  vsd_data = vsd,
+  anno_col = sample_anno,
+  ordered_samps = ordered_samples,
+  n_padj = 40,
+  n_lfc = 40,
+  out_dir = "Results/Heatmaps",
+  ts = format(Sys.time(), "\%Y\%m\%d_\%H\%M\%S")
+)
+}
 }

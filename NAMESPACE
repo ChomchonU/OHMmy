@@ -44,3 +44,68 @@ export(run_soupx_post_clustering)
 import(Seurat)
 import(dplyr)
 import(ggplot2)
+importFrom(SeuratObject,JoinLayers)
+importFrom(SoupX,
+  SoupChannel,
+  adjustCounts,
+  autoEstCont,
+  setClusters,
+  setContaminationFraction
+)
+importFrom(ggpubr,
+  ggboxplot,
+  stat_compare_means,
+  stat_pvalue_manual
+)
+importFrom(grDevices,
+  col2rgb,
+  colorRampPalette,
+  dev.cur,
+  dev.off,
+  jpeg,
+  pdf,
+  rgb
+)
+importFrom(patchwork,
+  plot_annotation,
+  plot_layout,
+  plot_spacer,
+  wrap_plots
+)
+importFrom(rstatix,
+  add_significance,
+  add_xy_position,
+  anova_test,
+  dunn_test,
+  kruskal_test,
+  t_test,
+  tukey_hsd,
+  wilcox_test
+)
+importFrom(stats,
+  as.dendrogram,
+  as.formula,
+  chisq.test,
+  cor,
+  dist,
+  fisher.test,
+  hclust,
+  p.adjust,
+  quantile,
+  setNames
+)
+importFrom(stringr,
+  str_count,
+  str_detect,
+  str_extract
+)
+importFrom(tibble,column_to_rownames)
+importFrom(tidyr,pivot_wider)
+importFrom(utils,
+  combn,
+  head,
+  install.packages,
+  setTxtProgressBar,
+  txtProgressBar,
+  write.csv
+)

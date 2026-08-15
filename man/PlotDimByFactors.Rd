@@ -2,7 +2,7 @@
 % Please edit documentation in R/General_visualizations.R
 \name{PlotDimByFactors}
 \alias{PlotDimByFactors}
-\title{Title}
+\title{Generate Dimensionality Reduction Plots by Metadata Factors}
 \usage{
 PlotDimByFactors(
   seurat_obj,
@@ -22,8 +22,55 @@ PlotDimByFactors(
 )
 }
 \arguments{
-\item{verbose}{}
+\item{seurat_obj}{A Seurat object containing single-cell data and the specified reduction.}
+
+\item{factors}{Character vector. The names of the metadata columns to group the cells by (e.g., c("seurat_clusters", "Phase")).}
+
+\item{sample_name}{Character. The name of the biological sample, used for plot titles and file naming. Default is "Sample".}
+
+\item{reduction}{Character. The dimensionality reduction to visualize (e.g., "umap", "umap.har" for Harmony). Default is "umap.har".}
+
+\item{raster}{Logical. Whether to rasterize the points (useful for massive datasets to speed up plotting). Default is FALSE.}
+
+\item{label}{Logical. Whether to label the clusters/groups directly on the plot. Default is TRUE.}
+
+\item{repel}{Logical. Whether to repel the labels to prevent overlapping. Default is TRUE.}
+
+\item{output_dir}{Character. Directory path where the generated plots will be saved. Default is "Plots_umap".}
+
+\item{plot_format}{Character. The file format for the saved plots ("jpg", "png", or "pdf"). Default is "jpg".}
+
+\item{width}{Numeric. The width of the saved plot. Default is 10.}
+
+\item{height}{Numeric. The height of the saved plot. Default is 10.}
+
+\item{dpi}{Numeric. The resolution of the saved plots. Default is 300.}
+
+\item{add_timestamp}{Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.}
+
+\item{verbose}{Logical. Whether to print progress messages, display a progress bar, and print the plots to the console. Default is TRUE.}
+}
+\value{
+Invisibly returns a named list of the generated \code{ggplot} objects, where names correspond to the provided \code{factors}.
 }
 \description{
-Title
+This function iterates through a specified list of metadata columns (factors)
+in a Seurat object and generates a dimensionality reduction plot (e.g., UMAP)
+for each. It automatically handles filename sanitization, saves the plots to
+a designated directory, and provides console progress updates.
+}
+\examples{
+\dontrun{
+# Plot UMAPs colored by multiple different metadata factors
+my_plots <- PlotDimByFactors(
+  seurat_obj = my_seurat,
+  factors = c("seurat_clusters", "CellType", "Condition"),
+  sample_name = "Donor_1",
+  reduction = "umap",
+  plot_format = "png"
+)
+
+# The function saves the plots to disk, but you can also view one in R:
+my_plots$CellType
+}
 }

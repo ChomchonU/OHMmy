@@ -2,7 +2,7 @@
 % Please edit documentation in R/Pre-processing_soupX.R
 \name{addSoupXMetaToSeurat}
 \alias{addSoupXMetaToSeurat}
-\title{Title}
+\title{Update Seurat Object with SoupX-Corrected Counts and Metadata}
 \usage{
 addSoupXMetaToSeurat(
   original_seurat,
@@ -14,8 +14,44 @@ addSoupXMetaToSeurat(
 )
 }
 \arguments{
-\item{save_path}{}
+\item{original_seurat}{A pre-existing \code{Seurat} object that you wish to update with the cleaned counts.}
+
+\item{soupx_seurat_list}{A named list of \code{Seurat} objects containing SoupX-corrected counts, typically the output of \code{create_final_seurat()}.}
+
+\item{mito_colname}{Character. The name of the mitochondrial percentage column in the SoupX objects. It will be automatically standardized to \code{"pct_counts_mt"} during the transfer. Default is \code{"mitoPercent"}.}
+
+\item{counts_assay}{Character. The name of the assay in the original object where the counts layer should be updated. Default is \code{"RNA"}.}
+
+\item{rename_barcodes}{Logical. If \code{TRUE}, strips the common \code{"-1"} suffix from the barcodes in the merged SoupX object to ensure they match standard Seurat formatting. Default is \code{TRUE}.}
+
+\item{save_path}{Character. An optional file path (.rds) to automatically save the updated Seurat object to disk. Default is \code{NULL} (does not save).}
+}
+\value{
+An updated \code{Seurat} object containing the decontaminated count matrix and matching QC metadata (\code{nCount_RNA}, \code{nFeature_RNA}, \code{pct_counts_mt}). The object is strictly subsetted to contain only the overlapping valid cells and genes.
 }
 \description{
-Title
+Merges a list of SoupX-processed Seurat objects and seamlessly maps their
+background-corrected count matrices and updated QC metrics back onto a pre-existing
+Seurat object. It handles the tedious formatting steps, such as barcode stripping,
+standardizing mitochondrial column names, and intersecting cells/genes to prevent
+dimension mismatches. Finally, it replaces the raw counts layer in the original
+object with the decontaminated data.
+}
+\examples{
+\dontrun{
+# Assuming 'my_seurat' is an existing object you want to clean,
+# and 'pipeline_out' is the list returned by process_soupx_samples()
+
+cleaned_seurat <- addSoupXMetaToSeurat(
+  original_seurat = my_seurat,
+  soupx_seurat_list = pipeline_out$final_seurat,
+  mito_colname = "mitoPercent",
+  counts_assay = "RNA",
+  rename_barcodes = TRUE,
+  save_path = "Results/Seurat_SoupX_Cleaned.rds"
+)
+
+# The 'cleaned_seurat' object now contains the background-corrected counts
+# in its RNA assay, ready for standard downstream normalization!
+}
 }

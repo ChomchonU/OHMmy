@@ -1,20 +1,42 @@
-#' Title
+#' Generate Dimensionality Reduction Heatmaps
 #'
-#' @param seurat_obj
-#' @param sample_name
-#' @param reduction
-#' @param pc_windows
-#' @param output_dir
-#' @param nfeatures
-#' @param cells
-#' @param width_in
-#' @param height_in
-#' @param res
+#' A robust wrapper around Seurat's \code{DimHeatmap} function designed to systematically
+#' evaluate sources of heterogeneity across multiple dimensions. It chunks specified
+#' principal components (or other dimensional reductions) into distinct windows, generates
+#' a balanced heatmap for each window, and safely exports them as high-resolution JPEGs.
+#' It features a built-in progress bar and robust error handling (\code{tryCatch}) to
+#' prevent graphics device hangs during batch processing on remote compute nodes.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data and the specified dimensional reduction.
+#' @param sample_name Character. The name of the biological sample, used for console messages and prefixing the saved filenames.
+#' @param reduction Character. The dimensional reduction to use (e.g., "pca", "ica"). Default is "pca".
+#' @param pc_windows A list of numeric vectors. Each vector defines a chunk/window of dimensions to plot together in a single file. Default is \code{list(1:10, 11:20, 21:30)}.
+#' @param output_dir Character. Directory path where the generated JPEGs will be saved. Default is "DimHeatmap_plots".
+#' @param nfeatures Integer. The number of top features (genes) to display per dimension. Default is 60.
+#' @param cells Integer. The number of cells to plot. If \code{cells} is a single number, it plots the most extreme cells from both ends of the spectrum. Default is 500.
+#' @param width_in Numeric. The width of the saved JPEG in inches. Default is 15.
+#' @param height_in Numeric. The height of the saved JPEG in inches. Default is 45.
+#' @param res Numeric. The resolution (dpi) of the saved JPEG. Default is 300.
+#'
+#' @return Invisibly returns \code{NULL}. The primary purpose of this function is its side effect of saving JPEG plots to the specified output directory.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Evaluate the first 15 principal components in 3 chunks of 5
+#' generate_dimheatmaps(
+#'   seurat_obj = my_seurat,
+#'   sample_name = "Donor_1",
+#'   reduction = "pca",
+#'   pc_windows = list(1:5, 6:10, 11:15),
+#'   output_dir = "QC_Plots/PCA_Heatmaps",
+#'   nfeatures = 30,
+#'   cells = 500,
+#'   width_in = 10,
+#'   height_in = 20
+#' )
+#' }
 generate_dimheatmaps <- function(seurat_obj,
                                  sample_name,
                                  reduction = "pca",
@@ -85,23 +107,52 @@ generate_dimheatmaps <- function(seurat_obj,
 
 # ---------------------------------------------------
 
-#' Title
+#' Generate and Save Dimensional Reduction Loading Plots
 #'
-#' @param seurat_obj
-#' @param sample_name
-#' @param reduction
-#' @param pc_windows
-#' @param output_dir
-#' @param nfeatures
-#' @param width_in
-#' @param height_in
-#' @param res
-#' @param ncol
+#' A robust wrapper around Seurat's \code{VizDimLoadings} function designed for batch
+#' processing in HPC environments. It chunks specified principal components (or other
+#' dimensional reductions) into windows, extracts the top features (genes) driving each
+#' dimension, and stitches the individual plots together using \code{patchwork}. The
+#' combined layouts are safely exported as high-resolution JPEGs. It features a built-in
+#' progress bar and strict error handling (\code{tryCatch}) to prevent graphics device
+#' hangs during automated runs.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data and the calculated dimensional reduction.
+#' @param sample_name Character. The identifier for the biological sample, used for console messaging and prefixing the saved filenames.
+#' @param reduction Character. The dimensional reduction to extract feature loadings from (e.g., "pca", "ica"). Default is "pca".
+#' @param pc_windows A list of numeric vectors. Each vector defines a chunk/window of dimensions to plot together in a single stitched file. Default is \code{list(1:10, 11:20, 21:30)}.
+#' @param output_dir Character. Directory path where the generated JPEGs will be saved. Default is "VizDimLoadings_plots".
+#' @param nfeatures Integer. The number of top and bottom features (genes) with the highest absolute loadings to display per dimension. Default is 60.
+#' @param width_in Numeric. The width of the saved JPEG in inches. Default is 20.
+#' @param height_in Numeric. The height of the saved JPEG in inches. Default is 45.
+#' @param res Numeric. The resolution (dpi) of the saved JPEG. Default is 300.
+#' @param ncol Integer. The number of columns to use when wrapping the individual dimension plots together via \code{patchwork}. Default is 5.
+#'
+#' @return A character vector containing the names of any samples or PC ranges that failed to plot (e.g., due to missing reductions or graphics errors). If all ranges succeed, returns an empty character vector.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Evaluate the feature loadings for the first 12 PCs, grouped in chunks of 4
+#' failed_plots <- plot_vizdimloadings(
+#'   seurat_obj = my_seurat,
+#'   sample_name = "Donor_1",
+#'   reduction = "pca",
+#'   pc_windows = list(1:4, 5:8, 9:12),
+#'   output_dir = "QC_Plots/PCA_Loadings",
+#'   nfeatures = 30,
+#'   width_in = 16,
+#'   height_in = 12,
+#'   ncol = 2
+#' )
+#'
+#' # Check if any plots failed during the run
+#' if (length(failed_plots) > 0) {
+#'   print("Some plots failed:")
+#'   print(failed_plots)
+#' }
+#' }
 plot_vizdimloadings <- function(seurat_obj,
                                 sample_name,
                                 reduction = "pca",
@@ -171,20 +222,47 @@ plot_vizdimloadings <- function(seurat_obj,
 
 # -------------------------------------------------
 
-#' Title
+#' Evaluate Technical Gene Contributions to Principal Components
 #'
-#' @param seurat_obj
-#' @param sample_name
-#' @param output_dir
-#' @param technical_keywords
-#' @param max_pcs
-#' @param n_top_genes
-#' @param cutoff
+#' Extracts PCA loadings from a Seurat object and calculates the weighted percentage
+#' of technical or nuisance genes (e.g., mitochondrial, ribosomal, immunoglobulins,
+#' or specific lncRNAs) driving each principal component. It evaluates the top positive
+#' and negative feature loadings independently. The output is a split bar chart that
+#' visually highlights which PCs are overwhelmed by technical noise, helping determine
+#' which components to exclude or which variables require regression (\code{vars.to.regress}).
 #'
-#' @returns
+#' @note This function explicitly looks for a dimensionality reduction named \code{"pca.log"}.
+#' Ensure your Seurat object's PCA was saved under this name, or modify the function
+#' to accept a custom reduction name.
+#'
+#' @param seurat_obj A Seurat object containing single-cell data. Must have a reduction named "pca.log".
+#' @param sample_name Character. The identifier for the biological sample, used for plot titles and file naming.
+#' @param output_dir Character. Directory path where the generated JPEG will be saved. Default is "Output_R/Find_vartoregress".
+#' @param technical_keywords Character vector. Regular expressions defining the "technical" genes to track. Default includes prefixes for mitochondrial ("^MT-"), ribosomal ("^RPL", "^RPS"), immunoglobulin (\code{"^IG[HKL]"}), and common lncRNAs ("MALAT1", "NEAT1", "XIST").
+#' @param max_pcs Integer. The maximum number of principal components to evaluate. Default is 40.
+#' @param n_top_genes Integer. The total number of top-loading genes to evaluate per PC. This is split evenly, meaning a value of 500 evaluates the top 250 positive and top 250 negative features. Default is 500.
+#' @param cutoff Numeric. The threshold percentage used to draw a dashed horizontal warning line on the plot. Default is 15.
+#'
+#' @return A character vector containing the names of any samples that failed to process (e.g., due to missing reductions). Returns an empty character vector (\code{character(0)}) if successful.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Evaluate how much mitochondrial and ribosomal genes are driving your PCs
+#' failed_qc <- plot_technical_contribution(
+#'   seurat_obj = my_seurat,
+#'   sample_name = "Viral_Infection_Cohort",
+#'   technical_keywords = c("^MT-", "^RPL", "^RPS"),
+#'   max_pcs = 30,
+#'   n_top_genes = 400,
+#'   cutoff = 10
+#' )
+#'
+#' if (length(failed_qc) == 0) {
+#'   print("Technical contribution plot generated successfully!")
+#' }
+#' }
 plot_technical_contribution <- function(seurat_obj,
                                         sample_name,
                                         output_dir = "Output_R/Find_vartoregress",
@@ -282,24 +360,46 @@ plot_technical_contribution <- function(seurat_obj,
 
 # --------------------------------------------
 
-#' Title
+#' Evaluate Depth-Dependent Technical Contributions to Principal Components
 #'
-#' @param seurat_obj
-#' @param sample_name
-#' @param reduction
-#' @param technical_keywords
-#' @param gene_depths
-#' @param max_pcs
-#' @param cutoff
-#' @param output_dir
-#' @param plot_width
-#' @param plot_height
-#' @param dpi
+#' An advanced quality control tool that tracks how the influence of technical/nuisance
+#' genes changes at varying depths of principal component loadings. Instead of checking
+#' a single fixed number of top genes, it iterates across a sequence of depths (e.g.,
+#' top 20, 40, ..., 500), calculating the weighted percentage of technical genes at each
+#' step for both positive and negative directions. The output is a massive faceted
+#' bar chart (one facet per PC) with color-coded flags indicating when a loading
+#' direction exceeds the defined technical cutoff threshold.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data.
+#' @param sample_name Character. The identifier for the biological sample, used for plot titles and file naming.
+#' @param reduction Character. The dimensional reduction to extract feature loadings from. Default is "pca.log".
+#' @param technical_keywords Character vector. Regular expressions defining the "technical" genes to track. Default includes mitochondrial ("^MT-"), ribosomal ("^RPL", "^RPS"), immunoglobulin (\code{"^IG[HKL]"}), and specific lncRNAs ("MALAT1", "NEAT1", "XIST").
+#' @param gene_depths Numeric vector. A sequence defining the varying numbers of top/bottom genes to evaluate sequentially. Default is \code{seq(0, 500, by = 20)}.
+#' @param max_pcs Integer. The maximum number of principal components to evaluate and facet. Default is 40.
+#' @param cutoff Numeric. The threshold percentage used to draw a warning line and trigger the color-coded flag (Above/Below). Default is 15.
+#' @param output_dir Character. Directory path where the generated JPEG will be saved. Default is "Output_R/Find_vartoregress".
+#' @param plot_width Numeric. The width of the saved JPEG in inches. Because this plot contains many facets, the default is large (30).
+#' @param plot_height Numeric. The height of the saved JPEG in inches. Default is 15.
+#' @param dpi Numeric. The resolution (dpi) of the saved JPEG. Default is 300.
+#'
+#' @return Invisibly returns a character string containing the exact file path where the plot was saved.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Track technical noise saturation across the first 30 PCs at intervals of 25 genes
+#' plot_stacked_technical_contribution(
+#'   seurat_obj = my_seurat,
+#'   sample_name = "T_Cell_Subset",
+#'   reduction = "pca",
+#'   gene_depths = seq(0, 400, by = 25),
+#'   max_pcs = 30,
+#'   cutoff = 10,
+#'   plot_width = 24,
+#'   plot_height = 12
+#' )
+#' }
 plot_stacked_technical_contribution <- function(
     seurat_obj,
     sample_name,
@@ -394,9 +494,9 @@ plot_stacked_technical_contribution <- function(
         "Negative.Below" = "blue2"
       ),
       labels = c(
-        "Positive.Below" = "Pos ≤ cutoff",
+        "Positive.Below" = "Pos <= cutoff",
         "Positive.Above" = "Pos > cutoff",
-        "Negative.Below" = "Neg ≤ cutoff",
+        "Negative.Below" = "Neg <= cutoff",
         "Negative.Above" = "Neg > cutoff"
       ),
       name = "Direction / Flag"
@@ -428,22 +528,45 @@ plot_stacked_technical_contribution <- function(
 
 # -----------------------------------------------
 
-#' Title
+#' Calculate and Plot Correlation Between Principal Components and Metadata
 #'
-#' @param seurat_obj
-#' @param sample_name
-#' @param vars_to_test
-#' @param reduction
-#' @param n_pcs
-#' @param output_dir
-#' @param plot_width_in
-#' @param plot_height_in
-#' @param res_dpi
+#' Extracts dimensional reduction embeddings (e.g., PCA cell scores) from a Seurat object
+#' and computes the Spearman correlation against a specified list of continuous metadata
+#' covariates (such as sequencing depth, mitochondrial percentage, or cell cycle scores).
+#' It generates a hierarchically clustered heatmap of the correlation coefficients using
+#' \code{pheatmap} and automatically saves it to disk. This is a critical QC step for
+#' identifying whether specific principal components are capturing technical artifacts
+#' rather than true biological variance.
 #'
-#' @returns
+#' @param seurat_obj A Seurat object containing single-cell data.
+#' @param sample_name Character. The identifier for the biological sample, used for the plot title and file naming.
+#' @param vars_to_test Character vector. The names of the metadata columns (or specific features in the active assay) to correlate against the PCs. Default includes common technical and cell-cycle covariates: \code{c("pct_counts_mt", "nCount_RNA", "percent.ribo", "percent.ig", "nuclear_rna", "S.Score", "G2M.Score", "MALAT1", "NEAT1", "XIST")}.
+#' @param reduction Character. The dimensional reduction to extract cell embeddings from. Default is "pca.log".
+#' @param n_pcs Integer. The number of principal components to evaluate, starting from PC 1. Default is 40.
+#' @param output_dir Character. Directory path where the generated JPEG heatmap will be saved. Default is "Output_R/Find_vartoregress".
+#' @param plot_width_in Numeric. The width of the saved JPEG in inches. Default is 15.
+#' @param plot_height_in Numeric. The height of the saved JPEG in inches. Default is 7.
+#' @param res_dpi Numeric. The resolution (dpi) of the saved JPEG. Default is 300.
+#'
+#' @return Invisibly returns a character string containing the exact file path where the correlation heatmap was saved.
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Assuming your Seurat object has cell cycle scores (S.Score, G2M.Score)
+#' # and mitochondrial percentages (percent.mt) calculated in the metadata
+#'
+#' plot_pc_metadata_correlation(
+#'   seurat_obj = my_seurat,
+#'   sample_name = "PBMC_Condition_A",
+#'   vars_to_test = c("nCount_RNA", "nFeature_RNA", "percent.mt", "S.Score", "G2M.Score"),
+#'   reduction = "pca",
+#'   n_pcs = 30,
+#'   plot_width_in = 12,
+#'   plot_height_in = 6
+#' )
+#' }
 plot_pc_metadata_correlation <- function(
     seurat_obj,
     sample_name,

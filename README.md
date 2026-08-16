@@ -74,44 +74,71 @@ library(Seurat)
 library(OHMmy)
 
 # ---------------------------------------------------------
-# 1. Initialize & Clean Ambient RNA (SoupX Wrappers)
+# 1. Ambient RNA Decontamination (SoupX)
 # ---------------------------------------------------------
-soup_channels <- create_soup_channels(raw_counts_list, filtered_counts_list)
-soup_channels <- estimate_contamination(soup_channels, initial_clusters)
-clean_seurat <- adjustCounts(soup_channels[[1]])
+# Automatically process raw/filtered matrices and transfer cleaned data
+soup_results <- process_soupx_samples(filtered_dir = "data/filtered/", raw_dir = "data/raw/")
+seurat_obj <- addSoupXMetaToSeurat(seurat_raw, soup_results$final_seurat)
 
 # ---------------------------------------------------------
-# 2. Process & Cluster (Seurat v5 Wrappers)
+# 2. Process, Integrate, & Cluster (Seurat v5)
 # ---------------------------------------------------------
-# Run automated SCTransform workflow
-seurat_obj <- ProcessSeuratSCT(clean_seurat)
+# Regress technical noise and integrate batches (e.g., CCA)
+seurat_obj <- ProcessSeuratLOG(
+  seurat_obj, 
+  batch_col = "batch", 
+  vars_to_regress = c("pct_counts_mt", "S.Score"),
+  integration_method = "CCAIntegration"
+)
 
-# Compute PCA, UMAP, and find clusters
-seurat_obj <- ClusterAndUMAP(seurat_obj, resolution = 0.5)
+# Compute UMAP and cluster across multiple resolutions
+seurat_obj <- ClusterAndUMAP(seurat_obj, reduction = "integrated.cca.log")$seurat
 
 # ---------------------------------------------------------
 # 3. Analyze & Visualize
 # ---------------------------------------------------------
-# Statistically compare cell type abundance across infection groups
-plot_cell_abundance(seurat_obj, group.by = "Condition", test = "wilcox")
+# Statistically compare cell type abundance across disease states
+plot_cell_abundance(
+  seurat_obj, 
+  sample_col = "donor_id", 
+  condition_col = "disease_state", 
+  celltype_col = "seurat_clusters"
+)
 
-# Generate advanced feature blend plots for subset markers (e.g., CD8A / XCL1)
-plot_blend_nebulosa(seurat_obj, features = c("CD8A", "XCL1"))
+# Generate advanced feature density blend plots for co-expressing subsets
+plot_blend_nebulosa(
+  seurat_obj, 
+  cluster_col = "seurat_clusters", 
+  gene_pairs = list(c("CD8A", "GZMB"))
+)
 ```
 
-## 📚 Want the full pipeline?
+## 📚 Documentation & Tutorials
 
-This is just a fraction of what `OHMmy` can do. To see the complete,
-end-to-end tutorial covering all 41 functions—including complex
-hierarchical dotplots, advanced diagnostics, and functional
-enrichment—[**check out the comprehensive vignette
-here**](vignettes/OHMmy-comprehensive.Rmd)**.**
+This is just a fraction of what `OHMmy` can do! To see the complete,
+end-to-end tutorials covering all functions—including complex
+hierarchical dot plots, PCA diagnostics, and functional enrichment—visit
+our official package website:
 
-If you have installed the package, you can also view it directly in R:
+🔗 [**OHMmy Official Documentation
+Website**](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/)
 
-``` r
-vignette("OHMmy-comprehensive")
-```
+Available Guides:
+
+- [Comprehensive End-to-End
+  Workflow](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-comprehensive.html)
+
+- [Data Processing &
+  Clustering](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-processing-clustering.html)
+
+- [Advanced Visualizations & Marker
+  Analysis](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.html)
+
+- [Statistical Abundance &
+  Correlations](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-statistical-analysis.html)
+
+- [Differential Expression & Pathway
+  Enrichment](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-differential-expression.html)
 
 ## 📦 Package Structure
 

@@ -35,6 +35,6 @@ initial_seurat_list <- create_seurat_for_clustering(
 
 # The clusters from these objects can now be extracted and fed into SoupChannels
 # e.g., soup_channels[[1]] <- setClusters(soup_channels[[1]],
-initial_seurat_list[[1]]$seurat_clusters)
+# initial_seurat_list[[1]]$seurat_clusters)
 }
 }

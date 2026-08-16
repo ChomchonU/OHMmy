@@ -142,31 +142,6 @@ plot_dot_dendro_split(
 
 Understanding how two genes interact (or are mutually exclusive) in the same cell requires specialized density and correlation plots.
 
-### 4.1 Statistical Correlation
-
-Calculate the Pearson or Spearman correlation between specific gene pairs within your clusters.
-
-```{r}
-
-# Calculate expression correlation between key functional pairs
-plot_gene_pair_correlations(
-  seurat_obj = seurat_obj,
-  cluster_col = "seurat_clusters",
-  gene_pairs = list(
-    c("CD8A", "GZMB"),
-    c("IL7R", "TCF7"),
-    c("IFNG", "TNF")
-  ),
-  cor_method = "spearman",
-  sample_name = "Marker_Correlations",
-  output_dir = paste0(out_dir, "correlations/")
-)
-```
-
-### 4.2 Nebulosa Blend Overlays
-
-To visually identify dual-expressing cells (e.g., cells expressing both `CD8A` and a specific receptor), `OHMmy` uses `Nebulosa` to generate smoothed density blend plots on your UMAP.
-
 ```{r}
 
 # Generate density blend plots for specific receptor/effector pairs

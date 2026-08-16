@@ -187,7 +187,7 @@ create_soup_channels <- function(cts_raw_list, cts_filtered_list, sample_names) 
 #'
 #' # The clusters from these objects can now be extracted and fed into SoupChannels
 #' # e.g., soup_channels[[1]] <- setClusters(soup_channels[[1]],
-#' initial_seurat_list[[1]]$seurat_clusters)
+#' # initial_seurat_list[[1]]$seurat_clusters)
 #' }
 create_seurat_for_clustering <- function(cts_filtered_list, sample_names) {
   seurat_list <- list()

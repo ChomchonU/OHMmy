@@ -1,0 +1,148 @@
+---
+title: "Differential Expression and Pathway Enrichment"
+author: "Chomchon Uansiri"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Differential Expression and Pathway Enrichment}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE # Set to FALSE so the vignette builds quickly
+)
+```
+
+## Introduction
+
+Once you have identified your cell clusters, the next step is discovering what makes them unique biologically. `OHMmy` automates the extraction of cluster markers, pathway enrichment (GSEA and ORA), and visualizes pseudo-bulk differential expression (DESeq2) between experimental conditions.
+
+```{r}
+
+library(Seurat)
+library(OHMmy)
+library(msigdbr) # Required for pathway databases
+
+# Load your clustered Seurat object
+seurat_obj <- readRDS("data/seurat_clustered.rds")
+out_dir <- "results/differential_expression/"
+```
+
+## Part 1: Finding Top Cluster Markers
+
+The `FindTopMarkersAndHeatmap()` function runs `FindAllMarkers()` to find the defining genes for each cluster, saves the results as a ready-to-use CSV file, and generates a heatmap of the top genes.
+
+```{r}
+
+# 1. Set the active identity to your desired cluster resolution
+Idents(seurat_obj) <- "cell_type_annotation"
+
+# 2. Find markers and generate the heatmap
+marker_results <- FindTopMarkersAndHeatmap(
+  seurat_obj = seurat_obj,
+  sample_name = "Cohort_A",
+  output_dir_base = paste0(out_dir, "cluster_markers/"),
+  plot_format = "jpg",
+  onlyPos = FALSE # Set to FALSE to capture both up and down-regulated markers
+)
+
+# You can access the saved dataframe directly for the next step
+gsea_input_df <- marker_results$markers
+```
+
+## Part 2: Pathway Enrichment (GSEA & ORA)
+
+Using the marker dataframe generated in Part 1, we can test if specific biological pathways (like the MSigDB Hallmark gene sets) are enriched in our clusters.
+
+First, we download the Human Hallmark database:
+
+```{r}
+
+m_t2g_hallmark <- msigdbr(species = "Homo sapiens", category = "H")[, c("gs_name", "gene_symbol")]
+```
+
+### 2.1 Gene Set Enrichment Analysis (GSEA)
+
+GSEA evaluates the entire ranked list of genes for a cluster (both positive and negative markers) to find coordinated pathway shifts.
+
+```{r}
+
+gsea_results <- run_global_gsea(
+  GSEA_df = gsea_input_df, 
+  m_t2g = m_t2g_hallmark, 
+  title_prefix = "Hallmark",
+  top_n_per_direction = 30, # Plot the top 30 up/down pathways per cluster
+  output_dir = paste0(out_dir, "GSEA/")
+)
+```
+
+### 2.2 Over-Representation Analysis (ORA)
+
+ORA evaluates only the *significant* positive markers to see if they overlap significantly with known pathway gene lists.
+
+```{r}
+
+ora_results <- run_global_ora(
+  ORA_df = gsea_input_df, 
+  m_t2g = m_t2g_hallmark, 
+  title_prefix = "Hallmark",
+  top_n_per_cluster = 30,
+  output_dir = paste0(out_dir, "ORA/")
+)
+```
+
+## Part 3: Pseudo-bulk Differential Expression (DESeq2)
+
+While `FindAllMarkers()` compares clusters against each other, **DESeq2** compares the *same* cluster across different conditions (e.g., Healthy vs. Disease). `OHMmy` provides wrappers to visualize DESeq2 results natively.
+
+*(Note: Generating the DESeq2 `res` object using pseudo-bulk aggregation is assumed to be completed prior to visualization).*
+
+### 3.1 Volcano Plots
+
+Visualize significant gene expression fold-changes between two conditions.
+
+```{r}
+
+# Define genes you want highlighted on the volcano plot
+highlight_genes <- c("IFNG", "GZMB", "TNF", "CX3CR1", "IL7R")
+
+# Generate the plot for Disease vs Control
+volcano_plot <- generate_volcano_trio(
+  res_obj = res_Disease_vs_Control, # Your DESeq2 results object
+  plot_title = "Severe Disease vs Healthy Control", 
+  target_genes = highlight_genes
+)
+
+# Save the plot
+ggsave(paste0(out_dir, "DESeq2/volcano_disease_vs_control.png"), 
+       plot = volcano_plot, width = 20, height = 8)
+```
+
+### 3.2 Heatmaps of Differentially Expressed Genes
+
+To visualize how the top significant genes fluctuate across individual patients, we use `generate_and_save_heatmap()`.
+
+```{r}
+
+# 1. Transform the count data (Required for heatmaps)
+vsd_data <- DESeq2::vst(dds_object, blind = FALSE)
+
+# 2. Setup the annotation column (e.g., Patient Condition)
+anno_col <- as.data.frame(colData(dds_object)[, "disease_state", drop = FALSE])
+ordered_samples <- rownames(anno_col)[order(anno_col$disease_state)]
+
+# 3. Generate the heatmap
+generate_and_save_heatmap(
+  res_obj = res_Disease_vs_Control,
+  comp_name = "Disease_vs_Control",
+  comp_title = "Severe Disease vs Healthy Control",
+  vsd_data = vsd_data,
+  anno_col = anno_col,
+  ordered_samps = ordered_samples,
+  n_padj = 50, # Plot top 50 significant genes
+  out_dir = paste0(out_dir, "DESeq2/")
+)
+```

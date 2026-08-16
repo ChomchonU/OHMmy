@@ -36,3 +36,20 @@ standard PCA, UMAP embedding, and high-resolution cluster identities
 stored in the active `Idents`.
 
 ## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Assuming you have already loaded your filtered matrices
+counts_list <- load_counts(my_samples, "data/filtered", "data/raw")
+
+# Quickly cluster all samples to prepare them for SoupX
+initial_seurat_list <- create_seurat_for_clustering(
+  cts_filtered_list = counts_list$filtered,
+  sample_names = my_samples
+)
+
+# The clusters from these objects can now be extracted and fed into SoupChannels
+# e.g., soup_channels[[1]] <- setClusters(soup_channels[[1]],
+# initial_seurat_list[[1]]$seurat_clusters)
+} # }
+```

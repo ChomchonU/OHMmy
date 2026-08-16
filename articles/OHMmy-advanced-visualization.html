@@ -202,35 +202,7 @@ Plots grouped by feature categories.</p>
 </h2>
 <p>Understanding how two genes interact (or are mutually exclusive) in
 the same cell requires specialized density and correlation plots.</p>
-<div class="section level3">
-<h3 id="statistical-correlation">4.1 Statistical Correlation<a class="anchor" aria-label="anchor" href="#statistical-correlation"></a>
-</h3>
-<p>Calculate the Pearson or Spearman correlation between specific gene
-pairs within your clusters.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Calculate expression correlation between key functional pairs</span></span>
-<span><span class="fu"><a href="../reference/plot_gene_pair_correlations.html">plot_gene_pair_correlations</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
-<span>  gene_pairs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"GZMB"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"IL7R"</span>, <span class="st">"TCF7"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"IFNG"</span>, <span class="st">"TNF"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  cor_method <span class="op">=</span> <span class="st">"spearman"</span>,</span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Marker_Correlations"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"correlations/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="nebulosa-blend-overlays">4.2 Nebulosa Blend Overlays<a class="anchor" aria-label="anchor" href="#nebulosa-blend-overlays"></a>
-</h3>
-<p>To visually identify dual-expressing cells (e.g., cells expressing
-both <code>CD8A</code> and a specific receptor), <code>OHMmy</code> uses
-<code>Nebulosa</code> to generate smoothed density blend plots on your
-UMAP.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Generate density blend plots for specific receptor/effector pairs</span></span>
 <span><span class="fu"><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa</a></span><span class="op">(</span></span>
@@ -246,14 +218,13 @@ UMAP.</p>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"blend_plots/"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
-</div>
 <div class="section level2">
 <h2 id="part-5-clinical-and-technical-demographics">Part 5: Clinical and Technical Demographics<a class="anchor" aria-label="anchor" href="#part-5-clinical-and-technical-demographics"></a>
 </h2>
 <p>Finally, after defining your clusters, you often need to see how
 clinical metadata (like disease severity or batch) is distributed across
 them.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Plot the distribution of patient metadata across your defined clusters</span></span>
 <span><span class="va">metadata_to_check</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"batch"</span>, <span class="st">"severity"</span>, <span class="st">"Phase"</span><span class="op">)</span></span>

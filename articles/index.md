@@ -14,3 +14,7 @@ Step-by-step guides for single-cell preprocessing and analysis
   Evaluation](https://chomchonu.github.io/OHMmy/articles/OHMmy-diagnostics-evaluation.md):
 - [Advanced Visualization and Marker
   Analysis](https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.md):
+- [Statistical Analysis: Abundance, Confounders, and
+  Correlations](https://chomchonu.github.io/OHMmy/articles/OHMmy-statistical-analysis.md):
+- [Differential Expression and Pathway
+  Enrichment](https://chomchonu.github.io/OHMmy/articles/OHMmy-differential-expression.md):

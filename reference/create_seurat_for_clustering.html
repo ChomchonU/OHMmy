@@ -76,7 +76,21 @@ ambient RNA profiling via <code><a href="https://rdrr.io/pkg/SoupX/man/autoEstCo
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># Assuming you have already loaded your filtered matrices</span></span></span>
+<span class="r-in"><span><span class="va">counts_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="load_counts.html">load_counts</a></span><span class="op">(</span><span class="va">my_samples</span>, <span class="st">"data/filtered"</span>, <span class="st">"data/raw"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Quickly cluster all samples to prepare them for SoupX</span></span></span>
+<span class="r-in"><span><span class="va">initial_seurat_list</span> <span class="op">&lt;-</span> <span class="fu">create_seurat_for_clustering</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  cts_filtered_list <span class="op">=</span> <span class="va">counts_list</span><span class="op">$</span><span class="va">filtered</span>,</span></span>
+<span class="r-in"><span>  sample_names <span class="op">=</span> <span class="va">my_samples</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># The clusters from these objects can now be extracted and fed into SoupChannels</span></span></span>
+<span class="r-in"><span><span class="co"># e.g., soup_channels[[1]] &lt;- setClusters(soup_channels[[1]],</span></span></span>
+<span class="r-in"><span><span class="co"># initial_seurat_list[[1]]$seurat_clusters)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+</code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

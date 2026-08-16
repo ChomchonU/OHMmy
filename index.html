@@ -99,37 +99,57 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PicooO12/OHMmy" class="external-link">OHMmy</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># ---------------------------------------------------------</span></span>
-<span><span class="co"># 1. Initialize &amp; Clean Ambient RNA (SoupX Wrappers)</span></span>
+<span><span class="co"># 1. Ambient RNA Decontamination (SoupX)</span></span>
 <span><span class="co"># ---------------------------------------------------------</span></span>
-<span><span class="va">soup_channels</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_soup_channels.html">create_soup_channels</a></span><span class="op">(</span><span class="va">raw_counts_list</span>, <span class="va">filtered_counts_list</span><span class="op">)</span></span>
-<span><span class="va">soup_channels</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimate_contamination.html">estimate_contamination</a></span><span class="op">(</span><span class="va">soup_channels</span>, <span class="va">initial_clusters</span><span class="op">)</span></span>
-<span><span class="va">clean_seurat</span> <span class="op">&lt;-</span> <span class="fu">adjustCounts</span><span class="op">(</span><span class="va">soup_channels</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co"># Automatically process raw/filtered matrices and transfer cleaned data</span></span>
+<span><span class="va">soup_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_soupx_samples.html">process_soupx_samples</a></span><span class="op">(</span>filtered_dir <span class="op">=</span> <span class="st">"data/filtered/"</span>, raw_dir <span class="op">=</span> <span class="st">"data/raw/"</span><span class="op">)</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/addSoupXMetaToSeurat.html">addSoupXMetaToSeurat</a></span><span class="op">(</span><span class="va">seurat_raw</span>, <span class="va">soup_results</span><span class="op">$</span><span class="va">final_seurat</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># ---------------------------------------------------------</span></span>
-<span><span class="co"># 2. Process &amp; Cluster (Seurat v5 Wrappers)</span></span>
+<span><span class="co"># 2. Process, Integrate, &amp; Cluster (Seurat v5)</span></span>
 <span><span class="co"># ---------------------------------------------------------</span></span>
-<span><span class="co"># Run automated SCTransform workflow</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ProcessSeuratSCT.html">ProcessSeuratSCT</a></span><span class="op">(</span><span class="va">clean_seurat</span><span class="op">)</span></span>
+<span><span class="co"># Regress technical noise and integrate batches (e.g., CCA)</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ProcessSeuratLOG.html">ProcessSeuratLOG</a></span><span class="op">(</span></span>
+<span>  <span class="va">seurat_obj</span>, </span>
+<span>  batch_col <span class="op">=</span> <span class="st">"batch"</span>, </span>
+<span>  vars_to_regress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pct_counts_mt"</span>, <span class="st">"S.Score"</span><span class="op">)</span>,</span>
+<span>  integration_method <span class="op">=</span> <span class="st">"CCAIntegration"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Compute PCA, UMAP, and find clusters</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ClusterAndUMAP.html">ClusterAndUMAP</a></span><span class="op">(</span><span class="va">seurat_obj</span>, resolution <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="co"># Compute UMAP and cluster across multiple resolutions</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ClusterAndUMAP.html">ClusterAndUMAP</a></span><span class="op">(</span><span class="va">seurat_obj</span>, reduction <span class="op">=</span> <span class="st">"integrated.cca.log"</span><span class="op">)</span><span class="op">$</span><span class="va">seurat</span></span>
 <span></span>
 <span><span class="co"># ---------------------------------------------------------</span></span>
 <span><span class="co"># 3. Analyze &amp; Visualize</span></span>
 <span><span class="co"># ---------------------------------------------------------</span></span>
-<span><span class="co"># Statistically compare cell type abundance across infection groups</span></span>
-<span><span class="fu"><a href="reference/plot_cell_abundance.html">plot_cell_abundance</a></span><span class="op">(</span><span class="va">seurat_obj</span>, group.by <span class="op">=</span> <span class="st">"Condition"</span>, test <span class="op">=</span> <span class="st">"wilcox"</span><span class="op">)</span></span>
+<span><span class="co"># Statistically compare cell type abundance across disease states</span></span>
+<span><span class="fu"><a href="reference/plot_cell_abundance.html">plot_cell_abundance</a></span><span class="op">(</span></span>
+<span>  <span class="va">seurat_obj</span>, </span>
+<span>  sample_col <span class="op">=</span> <span class="st">"donor_id"</span>, </span>
+<span>  condition_col <span class="op">=</span> <span class="st">"disease_state"</span>, </span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"seurat_clusters"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Generate advanced feature blend plots for subset markers (e.g., CD8A / XCL1)</span></span>
-<span><span class="fu"><a href="reference/plot_blend_nebulosa.html">plot_blend_nebulosa</a></span><span class="op">(</span><span class="va">seurat_obj</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"XCL1"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Generate advanced feature density blend plots for co-expressing subsets</span></span>
+<span><span class="fu"><a href="reference/plot_blend_nebulosa.html">plot_blend_nebulosa</a></span><span class="op">(</span></span>
+<span>  <span class="va">seurat_obj</span>, </span>
+<span>  cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>, </span>
+<span>  gene_pairs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"GZMB"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="books-want-the-full-pipeline">📚 Want the full pipeline?<a class="anchor" aria-label="anchor" href="#books-want-the-full-pipeline"></a>
+<h2 id="books-documentation--tutorials">📚 Documentation &amp; Tutorials<a class="anchor" aria-label="anchor" href="#books-documentation--tutorials"></a>
 </h2>
-<p>This is just a fraction of what <code>OHMmy</code> can do. To see the complete, end-to-end tutorial covering all 41 functions—including complex hierarchical dotplots, advanced diagnostics, and functional enrichment—<a href="vignettes/OHMmy-comprehensive.Rmd"><strong>check out the comprehensive vignette here</strong></a><strong>.</strong></p>
-<p>If you have installed the package, you can also view it directly in R:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"OHMmy-comprehensive"</span><span class="op">)</span></span></code></pre></div>
+<p>This is just a fraction of what <code>OHMmy</code> can do! To see the complete, end-to-end tutorials covering all functions—including complex hierarchical dot plots, PCA diagnostics, and functional enrichment—visit our official package website:</p>
+<p>🔗 <a href="https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/"><strong>OHMmy Official Documentation Website</strong></a></p>
+<p>Available Guides:</p>
+<ul>
+<li><p><a href="https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-comprehensive.html">Comprehensive End-to-End Workflow</a></p></li>
+<li><p><a href="https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-processing-clustering.html">Data Processing &amp; Clustering</a></p></li>
+<li><p><a href="https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.html">Advanced Visualizations &amp; Marker Analysis</a></p></li>
+<li><p><a href="https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-statistical-analysis.html">Statistical Abundance &amp; Correlations</a></p></li>
+<li><p><a href="https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-differential-expression.html">Differential Expression &amp; Pathway Enrichment</a></p></li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="package-package-structure">📦 Package Structure<a class="anchor" aria-label="anchor" href="#package-package-structure"></a>

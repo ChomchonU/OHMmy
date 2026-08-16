@@ -2,18 +2,14 @@
 
 ## Introduction
 
-`OHMmy` provides a complete, natively integrated toolkit for Seurat v5.
-It is designed to handle every step of single-cell RNA-seq analysis:
-from raw data ingestion and ambient RNA removal, to advanced
-hierarchical visualizations and GSEA enrichment.
+Welcome to `OHMmy`. This package is designed to streamline highly
+complex single-cell RNA sequencing workflows. From ambient RNA
+decontamination and technical noise regression to differential
+expression and pathway enrichment, `OHMmy` provides robust, automated
+wrappers around industry-standard tools (like Seurat, SoupX, Nebulosa,
+and DESeq2).
 
-This vignette covers the entire lifecycle of an analysis using all
-exported functions in the package.
-
-## 1. Data I/O and Quality Control
-
-Start by loading your raw data and performing initial QC checks across
-your samples.
+This comprehensive guide walks through a complete analysis pipeline.
 
 ``` r
 
@@ -21,166 +17,225 @@ your samples.
 library(Seurat)
 library(OHMmy)
 
-# 1. Load data and extract metadata
-counts_list <- load_counts(data_dir = "path/to/data")
-sample_names <- get_sample_names(counts_list)
-
-# 2. Visualize initial Quality Control metrics
-plot_violin_qc_single(counts_list[[1]], feature = "nFeature_RNA")
+# Define a global output directory for this pipeline
+out_dir <- "results/comprehensive_workflow/"
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 ```
 
-## 2. The SoupX Decontamination Pipeline
+## 1. Ambient RNA Decontamination (SoupX)
 
-`OHMmy` excels at automating ambient RNA removal. You can run the
-pipeline step-by-step, or use the wrapper functions to completely
-automate the transition from raw counts to a clean Seurat object.
+Cell-free ambient RNA can severely confound downstream clustering.
+`OHMmy` provides seamless wrappers to load standard outputs (e.g., from
+CellRanger) and accurately remove this contamination before building our
+Seurat object.
 
 ``` r
 
 
-# Step-by-step SoupX preparation
-soupx_inputs <- prepare_soupx_inputs(raw_counts = counts_list$raw, filtered_counts = counts_list$filtered)
-soup_channels <- create_soup_channels(soupx_inputs$raw, soupx_inputs$filtered)
+# 1. Process SoupX across all samples in your directories
+soup_results <- process_soupx_samples(
+  filtered_dir = "data/filtered/", 
+  raw_dir = "data/raw/", 
+  multiFac = 1 
+)
 
-# Pre-clustering for contamination estimation
-seurat_pre <- create_seurat_for_clustering(soupx_inputs$filtered)
-soup_channels <- estimate_contamination(soup_channels, clusters = seurat_pre$seurat_clusters)
-
-# Or, use the overarching wrapper to process and build the final clean object
-clean_matrices <- process_soupx_samples(soup_channels)
-seurat_obj <- create_final_seurat(clean_matrices)
-
-# Post-clustering ambient RNA refinement and metadata tracking
-seurat_obj <- run_soupx_post_clustering(seurat_obj)
-seurat_obj <- addSoupXMetaToSeurat(seurat_obj, metadata_df)
+# 2. Transfer the cleaned counts and metadata back to your raw Seurat object
+seurat_raw <- readRDS("data/seurat_raw.rds")
+seurat_clean <- addSoupXMetaToSeurat(
+  original_seurat = seurat_raw,
+  soupx_seurat_list = soup_results$final_seurat
+)
 ```
 
-## 3. Core Processing & Clustering
+## 2. Processing, Integration, and Clustering
 
-Once your object is clean, choose your preferred normalization method
-(Log or SCTransform) and compute dimensionality reductions.
+Next, we normalize the data, regress out technical noise (like cell
+cycle or mitochondrial percentages), integrate across batches, and
+systematically determine the best clustering resolution.
 
 ``` r
 
 
-# Choose your processing pipeline:
-# seurat_obj <- ProcessSeuratLOG(seurat_obj) # Standard log-normalization
-seurat_obj <- ProcessSeuratSCT(seurat_obj)   # SCTransform (Recommended)
+# 1. Log-Normalization, technical regression, and Batch Integration
+seurat_integrated <- ProcessSeuratLOG(
+  seurat_clean,
+  batch_col = "batch",
+  vars_to_regress = c("pct_counts_mt", "S.Score", "G2M.Score"),
+  tcr_bcr_patterns = "^TR[ABDG]|^IG[HKL]", # Exclude V(D)J genes from clustering
+  integration_method = "CCAIntegration",
+  reduction_name = "pca.log",
+  integration_reduction = "integrated.cca.log",
+  dims = 1:40
+) 
 
-# Run PCA, UMAP, and clustering
-seurat_obj <- ClusterAndUMAP(seurat_obj, resolution = 0.5)
+# 2. Run UMAP and test clustering across multiple resolutions
+cluster_results <- ClusterAndUMAP(
+  seurat_obj = seurat_integrated,
+  reduction = "integrated.cca.log",
+  dims = 1:40,
+  cluster_resolutions = seq(0.1, 2, by = 0.1),
+  final_resolution = 1.0, 
+  sample_name = "Cohort_A",
+  plot_dir = paste0(out_dir, "clustree/")
+)
 
-# Clean up any stale or unnecessary reductions to save memory
-seurat_obj <- CleanSeuratReductions(seurat_obj)
-
-# Create a custom cohesive color palette for your new clusters
-cluster_colors <- make_cluster_palette(seurat_obj)
+# Extract the fully processed object
+seurat_obj <- cluster_results$seurat
 ```
 
-## 4. Diagnostics & Technical Noise Evaluation
+## 3. Quality Control & Principal Component Diagnostics
 
-Before diving into biology, evaluate if technical artifacts (like cell
-cycle or sequencing depth) are driving your clusters or principal
-components.
+Before annotating, we verify that our clusters are biologically driven
+and not artifacts of technical noise (e.g., sequencing depth or
+ribosomal genes).
 
 ``` r
 
 
-# Check PCA loadings and metadata correlations
-plot_vizdimloadings(seurat_obj, dims = 1:2)
-plot_pc_metadata_correlation(seurat_obj, metadata_cols = c("nCount_RNA", "percent.mt"))
+# 1. Check QC distributions across your new clusters
+plot_violin_qc_single(
+  seurat_obj = seurat_obj,
+  res_col = "seurat_clusters",
+  qc_meta_features = c("nCount_RNA", "nFeature_RNA", "pct_counts_mt"),
+  sample_name = "Cohort_A",
+  output_dir = paste0(out_dir, "QC/")
+)
 
-# Assess technical contribution per cluster
-plot_technical_contribution(seurat_obj, feature = "percent.mt")
-plot_stacked_technical_contribution(seurat_obj, features = c("percent.mt", "percent.ribo"))
+# 2. Quantify exactly how much of each PC is driven by technical gene families
+plot_technical_contribution(
+  seurat_obj = seurat_obj,
+  sample_name = "Cohort_A",
+  technical_keywords = c("^MT-", "^RPL", "^RPS"),
+  max_pcs = 40,
+  cutoff = 15,
+  output_dir = paste0(out_dir, "Diagnostics/")
+)
 ```
 
-## 5. Visualizing Clusters & Metadata
+## 4. Advanced Visualization and Annotation
 
-Use `OHMmy`’s specialized demographic tools to see how your cells are
-distributed across conditions.
+Interpret the biological identity of your clusters using flexible UMAP
+overlays, density mapping, and gene co-expression tools.
 
 ``` r
 
 
-# Visualize UMAP split by experimental factors
-PlotDimByFactors(seurat_obj, group.by = "Condition")
-plot_combined(seurat_obj, reduction = "umap", group.by = "Condition")
+# 1. Visualize clusters and metadata overlays on the UMAP
+PlotDimByFactors(
+  seurat_obj = seurat_obj, 
+  factors = c("seurat_clusters", "predicted.celltype.l2"),
+  sample_name = "Cohort_A",
+  output_dir = paste0(out_dir, "UMAP/")
+)
 
-# Statistical evaluation of cluster distributions and metadata
-plot_cluster_distributions(seurat_obj, group.by = "SampleID")
-plot_cell_abundance(seurat_obj, group.by = "Condition", test = "wilcox")
-plot_metadata_stats(seurat_obj, feature = "score", group.by = "Cluster")
+# 2. Advanced Dotplots (Grouped with Dendrograms)
+feature_df <- data.frame(
+  feature = c("CD8A", "NCAM1", "GZMB", "PRF1", "CCR7", "IL7R"),
+  group = c("Lineage", "Lineage", "Effector", "Effector", "Naive", "Naive")
+)
+
+plot_dot_dendro_split(
+  seurat_obj = seurat_obj, 
+  meta_col = "seurat_clusters",
+  feature_df = feature_df,
+  prefix = "Marker_Panel",
+  output_dir = paste0(out_dir, "Dotplots/")
+)
+
+# 3. Density Blend Overlays (Nebulosa) for Co-Expression
+plot_blend_nebulosa(
+  seurat_obj = seurat_obj, 
+  cluster_col = "seurat_clusters",
+  gene_pairs = list(c("CX3CR1", "GZMB")),
+  reduction = "umap",
+  sample_name = "Cohort_A",
+  output_dir = paste0(out_dir, "Blends/")
+)
 ```
 
-## 6. High-Resolution Gene & Marker Visualization
+## 5. Statistical Abundance & Confounder Analysis
 
-This is where `OHMmy` truly shines. Explore gene expression using
-hierarchical dotplots, Nebulosa density blends, and complex heatmaps.
-
-### Density & Co-Expression Blends
+Ensure your cohorts are clinically balanced, then test for significant
+shifts in cell type proportions between your conditions (e.g., Healthy
+vs. Infected).
 
 ``` r
 
 
-# Visualize gene pair correlations and overlap
-plot_gene_pair_correlations(seurat_obj, feature1 = "CD8A", feature2 = "XCL1")
-plot_blend_nebulosa(seurat_obj, features = c("CD8A", "XCL1"))
+# 1. Confounder Check: Ensure patient metadata is balanced
+plot_metadata_stats(
+  seurat_obj = seurat_obj,
+  sample_col = "donor_id",       
+  condition_col = "disease_state", 
+  metadata_vars = c("age", "viral_load", "sex"), 
+  output_dir = paste0(out_dir, "Stats/")
+)
 
-# Internal V5 blend wrapper for strict layer management
-# .blend_feature_plot_v5(seurat_obj, features = c("CD4", "IL2RA"))
+# 2. Cell Type Abundance: Test for expansion/contraction of clusters
+plot_cell_abundance(
+  seurat_obj = seurat_obj,
+  sample_col = "donor_id",       
+  condition_col = "disease_state", 
+  celltype_col = "seurat_clusters", 
+  facet_by_cluster = TRUE,
+  pairwise_label = "p.adj",
+  output_dir = paste0(out_dir, "Abundance/")
+)
 ```
 
-### Advanced Dotplots (with Dendrograms)
+## 6. Differential Expression & Functional Enrichment
+
+Extract biological meaning by discovering defining cluster markers,
+running Gene Set Enrichment Analysis (GSEA), and visualizing
+condition-specific DESeq2 results.
 
 ``` r
 
 
-# Generate standard dotplots with hierarchical clustering trees
-plot_dot_dendro(seurat_obj, features = top_markers)
+library(msigdbr)
 
-# Split dotplots by condition or metadata
-plot_dot_dendro_split(seurat_obj, features = top_markers, split.by = "Condition")
-plot_dot_dendro_multi(seurat_obj, feature_list = list(Tcells = c("CD3D"), Bcells = c("CD79A")))
-plot_split_dotplots_by_gene_cluster(seurat_obj, features = top_markers)
-plot_gene_markers_with_dendro(seurat_obj, features = top_markers)
+# 1. Find all cluster markers and automatically generate a heatmap
+marker_results <- FindTopMarkersAndHeatmap(
+  seurat_obj = seurat_obj, 
+  sample_name = "Cohort_A",
+  output_dir_base = paste0(out_dir, "Markers/")
+)
+
+# Extract the marker dataframe for downstream GSEA/ORA
+my_markers_df <- marker_results$markers
+
+# 2. PATHWAY ENRICHMENT (GSEA)
+m_t2g_hallmark <- msigdbr(species = "Homo sapiens", category = "H")[, c("gs_name", "gene_symbol")]
+
+gsea_results <- run_global_gsea(
+  GSEA_df = my_markers_df, 
+  m_t2g = m_t2g_hallmark, 
+  title_prefix = "Hallmark",
+  output_dir = paste0(out_dir, "GSEA/")
+)
+
+# 3. PSEUDO-BULK DIFFERENTIAL EXPRESSION VISUALIZATIONS (DESeq2)
+# Note: These functions visualize pre-computed DESeq2 results objects (res_obj)
+
+# Volcano Plots
+generate_volcano_trio(
+  res_obj = deseq2_disease_vs_healthy, 
+  plot_title = "Severe Disease vs Healthy Controls", 
+  target_genes = c("IFNG", "TNF", "GZMB")
+)
+
+# DESeq2 Heatmaps across samples
+generate_and_save_heatmap(
+  res_obj = deseq2_disease_vs_healthy,
+  comp_name = "Disease_vs_Healthy",
+  comp_title = "Severe Disease vs Healthy Controls",
+  vsd_data = vsd_matrix,               
+  anno_col = annotation_dataframe, 
+  ordered_samps = sample_order_list,
+  out_dir = paste0(out_dir, "DESeq2/")
+)
 ```
 
-### Heatmaps & Gene Binning
-
-``` r
-
-
-# Extract binned expression and plot top mixed genes
-binned_expr <- extract_binned_expression(seurat_obj, bins = 10)
-top_mixed <- get_top_mixed_genes(seurat_obj)
-
-# Comprehensive heatmaps
-FindTopMarkersAndHeatmap(seurat_obj, group.by = "seurat_clusters")
-generate_and_save_heatmap(seurat_obj, features = top_markers, filename = "heatmap.png")
-generate_dimheatmaps(seurat_obj, dims = 1:5)
-```
-
-## 7. Differential Expression & Functional Enrichment
-
-Extract biological meaning by finding differential genes and running
-Over-Representation Analysis (ORA) or Gene Set Enrichment Analysis
-(GSEA).
-
-``` r
-
-
-# Generate a trio of volcano plots comparing multiple conditions
-generate_volcano_trio(seurat_obj, ident.1 = "Infected", ident.2 = "Control")
-
-# Run global enrichment profiling on your markers
-# ora_results <- run_global_ora(seurat_obj, database = "GO")
-# gsea_results <- run_global_gsea(seurat_obj, database = "KEGG")
-```
-
-## Conclusion
-
-The `OHMmy` package minimizes boilerplate code and maximizes analytical
-rigor. By combining strict Seurat v5 layer management with advanced
-statistical visualizations, it provides a stable foundation for complex
-scRNA-seq discoveries.
+**End of Workflow.** By following these steps, you have successfully
+decontaminated, processed, integrated, evaluated, annotated, and
+statistically analyzed your scRNA-seq dataset!

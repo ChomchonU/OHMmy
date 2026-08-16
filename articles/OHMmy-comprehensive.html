@@ -64,176 +64,227 @@ Uansiri</h4>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p><code>OHMmy</code> provides a complete, natively integrated toolkit
-for Seurat v5. It is designed to handle every step of single-cell
-RNA-seq analysis: from raw data ingestion and ambient RNA removal, to
-advanced hierarchical visualizations and GSEA enrichment.</p>
-<p>This vignette covers the entire lifecycle of an analysis using all
-exported functions in the package.</p>
-</div>
-<div class="section level2">
-<h2 id="data-io-and-quality-control">1. Data I/O and Quality Control<a class="anchor" aria-label="anchor" href="#data-io-and-quality-control"></a>
-</h2>
-<p>Start by loading your raw data and performing initial QC checks
-across your samples.</p>
+<p>Welcome to <code>OHMmy</code>. This package is designed to streamline
+highly complex single-cell RNA sequencing workflows. From ambient RNA
+decontamination and technical noise regression to differential
+expression and pathway enrichment, <code>OHMmy</code> provides robust,
+automated wrappers around industry-standard tools (like Seurat, SoupX,
+Nebulosa, and DESeq2).</p>
+<p>This comprehensive guide walks through a complete analysis
+pipeline.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PicooO12/OHMmy" class="external-link">OHMmy</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 1. Load data and extract metadata</span></span>
-<span><span class="va">counts_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/load_counts.html">load_counts</a></span><span class="op">(</span>data_dir <span class="op">=</span> <span class="st">"path/to/data"</span><span class="op">)</span></span>
-<span><span class="va">sample_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_sample_names.html">get_sample_names</a></span><span class="op">(</span><span class="va">counts_list</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 2. Visualize initial Quality Control metrics</span></span>
-<span><span class="fu"><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single</a></span><span class="op">(</span><span class="va">counts_list</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, feature <span class="op">=</span> <span class="st">"nFeature_RNA"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Define a global output directory for this pipeline</span></span>
+<span><span class="va">out_dir</span> <span class="op">&lt;-</span> <span class="st">"results/comprehensive_workflow/"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">out_dir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="the-soupx-decontamination-pipeline">2. The SoupX Decontamination Pipeline<a class="anchor" aria-label="anchor" href="#the-soupx-decontamination-pipeline"></a>
+<h2 id="ambient-rna-decontamination-soupx">1. Ambient RNA Decontamination (SoupX)<a class="anchor" aria-label="anchor" href="#ambient-rna-decontamination-soupx"></a>
 </h2>
-<p><code>OHMmy</code> excels at automating ambient RNA removal. You can
-run the pipeline step-by-step, or use the wrapper functions to
-completely automate the transition from raw counts to a clean Seurat
-object.</p>
+<p>Cell-free ambient RNA can severely confound downstream clustering.
+<code>OHMmy</code> provides seamless wrappers to load standard outputs
+(e.g., from CellRanger) and accurately remove this contamination before
+building our Seurat object.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co"># Step-by-step SoupX preparation</span></span>
-<span><span class="va">soupx_inputs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prepare_soupx_inputs.html">prepare_soupx_inputs</a></span><span class="op">(</span>raw_counts <span class="op">=</span> <span class="va">counts_list</span><span class="op">$</span><span class="va">raw</span>, filtered_counts <span class="op">=</span> <span class="va">counts_list</span><span class="op">$</span><span class="va">filtered</span><span class="op">)</span></span>
-<span><span class="va">soup_channels</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_soup_channels.html">create_soup_channels</a></span><span class="op">(</span><span class="va">soupx_inputs</span><span class="op">$</span><span class="va">raw</span>, <span class="va">soupx_inputs</span><span class="op">$</span><span class="va">filtered</span><span class="op">)</span></span>
+<span><span class="co"># 1. Process SoupX across all samples in your directories</span></span>
+<span><span class="va">soup_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_soupx_samples.html">process_soupx_samples</a></span><span class="op">(</span></span>
+<span>  filtered_dir <span class="op">=</span> <span class="st">"data/filtered/"</span>, </span>
+<span>  raw_dir <span class="op">=</span> <span class="st">"data/raw/"</span>, </span>
+<span>  multiFac <span class="op">=</span> <span class="fl">1</span> </span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Pre-clustering for contamination estimation</span></span>
-<span><span class="va">seurat_pre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_seurat_for_clustering.html">create_seurat_for_clustering</a></span><span class="op">(</span><span class="va">soupx_inputs</span><span class="op">$</span><span class="va">filtered</span><span class="op">)</span></span>
-<span><span class="va">soup_channels</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_contamination.html">estimate_contamination</a></span><span class="op">(</span><span class="va">soup_channels</span>, clusters <span class="op">=</span> <span class="va">seurat_pre</span><span class="op">$</span><span class="va">seurat_clusters</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Or, use the overarching wrapper to process and build the final clean object</span></span>
-<span><span class="va">clean_matrices</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_soupx_samples.html">process_soupx_samples</a></span><span class="op">(</span><span class="va">soup_channels</span><span class="op">)</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_final_seurat.html">create_final_seurat</a></span><span class="op">(</span><span class="va">clean_matrices</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Post-clustering ambient RNA refinement and metadata tracking</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_soupx_post_clustering.html">run_soupx_post_clustering</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/addSoupXMetaToSeurat.html">addSoupXMetaToSeurat</a></span><span class="op">(</span><span class="va">seurat_obj</span>, <span class="va">metadata_df</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># 2. Transfer the cleaned counts and metadata back to your raw Seurat object</span></span>
+<span><span class="va">seurat_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"data/seurat_raw.rds"</span><span class="op">)</span></span>
+<span><span class="va">seurat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/addSoupXMetaToSeurat.html">addSoupXMetaToSeurat</a></span><span class="op">(</span></span>
+<span>  original_seurat <span class="op">=</span> <span class="va">seurat_raw</span>,</span>
+<span>  soupx_seurat_list <span class="op">=</span> <span class="va">soup_results</span><span class="op">$</span><span class="va">final_seurat</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="core-processing-clustering">3. Core Processing &amp; Clustering<a class="anchor" aria-label="anchor" href="#core-processing-clustering"></a>
+<h2 id="processing-integration-and-clustering">2. Processing, Integration, and Clustering<a class="anchor" aria-label="anchor" href="#processing-integration-and-clustering"></a>
 </h2>
-<p>Once your object is clean, choose your preferred normalization method
-(Log or SCTransform) and compute dimensionality reductions.</p>
+<p>Next, we normalize the data, regress out technical noise (like cell
+cycle or mitochondrial percentages), integrate across batches, and
+systematically determine the best clustering resolution.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co"># Choose your processing pipeline:</span></span>
-<span><span class="co"># seurat_obj &lt;- ProcessSeuratLOG(seurat_obj) # Standard log-normalization</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ProcessSeuratSCT.html">ProcessSeuratSCT</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span>   <span class="co"># SCTransform (Recommended)</span></span>
+<span><span class="co"># 1. Log-Normalization, technical regression, and Batch Integration</span></span>
+<span><span class="va">seurat_integrated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ProcessSeuratLOG.html">ProcessSeuratLOG</a></span><span class="op">(</span></span>
+<span>  <span class="va">seurat_clean</span>,</span>
+<span>  batch_col <span class="op">=</span> <span class="st">"batch"</span>,</span>
+<span>  vars_to_regress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pct_counts_mt"</span>, <span class="st">"S.Score"</span>, <span class="st">"G2M.Score"</span><span class="op">)</span>,</span>
+<span>  tcr_bcr_patterns <span class="op">=</span> <span class="st">"^TR[ABDG]|^IG[HKL]"</span>, <span class="co"># Exclude V(D)J genes from clustering</span></span>
+<span>  integration_method <span class="op">=</span> <span class="st">"CCAIntegration"</span>,</span>
+<span>  reduction_name <span class="op">=</span> <span class="st">"pca.log"</span>,</span>
+<span>  integration_reduction <span class="op">=</span> <span class="st">"integrated.cca.log"</span>,</span>
+<span>  dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">40</span></span>
+<span><span class="op">)</span> </span>
 <span></span>
-<span><span class="co"># Run PCA, UMAP, and clustering</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ClusterAndUMAP.html">ClusterAndUMAP</a></span><span class="op">(</span><span class="va">seurat_obj</span>, resolution <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="co"># 2. Run UMAP and test clustering across multiple resolutions</span></span>
+<span><span class="va">cluster_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ClusterAndUMAP.html">ClusterAndUMAP</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_integrated</span>,</span>
+<span>  reduction <span class="op">=</span> <span class="st">"integrated.cca.log"</span>,</span>
+<span>  dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">40</span>,</span>
+<span>  cluster_resolutions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">2</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>  final_resolution <span class="op">=</span> <span class="fl">1.0</span>, </span>
+<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
+<span>  plot_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"clustree/"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Clean up any stale or unnecessary reductions to save memory</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CleanSeuratReductions.html">CleanSeuratReductions</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Create a custom cohesive color palette for your new clusters</span></span>
-<span><span class="va">cluster_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/make_cluster_palette.html">make_cluster_palette</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Extract the fully processed object</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="va">cluster_results</span><span class="op">$</span><span class="va">seurat</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="diagnostics-technical-noise-evaluation">4. Diagnostics &amp; Technical Noise Evaluation<a class="anchor" aria-label="anchor" href="#diagnostics-technical-noise-evaluation"></a>
+<h2 id="quality-control-principal-component-diagnostics">3. Quality Control &amp; Principal Component Diagnostics<a class="anchor" aria-label="anchor" href="#quality-control-principal-component-diagnostics"></a>
 </h2>
-<p>Before diving into biology, evaluate if technical artifacts (like
-cell cycle or sequencing depth) are driving your clusters or principal
-components.</p>
+<p>Before annotating, we verify that our clusters are biologically
+driven and not artifacts of technical noise (e.g., sequencing depth or
+ribosomal genes).</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co"># Check PCA loadings and metadata correlations</span></span>
-<span><span class="fu"><a href="../reference/plot_vizdimloadings.html">plot_vizdimloadings</a></span><span class="op">(</span><span class="va">seurat_obj</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_pc_metadata_correlation.html">plot_pc_metadata_correlation</a></span><span class="op">(</span><span class="va">seurat_obj</span>, metadata_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCount_RNA"</span>, <span class="st">"percent.mt"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># 1. Check QC distributions across your new clusters</span></span>
+<span><span class="fu"><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
+<span>  res_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
+<span>  qc_meta_features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCount_RNA"</span>, <span class="st">"nFeature_RNA"</span>, <span class="st">"pct_counts_mt"</span><span class="op">)</span>,</span>
+<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"QC/"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Assess technical contribution per cluster</span></span>
-<span><span class="fu"><a href="../reference/plot_technical_contribution.html">plot_technical_contribution</a></span><span class="op">(</span><span class="va">seurat_obj</span>, feature <span class="op">=</span> <span class="st">"percent.mt"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_stacked_technical_contribution.html">plot_stacked_technical_contribution</a></span><span class="op">(</span><span class="va">seurat_obj</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"percent.mt"</span>, <span class="st">"percent.ribo"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># 2. Quantify exactly how much of each PC is driven by technical gene families</span></span>
+<span><span class="fu"><a href="../reference/plot_technical_contribution.html">plot_technical_contribution</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
+<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
+<span>  technical_keywords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"^MT-"</span>, <span class="st">"^RPL"</span>, <span class="st">"^RPS"</span><span class="op">)</span>,</span>
+<span>  max_pcs <span class="op">=</span> <span class="fl">40</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Diagnostics/"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="visualizing-clusters-metadata">5. Visualizing Clusters &amp; Metadata<a class="anchor" aria-label="anchor" href="#visualizing-clusters-metadata"></a>
+<h2 id="advanced-visualization-and-annotation">4. Advanced Visualization and Annotation<a class="anchor" aria-label="anchor" href="#advanced-visualization-and-annotation"></a>
 </h2>
-<p>Use <code>OHMmy</code>’s specialized demographic tools to see how
-your cells are distributed across conditions.</p>
+<p>Interpret the biological identity of your clusters using flexible
+UMAP overlays, density mapping, and gene co-expression tools.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co"># Visualize UMAP split by experimental factors</span></span>
-<span><span class="fu"><a href="../reference/PlotDimByFactors.html">PlotDimByFactors</a></span><span class="op">(</span><span class="va">seurat_obj</span>, group.by <span class="op">=</span> <span class="st">"Condition"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_combined.html">plot_combined</a></span><span class="op">(</span><span class="va">seurat_obj</span>, reduction <span class="op">=</span> <span class="st">"umap"</span>, group.by <span class="op">=</span> <span class="st">"Condition"</span><span class="op">)</span></span>
+<span><span class="co"># 1. Visualize clusters and metadata overlays on the UMAP</span></span>
+<span><span class="fu"><a href="../reference/PlotDimByFactors.html">PlotDimByFactors</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>, </span>
+<span>  factors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"seurat_clusters"</span>, <span class="st">"predicted.celltype.l2"</span><span class="op">)</span>,</span>
+<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"UMAP/"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Statistical evaluation of cluster distributions and metadata</span></span>
-<span><span class="fu"><a href="../reference/plot_cluster_distributions.html">plot_cluster_distributions</a></span><span class="op">(</span><span class="va">seurat_obj</span>, group.by <span class="op">=</span> <span class="st">"SampleID"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_cell_abundance.html">plot_cell_abundance</a></span><span class="op">(</span><span class="va">seurat_obj</span>, group.by <span class="op">=</span> <span class="st">"Condition"</span>, test <span class="op">=</span> <span class="st">"wilcox"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_metadata_stats.html">plot_metadata_stats</a></span><span class="op">(</span><span class="va">seurat_obj</span>, feature <span class="op">=</span> <span class="st">"score"</span>, group.by <span class="op">=</span> <span class="st">"Cluster"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># 2. Advanced Dotplots (Grouped with Dendrograms)</span></span>
+<span><span class="va">feature_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"NCAM1"</span>, <span class="st">"GZMB"</span>, <span class="st">"PRF1"</span>, <span class="st">"CCR7"</span>, <span class="st">"IL7R"</span><span class="op">)</span>,</span>
+<span>  group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Lineage"</span>, <span class="st">"Lineage"</span>, <span class="st">"Effector"</span>, <span class="st">"Effector"</span>, <span class="st">"Naive"</span>, <span class="st">"Naive"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plot_dot_dendro_split.html">plot_dot_dendro_split</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>, </span>
+<span>  meta_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
+<span>  feature_df <span class="op">=</span> <span class="va">feature_df</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"Marker_Panel"</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Dotplots/"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 3. Density Blend Overlays (Nebulosa) for Co-Expression</span></span>
+<span><span class="fu"><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>, </span>
+<span>  cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
+<span>  gene_pairs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CX3CR1"</span>, <span class="st">"GZMB"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  reduction <span class="op">=</span> <span class="st">"umap"</span>,</span>
+<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Blends/"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="high-resolution-gene-marker-visualization">6. High-Resolution Gene &amp; Marker Visualization<a class="anchor" aria-label="anchor" href="#high-resolution-gene-marker-visualization"></a>
+<h2 id="statistical-abundance-confounder-analysis">5. Statistical Abundance &amp; Confounder Analysis<a class="anchor" aria-label="anchor" href="#statistical-abundance-confounder-analysis"></a>
 </h2>
-<p>This is where <code>OHMmy</code> truly shines. Explore gene
-expression using hierarchical dotplots, Nebulosa density blends, and
-complex heatmaps.</p>
-<div class="section level3">
-<h3 id="density-co-expression-blends">Density &amp; Co-Expression Blends<a class="anchor" aria-label="anchor" href="#density-co-expression-blends"></a>
-</h3>
+<p>Ensure your cohorts are clinically balanced, then test for
+significant shifts in cell type proportions between your conditions
+(e.g., Healthy vs. Infected).</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co"># Visualize gene pair correlations and overlap</span></span>
-<span><span class="fu"><a href="../reference/plot_gene_pair_correlations.html">plot_gene_pair_correlations</a></span><span class="op">(</span><span class="va">seurat_obj</span>, feature1 <span class="op">=</span> <span class="st">"CD8A"</span>, feature2 <span class="op">=</span> <span class="st">"XCL1"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa</a></span><span class="op">(</span><span class="va">seurat_obj</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"XCL1"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># 1. Confounder Check: Ensure patient metadata is balanced</span></span>
+<span><span class="fu"><a href="../reference/plot_metadata_stats.html">plot_metadata_stats</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
+<span>  sample_col <span class="op">=</span> <span class="st">"donor_id"</span>,       </span>
+<span>  condition_col <span class="op">=</span> <span class="st">"disease_state"</span>, </span>
+<span>  metadata_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"viral_load"</span>, <span class="st">"sex"</span><span class="op">)</span>, </span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Stats/"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Internal V5 blend wrapper for strict layer management</span></span>
-<span><span class="co"># .blend_feature_plot_v5(seurat_obj, features = c("CD4", "IL2RA"))</span></span></code></pre></div>
+<span><span class="co"># 2. Cell Type Abundance: Test for expansion/contraction of clusters</span></span>
+<span><span class="fu"><a href="../reference/plot_cell_abundance.html">plot_cell_abundance</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
+<span>  sample_col <span class="op">=</span> <span class="st">"donor_id"</span>,       </span>
+<span>  condition_col <span class="op">=</span> <span class="st">"disease_state"</span>, </span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>, </span>
+<span>  facet_by_cluster <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  pairwise_label <span class="op">=</span> <span class="st">"p.adj"</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Abundance/"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level3">
-<h3 id="advanced-dotplots-with-dendrograms">Advanced Dotplots (with Dendrograms)<a class="anchor" aria-label="anchor" href="#advanced-dotplots-with-dendrograms"></a>
-</h3>
+<div class="section level2">
+<h2 id="differential-expression-functional-enrichment">6. Differential Expression &amp; Functional Enrichment<a class="anchor" aria-label="anchor" href="#differential-expression-functional-enrichment"></a>
+</h2>
+<p>Extract biological meaning by discovering defining cluster markers,
+running Gene Set Enrichment Analysis (GSEA), and visualizing
+condition-specific DESeq2 results.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co"># Generate standard dotplots with hierarchical clustering trees</span></span>
-<span><span class="fu"><a href="../reference/plot_dot_dendro.html">plot_dot_dendro</a></span><span class="op">(</span><span class="va">seurat_obj</span>, features <span class="op">=</span> <span class="va">top_markers</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://igordot.github.io/msigdbr/" class="external-link">msigdbr</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Split dotplots by condition or metadata</span></span>
-<span><span class="fu"><a href="../reference/plot_dot_dendro_split.html">plot_dot_dendro_split</a></span><span class="op">(</span><span class="va">seurat_obj</span>, features <span class="op">=</span> <span class="va">top_markers</span>, split.by <span class="op">=</span> <span class="st">"Condition"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_dot_dendro_multi.html">plot_dot_dendro_multi</a></span><span class="op">(</span><span class="va">seurat_obj</span>, feature_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Tcells <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD3D"</span><span class="op">)</span>, Bcells <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD79A"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_split_dotplots_by_gene_cluster.html">plot_split_dotplots_by_gene_cluster</a></span><span class="op">(</span><span class="va">seurat_obj</span>, features <span class="op">=</span> <span class="va">top_markers</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_gene_markers_with_dendro.html">plot_gene_markers_with_dendro</a></span><span class="op">(</span><span class="va">seurat_obj</span>, features <span class="op">=</span> <span class="va">top_markers</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="heatmaps-gene-binning">Heatmaps &amp; Gene Binning<a class="anchor" aria-label="anchor" href="#heatmaps-gene-binning"></a>
-</h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Extract binned expression and plot top mixed genes</span></span>
-<span><span class="va">binned_expr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_binned_expression.html">extract_binned_expression</a></span><span class="op">(</span><span class="va">seurat_obj</span>, bins <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="va">top_mixed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_top_mixed_genes.html">get_top_mixed_genes</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
+<span><span class="co"># 1. Find all cluster markers and automatically generate a heatmap</span></span>
+<span><span class="va">marker_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FindTopMarkersAndHeatmap.html">FindTopMarkersAndHeatmap</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>, </span>
+<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
+<span>  output_dir_base <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Markers/"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Comprehensive heatmaps</span></span>
-<span><span class="fu"><a href="../reference/FindTopMarkersAndHeatmap.html">FindTopMarkersAndHeatmap</a></span><span class="op">(</span><span class="va">seurat_obj</span>, group.by <span class="op">=</span> <span class="st">"seurat_clusters"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/generate_and_save_heatmap.html">generate_and_save_heatmap</a></span><span class="op">(</span><span class="va">seurat_obj</span>, features <span class="op">=</span> <span class="va">top_markers</span>, filename <span class="op">=</span> <span class="st">"heatmap.png"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/generate_dimheatmaps.html">generate_dimheatmaps</a></span><span class="op">(</span><span class="va">seurat_obj</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span></code></pre></div>
-</div>
-</div>
-<div class="section level2">
-<h2 id="differential-expression-functional-enrichment">7. Differential Expression &amp; Functional Enrichment<a class="anchor" aria-label="anchor" href="#differential-expression-functional-enrichment"></a>
-</h2>
-<p>Extract biological meaning by finding differential genes and running
-Over-Representation Analysis (ORA) or Gene Set Enrichment Analysis
-(GSEA).</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Generate a trio of volcano plots comparing multiple conditions</span></span>
-<span><span class="fu"><a href="../reference/generate_volcano_trio.html">generate_volcano_trio</a></span><span class="op">(</span><span class="va">seurat_obj</span>, ident.1 <span class="op">=</span> <span class="st">"Infected"</span>, ident.2 <span class="op">=</span> <span class="st">"Control"</span><span class="op">)</span></span>
+<span><span class="co"># Extract the marker dataframe for downstream GSEA/ORA</span></span>
+<span><span class="va">my_markers_df</span> <span class="op">&lt;-</span> <span class="va">marker_results</span><span class="op">$</span><span class="va">markers</span></span>
 <span></span>
-<span><span class="co"># Run global enrichment profiling on your markers</span></span>
-<span><span class="co"># ora_results &lt;- run_global_ora(seurat_obj, database = "GO")</span></span>
-<span><span class="co"># gsea_results &lt;- run_global_gsea(seurat_obj, database = "KEGG")</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
-</h2>
-<p>The <code>OHMmy</code> package minimizes boilerplate code and
-maximizes analytical rigor. By combining strict Seurat v5 layer
-management with advanced statistical visualizations, it provides a
-stable foundation for complex scRNA-seq discoveries.</p>
+<span><span class="co"># 2. PATHWAY ENRICHMENT (GSEA)</span></span>
+<span><span class="va">m_t2g_hallmark</span> <span class="op">&lt;-</span> <span class="fu">msigdbr</span><span class="op">(</span>species <span class="op">=</span> <span class="st">"Homo sapiens"</span>, category <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gs_name"</span>, <span class="st">"gene_symbol"</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">gsea_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_global_gsea.html">run_global_gsea</a></span><span class="op">(</span></span>
+<span>  GSEA_df <span class="op">=</span> <span class="va">my_markers_df</span>, </span>
+<span>  m_t2g <span class="op">=</span> <span class="va">m_t2g_hallmark</span>, </span>
+<span>  title_prefix <span class="op">=</span> <span class="st">"Hallmark"</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"GSEA/"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 3. PSEUDO-BULK DIFFERENTIAL EXPRESSION VISUALIZATIONS (DESeq2)</span></span>
+<span><span class="co"># Note: These functions visualize pre-computed DESeq2 results objects (res_obj)</span></span>
+<span></span>
+<span><span class="co"># Volcano Plots</span></span>
+<span><span class="fu"><a href="../reference/generate_volcano_trio.html">generate_volcano_trio</a></span><span class="op">(</span></span>
+<span>  res_obj <span class="op">=</span> <span class="va">deseq2_disease_vs_healthy</span>, </span>
+<span>  plot_title <span class="op">=</span> <span class="st">"Severe Disease vs Healthy Controls"</span>, </span>
+<span>  target_genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"IFNG"</span>, <span class="st">"TNF"</span>, <span class="st">"GZMB"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># DESeq2 Heatmaps across samples</span></span>
+<span><span class="fu"><a href="../reference/generate_and_save_heatmap.html">generate_and_save_heatmap</a></span><span class="op">(</span></span>
+<span>  res_obj <span class="op">=</span> <span class="va">deseq2_disease_vs_healthy</span>,</span>
+<span>  comp_name <span class="op">=</span> <span class="st">"Disease_vs_Healthy"</span>,</span>
+<span>  comp_title <span class="op">=</span> <span class="st">"Severe Disease vs Healthy Controls"</span>,</span>
+<span>  vsd_data <span class="op">=</span> <span class="va">vsd_matrix</span>,               </span>
+<span>  anno_col <span class="op">=</span> <span class="va">annotation_dataframe</span>, </span>
+<span>  ordered_samps <span class="op">=</span> <span class="va">sample_order_list</span>,</span>
+<span>  out_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"DESeq2/"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><strong>End of Workflow.</strong> By following these steps, you have
+successfully decontaminated, processed, integrated, evaluated,
+annotated, and statistically analyzed your scRNA-seq dataset!</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

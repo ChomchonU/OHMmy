@@ -38,7 +38,7 @@ Imports:
     stringr,
     tibble,
     tidyr
-URL: https://github.com/PicooO12/OHMmy
+URL: https://github.com/PicooO12/OHMmy, https://chomchonu.github.io/OHMmy/
 BugReports: https://github.com/PicooO12/OHMmy/issues
 Suggests: 
     knitr,

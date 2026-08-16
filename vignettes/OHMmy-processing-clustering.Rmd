@@ -1,0 +1,124 @@
+---
+title: "Data Processing, Integration, and Clustering"
+author: "Chomchon Uansiri"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Data Processing, Integration, and Clustering}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE # Set to FALSE so the vignette builds quickly without requiring raw data computation
+)
+```
+
+## Introduction
+
+Once your single-cell RNA-seq data has been quality-controlled and decontaminated (e.g., via SoupX), the next major steps are Normalization, Batch Integration, and Clustering.
+
+`OHMmy` provides highly automated wrappers built on top of **Seurat v5** to handle these complex steps seamlessly. Our pipeline automatically manages technical variable regression (like cell cycle or mitochondrial percentage), handles variable V(D)J receptor gene exclusion, integrates batches, and systematically evaluates cluster resolutions.
+
+## Part 1: Loading and Preparing the Data
+
+First, we load our cleaned Seurat object. If you are re-analyzing an object that has already been processed, you can optionally clear out the old reductions and scaled data to start fresh.
+
+```{r}
+
+library(Seurat)
+library(OHMmy)
+
+# 1. Load the quality-controlled Seurat object
+seurat_obj <- readRDS("data/seurat_qc_filtered.rds")
+
+# Optional: Clean old reductions if re-processing an existing object
+seurat_obj <- CleanSeuratReductions(seurat_obj)
+seurat_obj[["RNA"]]@layers[["scale.data"]] <- NULL
+```
+
+## Part 2: Normalization and Batch Integration
+
+We use the `ProcessSeuratLOG()` wrapper to perform standard Log-Normalization, identify highly variable features, scale the data, and run PCA.
+
+Crucially, this function allows you to:
+
+-   Regress out technical noise (e.g., mitochondrial/ribosomal percentages, cell cycle scores).
+
+-   Exclude TCR/BCR genes from highly variable features so clustering is driven by cell phenotype, not clonotype (`tcr_bcr_patterns`).
+
+-   Automatically run your preferred integration method (`CCAIntegration`, `HarmonyIntegration`, `RPCAIntegration`, or `FastMNNIntegration`) across your batches.
+
+```{r}
+
+# Process, Regress, and Integrate (e.g., using CCA)
+seurat_integrated <- ProcessSeuratLOG(
+  seurat_obj,
+  batch_col = "batch",
+  
+  # Variables to regress out during scaling
+  vars_to_regress = c(
+    "pct_counts_mt", "nCount_RNA", "percent.ribo", 
+    "S.Score", "G2M.Score", "percent.ig"
+  ),
+  
+  # Prevent TCR/BCR genes from driving clustering
+  tcr_bcr_patterns = "^TR[ABDG]|^IG[HKL]", 
+  
+  # PCA and Integration settings
+  dims = 1:40,
+  reduction_name = "pca.log",
+  integration_method = "CCAIntegration",
+  integration_reduction = "integrated.cca.log",
+  
+  interactive_mode = FALSE
+) 
+
+# Save the integrated object
+saveRDS(seurat_integrated, file = "results/seurat_integrated_cca.rds")
+```
+
+## Part 3: Dimensionality Reduction and Clustering
+
+Finding the optimal clustering resolution can be tedious. `OHMmy`'s `ClusterAndUMAP()` function automates the creation of nearest-neighbor graphs, runs clustering across a wide sequence of resolutions, generates a `clustree` plot to help you track cluster stability, and calculates the UMAP coordinates.
+
+```{r}
+
+# Run UMAP and test clustering across multiple resolutions
+cluster_results <- ClusterAndUMAP(
+  seurat_obj = seurat_integrated,
+  
+  # Use the integrated reduction from the previous step
+  reduction = "integrated.cca.log",
+  dims = 1:40,
+  
+  # Naming conventions
+  umap_name = "umap.cca",
+  graph_name = "log.cca_snn",
+  cluster_prefix = "log.cca_snn_res.",
+  
+  # Sequence of resolutions to test (0.1 to 2.0)
+  cluster_resolutions = seq(0.1, 2, by = 0.1),
+  final_resolution = 1.0, # The default resolution to set as active identity
+  
+  # Advanced parameters
+  k.param = 600,
+  force_neighbors = TRUE,
+  force_clustering = TRUE,
+  
+  # Output settings for the Clustree plot and automated saving
+  sample_name = "Sample_Cohort", 
+  plot_dir = "results/plots/",
+  save_path = "results/seurat_final_clustered.rds"
+)
+
+# Extract the fully processed Seurat object
+seurat_final <- cluster_results$seurat
+
+# View the final object with new UMAP and Cluster metadata
+seurat_final
+```
+
+After this step, your `results/plots/` directory will contain a helpful `clustree` visualization showing how clusters split and evolve as the resolution increases. Your Seurat object is now fully prepared for Differential Expression testing and functional enrichment!

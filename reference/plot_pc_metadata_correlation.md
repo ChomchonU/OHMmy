@@ -1,0 +1,96 @@
+# Calculate and Plot Correlation Between Principal Components and Metadata
+
+Extracts dimensional reduction embeddings (e.g., PCA cell scores) from a
+Seurat object and computes the Spearman correlation against a specified
+list of continuous metadata covariates (such as sequencing depth,
+mitochondrial percentage, or cell cycle scores). It generates a
+hierarchically clustered heatmap of the correlation coefficients using
+`pheatmap` and automatically saves it to disk. This is a critical QC
+step for identifying whether specific principal components are capturing
+technical artifacts rather than true biological variance.
+
+## Usage
+
+``` r
+plot_pc_metadata_correlation(
+  seurat_obj,
+  sample_name,
+  vars_to_test = c("pct_counts_mt", "nCount_RNA", "percent.ribo", "percent.ig",
+    "nuclear_rna", "S.Score", "G2M.Score", "MALAT1", "NEAT1", "XIST"),
+  reduction = "pca.log",
+  n_pcs = 40,
+  output_dir = "Output_R/Find_vartoregress",
+  plot_width_in = 15,
+  plot_height_in = 7,
+  res_dpi = 300
+)
+```
+
+## Arguments
+
+- seurat_obj:
+
+  A Seurat object containing single-cell data.
+
+- sample_name:
+
+  Character. The identifier for the biological sample, used for the plot
+  title and file naming.
+
+- vars_to_test:
+
+  Character vector. The names of the metadata columns (or specific
+  features in the active assay) to correlate against the PCs. Default
+  includes common technical and cell-cycle covariates:
+  `c("pct_counts_mt", "nCount_RNA", "percent.ribo", "percent.ig", "nuclear_rna", "S.Score", "G2M.Score", "MALAT1", "NEAT1", "XIST")`.
+
+- reduction:
+
+  Character. The dimensional reduction to extract cell embeddings from.
+  Default is "pca.log".
+
+- n_pcs:
+
+  Integer. The number of principal components to evaluate, starting from
+  PC 1. Default is 40.
+
+- output_dir:
+
+  Character. Directory path where the generated JPEG heatmap will be
+  saved. Default is "Output_R/Find_vartoregress".
+
+- plot_width_in:
+
+  Numeric. The width of the saved JPEG in inches. Default is 15.
+
+- plot_height_in:
+
+  Numeric. The height of the saved JPEG in inches. Default is 7.
+
+- res_dpi:
+
+  Numeric. The resolution (dpi) of the saved JPEG. Default is 300.
+
+## Value
+
+Invisibly returns a character string containing the exact file path
+where the correlation heatmap was saved.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Assuming your Seurat object has cell cycle scores (S.Score, G2M.Score)
+# and mitochondrial percentages (percent.mt) calculated in the metadata
+
+plot_pc_metadata_correlation(
+  seurat_obj = my_seurat,
+  sample_name = "PBMC_Condition_A",
+  vars_to_test = c("nCount_RNA", "nFeature_RNA", "percent.mt", "S.Score", "G2M.Score"),
+  reduction = "pca",
+  n_pcs = 30,
+  plot_width_in = 12,
+  plot_height_in = 6
+)
+} # }
+```

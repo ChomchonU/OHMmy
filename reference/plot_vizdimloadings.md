@@ -1,0 +1,108 @@
+# Generate and Save Dimensional Reduction Loading Plots
+
+A robust wrapper around Seurat's `VizDimLoadings` function designed for
+batch processing in HPC environments. It chunks specified principal
+components (or other dimensional reductions) into windows, extracts the
+top features (genes) driving each dimension, and stitches the individual
+plots together using `patchwork`. The combined layouts are safely
+exported as high-resolution JPEGs. It features a built-in progress bar
+and strict error handling (`tryCatch`) to prevent graphics device hangs
+during automated runs.
+
+## Usage
+
+``` r
+plot_vizdimloadings(
+  seurat_obj,
+  sample_name,
+  reduction = "pca",
+  pc_windows = list(1:10, 11:20, 21:30),
+  output_dir = "VizDimLoadings_plots",
+  nfeatures = 60,
+  width_in = 20,
+  height_in = 45,
+  res = 300,
+  ncol = 5
+)
+```
+
+## Arguments
+
+- seurat_obj:
+
+  A Seurat object containing single-cell data and the calculated
+  dimensional reduction.
+
+- sample_name:
+
+  Character. The identifier for the biological sample, used for console
+  messaging and prefixing the saved filenames.
+
+- reduction:
+
+  Character. The dimensional reduction to extract feature loadings from
+  (e.g., "pca", "ica"). Default is "pca".
+
+- pc_windows:
+
+  A list of numeric vectors. Each vector defines a chunk/window of
+  dimensions to plot together in a single stitched file. Default is
+  `list(1:10, 11:20, 21:30)`.
+
+- output_dir:
+
+  Character. Directory path where the generated JPEGs will be saved.
+  Default is "VizDimLoadings_plots".
+
+- nfeatures:
+
+  Integer. The number of top and bottom features (genes) with the
+  highest absolute loadings to display per dimension. Default is 60.
+
+- width_in:
+
+  Numeric. The width of the saved JPEG in inches. Default is 20.
+
+- height_in:
+
+  Numeric. The height of the saved JPEG in inches. Default is 45.
+
+- res:
+
+  Numeric. The resolution (dpi) of the saved JPEG. Default is 300.
+
+- ncol:
+
+  Integer. The number of columns to use when wrapping the individual
+  dimension plots together via `patchwork`. Default is 5.
+
+## Value
+
+A character vector containing the names of any samples or PC ranges that
+failed to plot (e.g., due to missing reductions or graphics errors). If
+all ranges succeed, returns an empty character vector.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Evaluate the feature loadings for the first 12 PCs, grouped in chunks of 4
+failed_plots <- plot_vizdimloadings(
+  seurat_obj = my_seurat,
+  sample_name = "Donor_1",
+  reduction = "pca",
+  pc_windows = list(1:4, 5:8, 9:12),
+  output_dir = "QC_Plots/PCA_Loadings",
+  nfeatures = 30,
+  width_in = 16,
+  height_in = 12,
+  ncol = 2
+)
+
+# Check if any plots failed during the run
+if (length(failed_plots) > 0) {
+  print("Some plots failed:")
+  print(failed_plots)
+}
+} # }
+```

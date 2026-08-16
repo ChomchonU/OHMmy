@@ -1,0 +1,140 @@
+# Generate Combined Blend and Nebulosa Density Plots
+
+Iterates over a list of gene pairs to generate a comprehensive 6-panel
+visualization per pair. For each pair, it creates a 4-panel Seurat
+v5-compatible blended feature plot (showing individual and
+co-expression) alongside two `Nebulosa` density plots. All gene pairs
+are stacked vertically into a single massive `patchwork` figure and
+automatically saved to disk with dynamically calculated dimensions.
+
+## Usage
+
+``` r
+plot_blend_nebulosa(
+  seurat_obj,
+  cluster_col,
+  gene_pairs,
+  sample_name = "Sample",
+  reduction = "umap.cca",
+  blend_cols = c("lightgrey", "#00ff00", "#ff0000"),
+  blend_threshold = 0.1,
+  min_cutoff = "q10",
+  output_dir = "Plots_blend_nebulosa",
+  save_format = "jpg",
+  width = 36,
+  dpi = 300,
+  add_timestamp = TRUE,
+  verbose = TRUE
+)
+```
+
+## Arguments
+
+- seurat_obj:
+
+  A Seurat object containing single-cell data.
+
+- cluster_col:
+
+  Character. The name of the metadata column to set as the active
+  identity (`Idents`).
+
+- gene_pairs:
+
+  A list of character vectors, where each vector contains exactly two
+  gene names to visualize (e.g., `list(c("GeneA", "GeneB"))`).
+
+- sample_name:
+
+  Character. The name of the biological sample, used for plot titles and
+  file naming. Default is "Sample".
+
+- reduction:
+
+  Character. The dimensionality reduction to visualize (e.g.,
+  "umap.cca"). Default is "umap.cca".
+
+- blend_cols:
+
+  Character vector of length 3. Colors for the background, gene 1, and
+  gene 2 in the blend plot. Default is
+  `c("lightgrey", "#00ff00", "#ff0000")`.
+
+- blend_threshold:
+
+  Numeric. The scaling threshold (0 to 1) for the blended feature plot.
+  Default is 0.1.
+
+- min_cutoff:
+
+  Character or Numeric. The lowest expression cutoff before scaling
+  (e.g., "q10"). Default is "q10".
+
+- output_dir:
+
+  Character. Directory path where the generated plots will be saved.
+  Default is "Plots_blend_nebulosa".
+
+- save_format:
+
+  Character. The file format for the saved plots ("jpg", "png", or
+  "pdf"). Default is "jpg".
+
+- width:
+
+  Numeric. The base width of the saved plot. Note: Default is 36 inches
+  to accommodate 6 horizontal panels.
+
+- dpi:
+
+  Numeric. The resolution of the saved plots. Default is 300.
+
+- add_timestamp:
+
+  Logical. Whether to append the current date and time to the saved
+  filenames. Default is TRUE.
+
+- verbose:
+
+  Logical. Whether to print progress messages and display a progress
+  bar. Default is TRUE.
+
+## Value
+
+A list containing four elements:
+
+- `plot`: The final combined `patchwork` object containing all stacked
+  rows.
+
+- `rows`: A list of the individual `patchwork` row plots for each gene
+  pair.
+
+- `output_dir`: A character string of the path where the plot was saved.
+
+- `dimensions`: A list containing the final `width` and calculated
+  `height` of the saved plot.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Define pairs of genes to evaluate for co-expression
+target_pairs <- list(
+  c("CD8A", "GZMB"),
+  c("NKG7", "GNLY")
+)
+
+# Generate the master plot
+master_blend <- plot_blend_nebulosa(
+  seurat_obj = my_seurat,
+  cluster_col = "seurat_clusters",
+  gene_pairs = target_pairs,
+  sample_name = "Donor_1",
+  reduction = "umap",
+  save_format = "png"
+)
+
+# Extract just the first row (CD8A vs GZMB) if you want to view it directly in R
+master_blend$rows[[1]]
+} # }
+```

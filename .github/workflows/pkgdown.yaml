@@ -20,6 +20,7 @@ jobs:
       group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      RENV_CONFIG_AUTOLOADER_ENABLED: false
     permissions:
       contents: write
     steps:
@@ -33,7 +34,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgdown, local::., S4Vectors?source, YuLab-SMU/DOSE
+          extra-packages: any::pkgdown, local::.
           needs: website
 
       - name: Build site

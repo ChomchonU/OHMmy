@@ -126,10 +126,10 @@ Available Guides:
   Analysis](https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.html)
 
 - [Statistical Abundance &
-  Correlations](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-statistical-analysis.html)
+  Correlations](https://chomchonu.github.io/OHMmy/articles/OHMmy-statistical-analysis.html)
 
 - [Differential Expression & Pathway
-  Enrichment](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-differential-expression.html)
+  Enrichment](https://chomchonu.github.io/OHMmy/articles/OHMmy-differential-expression.html)
 
 ## 📦 Package Structure
 
@@ -146,6 +146,15 @@ Available Guides:
 
 This project is licensed under the MIT License - see the
 [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
+
+## 🤖 AI Acknowledgement
+
+During the development of `OHMmy`, Artificial Intelligence (AI)
+tools—including Large Language Models (LLMs)—were utilized to assist
+with code optimization, continuous integration (CI/CD) debugging, and
+documentation generation. All AI-assisted code and workflows were
+rigorously reviewed, modified, and validated by the author to ensure
+biological accuracy and functional stability within the package.
 
 # Package index
 

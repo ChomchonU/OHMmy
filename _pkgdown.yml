@@ -2,3 +2,12 @@ url: https://chomchonu.github.io/OHMmy/
 template:
   bootstrap: 5
 
+articles:
+- title: "Pipelines & Workflows"
+  desc: "Step-by-step guides for single-cell preprocessing and analysis"
+  contents:
+  - OHMmy-comprehensive
+  - OHMmy-soupx-workflow
+  - OHMmy-processing-clustering
+  - OHMmy-diagnostics-evaluation
+  - OHMmy-advanced-visualization

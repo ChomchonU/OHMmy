@@ -137,6 +137,7 @@ your batches.</p></li>
 <span></span>
 <span><span class="co"># Save the integrated object</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">seurat_integrated</span>, file <span class="op">=</span> <span class="st">"results/seurat_integrated_cca.rds"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-processing-clustering/elbow_plot_SCT_seurat_20260512_182035.jpg" class="r-plt" alt="" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="part-3-dimensionality-reduction-and-clustering">Part 3: Dimensionality Reduction and Clustering<a class="anchor" aria-label="anchor" href="#part-3-dimensionality-reduction-and-clustering"></a>
@@ -181,6 +182,7 @@ you track cluster stability, and calculates the UMAP coordinates.</p>
 <span></span>
 <span><span class="co"># View the final object with new UMAP and Cluster metadata</span></span>
 <span><span class="va">seurat_final</span></span></code></pre></div>
+<p><img src="images/OHMmy-processing-clustering/cellbender_halfLR_addmeta_regress_0_clustree_2025-08-01_14-04-45.jpg" class="r-plt" alt="" width="100%"></p>
 <p>After this step, your <code>results/plots/</code> directory will
 contain a helpful <code>clustree</code> visualization showing how
 clusters split and evolve as the resolution increases. Your Seurat

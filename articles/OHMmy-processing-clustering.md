@@ -81,6 +81,8 @@ seurat_integrated <- ProcessSeuratLOG(
 saveRDS(seurat_integrated, file = "results/seurat_integrated_cca.rds")
 ```
 
+![](images/OHMmy-processing-clustering/elbow_plot_SCT_seurat_20260512_182035.jpg)
+
 ## Part 3: Dimensionality Reduction and Clustering
 
 Finding the optimal clustering resolution can be tedious. `OHMmy`’s
@@ -127,6 +129,8 @@ seurat_final <- cluster_results$seurat
 # View the final object with new UMAP and Cluster metadata
 seurat_final
 ```
+
+![](images/OHMmy-processing-clustering/cellbender_halfLR_addmeta_regress_0_clustree_2025-08-01_14-04-45.jpg)
 
 After this step, your `results/plots/` directory will contain a helpful
 `clustree` visualization showing how clusters split and evolve as the

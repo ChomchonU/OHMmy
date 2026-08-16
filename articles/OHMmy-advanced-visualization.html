@@ -98,6 +98,7 @@ formatting and saving.</p>
 <span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"umap_overlays/"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-advanced-visualization/denv_nkt_regress_rpca_DimPlot_CellType_umap.rpca.log_2025-08-11_17-44-27.jpg" class="r-plt" alt="" width="50%" style="display: block; margin: auto;"><img src="images/OHMmy-advanced-visualization/denv_nkt_regress_rpca_DimPlot_Phase_umap.rpca.log_2025-08-11_17-44-27.jpg" class="r-plt" alt="" width="50%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="part-2-feature-density-mapping-plot_combined">Part 2: Feature Density Mapping (<code>plot_combined</code>)<a class="anchor" aria-label="anchor" href="#part-2-feature-density-mapping-plot_combined"></a>
@@ -126,6 +127,7 @@ their gradients across your UMAP space.</p>
 <span>  width <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  dpi <span class="op">=</span> <span class="fl">300</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-advanced-visualization/denv_nkt_cleaned_all_regress_fused_levels_CombinedPlot_setI_umap.rpca.log_2025-10-06_18-45-14.jpg" class="r-plt" alt="" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="part-3-profiling-qc-and-marker-distributions">Part 3: Profiling QC and Marker Distributions<a class="anchor" aria-label="anchor" href="#part-3-profiling-qc-and-marker-distributions"></a>
@@ -153,6 +155,7 @@ are distributed across your clusters, use
 <span>  width <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  dpi <span class="op">=</span> <span class="fl">300</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-advanced-visualization/CD8_fused_ViolinQC_label_T4.1_log_rpca_2026-05-29_00-31-31.jpg" class="r-plt" alt="" width="100%"></p>
 </div>
 <div class="section level3">
 <h3 id="marker-gene-violin-plots">3.2 Marker Gene Violin Plots<a class="anchor" aria-label="anchor" href="#marker-gene-violin-plots"></a>
@@ -171,6 +174,7 @@ marker expression across clusters.</p>
 <span>  assay <span class="op">=</span> <span class="st">"RNA"</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"violin_genes/"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-advanced-visualization/CD8_fused_L4_ViolinGene_label_T4.1_log_rpca_2026-05-29_10-50-57.jpg" class="r-plt" alt="" width="100%"></p>
 </div>
 <div class="section level3">
 <h3 id="split-dot-plots-with-dendrograms">3.3 Split Dot Plots with Dendrograms<a class="anchor" aria-label="anchor" href="#split-dot-plots-with-dendrograms"></a>
@@ -195,6 +199,7 @@ Plots grouped by feature categories.</p>
 <span>  prefix <span class="op">=</span> <span class="st">"Marker_Panel"</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"dot_plots/"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-advanced-visualization/DotPlot_RowColDendro_label_T3_log_rpca_T3_log_rpca_Lineage_Identity_pct0_chunk1_20260516_162443.jpg" class="r-plt" alt="" width="100%"></p>
 </div>
 </div>
 <div class="section level2">
@@ -217,6 +222,7 @@ the same cell requires specialized density and correlation plots.</p>
 <span>  blend_threshold <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"blend_plots/"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-advanced-visualization/DENV_NKT_q90_RBM39_vs_MT-CO1_BlendNebulosa_exceptPossLoLoUmapRpcaLog_2026-04-20_22-38-58.jpg" class="r-plt" alt="" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="part-5-clinical-and-technical-demographics">Part 5: Clinical and Technical Demographics<a class="anchor" aria-label="anchor" href="#part-5-clinical-and-technical-demographics"></a>
@@ -238,6 +244,7 @@ them.</p>
 <span>    output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"distributions/"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+<p><img src="images/OHMmy-advanced-visualization/cell_count_plot_ind_label_20260504_220321.jpg" class="r-plt" alt="" width="100%"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

@@ -44,6 +44,12 @@ generate_dimheatmaps(
   pc_windows = list(1:20, 21:40),
   output_dir = out_dir
 )
+```
+
+![](images/OHMmy-diagnostics-evaluation/denv_nkt_cellbender_halfLR_addmeta_processed_DimHeatmap_pca.log_PC1-20_20250731_225041.jpg)
+
+``` r
+
 
 # 3. Generate PC Loading Plots
 # This plots the actual weight of the top genes for each PC
@@ -55,6 +61,8 @@ plot_vizdimloadings(
   output_dir = out_dir
 )
 ```
+
+![](images/OHMmy-diagnostics-evaluation/denv_nkt_cellbender_halfLR_addmeta_processed_VizDimLoadings_PC1-20_20250731_225110.jpg)
 
 ## Part 2: Quantifying Technical Gene Contributions
 
@@ -80,6 +88,12 @@ plot_technical_contribution(
   cutoff = 15,          # Highlight PCs where technical genes make up >15% of the weight
   output_dir = out_dir
 )
+```
+
+![](images/OHMmy-diagnostics-evaluation/tech_contrib_posneg_split_denv_nkt_cellbender_halfLR_addmeta_processed_20250731_225138.jpg)
+
+``` r
+
 
 # 2. Stacked Bar Chart: Deeper look at technical distribution at varying gene depths
 plot_stacked_technical_contribution(
@@ -93,6 +107,8 @@ plot_stacked_technical_contribution(
   output_dir = out_dir
 )
 ```
+
+![](images/OHMmy-diagnostics-evaluation/stacked_technical_contrib_posneg_denv_nkt_cellbender_halfLR_addmeta_processed_20250731_225145.jpg)
 
 *Note: If these plots reveal that PC1 or PC2 is overwhelmingly driven by
 ribosomal or mitochondrial genes, you may need to go back to the
@@ -121,6 +137,8 @@ plot_pc_metadata_correlation(
   output_dir = out_dir
 )
 ```
+
+![](images/OHMmy-diagnostics-evaluation/corr_pc_denv_nkt_cellbender_halfLR_addmeta_processed_20250731_225227.jpg)
 
 If a PC shows a correlation close to `1.0` or `-1.0` with `nCount_RNA`,
 it means that component is separating cells based purely on sequencing

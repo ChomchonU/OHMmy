@@ -103,8 +103,10 @@ visualizations to inspect the top genes driving each PC.</p>
 <span>  reduction <span class="op">=</span> <span class="st">"pca.log"</span>,</span>
 <span>  pc_windows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span>, <span class="fl">21</span><span class="op">:</span><span class="fl">40</span><span class="op">)</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="va">out_dir</span></span>
-<span><span class="op">)</span></span>
-<span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-diagnostics-evaluation/denv_nkt_cellbender_halfLR_addmeta_processed_DimHeatmap_pca.log_PC1-20_20250731_225041.jpg" class="r-plt" alt="" width="100%"></p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="co"># 3. Generate PC Loading Plots</span></span>
 <span><span class="co"># This plots the actual weight of the top genes for each PC</span></span>
 <span><span class="fu"><a href="../reference/plot_vizdimloadings.html">plot_vizdimloadings</a></span><span class="op">(</span></span>
@@ -114,6 +116,7 @@ visualizations to inspect the top genes driving each PC.</p>
 <span>  pc_windows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span>, <span class="fl">21</span><span class="op">:</span><span class="fl">40</span><span class="op">)</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="va">out_dir</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-diagnostics-evaluation/denv_nkt_cellbender_halfLR_addmeta_processed_VizDimLoadings_PC1-20_20250731_225110.jpg" class="r-plt" alt="" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="part-2-quantifying-technical-gene-contributions">Part 2: Quantifying Technical Gene Contributions<a class="anchor" aria-label="anchor" href="#part-2-quantifying-technical-gene-contributions"></a>
@@ -124,7 +127,7 @@ mitochondrial <code>MT-</code>, ribosomal
 <code>RPS</code>/<code>RPL</code>, or lncRNAs like <code>MALAT1</code>)
 and let <code>OHMmy</code> calculate exactly how much of each PC is
 driven by these gene families.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Define standard technical and stress-related gene prefixes</span></span>
 <span><span class="va">tech_keys</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"^MT-"</span>, <span class="st">"^RPL"</span>, <span class="st">"^RPS"</span>, <span class="st">"^IG[HKL]"</span>, <span class="st">"MALAT1"</span>, <span class="st">"NEAT1"</span>, <span class="st">"XIST"</span><span class="op">)</span></span>
@@ -138,8 +141,10 @@ driven by these gene families.</p>
 <span>  n_top_genes <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  cutoff <span class="op">=</span> <span class="fl">15</span>,          <span class="co"># Highlight PCs where technical genes make up &gt;15% of the weight</span></span>
 <span>  output_dir <span class="op">=</span> <span class="va">out_dir</span></span>
-<span><span class="op">)</span></span>
-<span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-diagnostics-evaluation/tech_contrib_posneg_split_denv_nkt_cellbender_halfLR_addmeta_processed_20250731_225138.jpg" class="r-plt" alt="" width="100%"></p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="co"># 2. Stacked Bar Chart: Deeper look at technical distribution at varying gene depths</span></span>
 <span><span class="fu"><a href="../reference/plot_stacked_technical_contribution.html">plot_stacked_technical_contribution</a></span><span class="op">(</span></span>
 <span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>, </span>
@@ -151,6 +156,7 @@ driven by these gene families.</p>
 <span>  cutoff <span class="op">=</span> <span class="fl">15</span>, </span>
 <span>  output_dir <span class="op">=</span> <span class="va">out_dir</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-diagnostics-evaluation/stacked_technical_contrib_posneg_denv_nkt_cellbender_halfLR_addmeta_processed_20250731_225145.jpg" class="r-plt" alt="" width="100%"></p>
 <p><em>Note: If these plots reveal that PC1 or PC2 is overwhelmingly
 driven by ribosomal or mitochondrial genes, you may need to go back to
 the normalization step and actively regress those variables
@@ -163,7 +169,7 @@ out.</em></p>
 sequencing depth (<code>nCount_RNA</code>) or cell cycle states
 (<code>S.Score</code>, <code>G2M.Score</code>). <code>OHMmy</code> can
 automatically correlate your metadata columns against the PC scores.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Define the metadata columns you want to test</span></span>
 <span><span class="va">qc_metrics</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCount_RNA"</span>, <span class="st">"pct_counts_mt"</span>, <span class="st">"percent.ribo"</span>, <span class="st">"S.Score"</span>, <span class="st">"G2M.Score"</span><span class="op">)</span></span>
@@ -177,6 +183,7 @@ automatically correlate your metadata columns against the PC scores.</p>
 <span>  vars_to_test <span class="op">=</span> <span class="va">qc_metrics</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="va">out_dir</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-diagnostics-evaluation/corr_pc_denv_nkt_cellbender_halfLR_addmeta_processed_20250731_225227.jpg" class="r-plt" alt="" width="100%"></p>
 <p>If a PC shows a correlation close to <code>1.0</code> or
 <code>-1.0</code> with <code>nCount_RNA</code>, it means that component
 is separating cells based purely on sequencing depth rather than

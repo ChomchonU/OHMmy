@@ -48,6 +48,8 @@ marker_results <- FindTopMarkersAndHeatmap(
 gsea_input_df <- marker_results$markers
 ```
 
+![](images/OHMmy-differential-expression/CD8_fused_label_T3_log_fastmnn_Heatmap_topMarkers_2026-05-13_12-52-50.jpg)
+
 ## Part 2: Pathway Enrichment (GSEA & ORA)
 
 Using the marker dataframe generated in Part 1, we can test if specific
@@ -79,6 +81,12 @@ gsea_results <- run_global_gsea(
 )
 ```
 
+![](images/OHMmy-differential-expression/Hallmark_GSEA_Clustered_Dendro_Dotplot_20260731_121932.jpg)![](images/OHMmy-differential-expression/Hallmark_GSEA_Signed_Significance_Dotplot_20260731_121932.jpg)
+
+![](images/OHMmy-differential-expression/Hallmark_T0_GSEA_NES_Dotplot_20260731_121932.jpg)
+
+![](images/OHMmy-differential-expression/Hallmark_T0_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20260731_121932.jpg)
+
 ### 2.2 Over-Representation Analysis (ORA)
 
 ORA evaluates only the *significant* positive markers to see if they
@@ -95,6 +103,10 @@ ora_results <- run_global_ora(
   output_dir = paste0(out_dir, "ORA/")
 )
 ```
+
+![](images/OHMmy-differential-expression/Hallmark_Global_Activated_Clustered_Dendro_20260731_123020.jpg)![](images/OHMmy-differential-expression/Hallmark_Global_Suppressed_Dotplot_20260731_123020.jpg)
+
+![](images/OHMmy-differential-expression/Hallmark_ORA_Signed_Significance_Dotplot_20260731_123020.jpg)
 
 ## Part 3: Pseudo-bulk Differential Expression (DESeq2)
 
@@ -130,6 +142,8 @@ ggsave(paste0(out_dir, "DESeq2/volcano_disease_vs_control.png"),
        plot = volcano_plot, width = 20, height = 8)
 ```
 
+![](images/OHMmy-differential-expression/Volcano_Trio_DHF_vs_AD_20260726_105713.png)
+
 ### 3.2 Heatmaps of Differentially Expressed Genes
 
 To visualize how the top significant genes fluctuate across individual
@@ -158,3 +172,5 @@ generate_and_save_heatmap(
   out_dir = paste0(out_dir, "DESeq2/")
 )
 ```
+
+![](images/OHMmy-differential-expression/Heatmap_SD_vs_AD_all_topP_1000_topLFC_1000_20260726_115057.png)

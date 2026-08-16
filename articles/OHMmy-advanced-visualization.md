@@ -42,6 +42,8 @@ PlotDimByFactors(
 )
 ```
 
+![](images/OHMmy-advanced-visualization/denv_nkt_regress_rpca_DimPlot_CellType_umap.rpca.log_2025-08-11_17-44-27.jpg)![](images/OHMmy-advanced-visualization/denv_nkt_regress_rpca_DimPlot_Phase_umap.rpca.log_2025-08-11_17-44-27.jpg)
+
 ## Part 2: Feature Density Mapping (`plot_combined`)
 
 The
@@ -74,6 +76,8 @@ plot_combined(
 )
 ```
 
+![](images/OHMmy-advanced-visualization/denv_nkt_cleaned_all_regress_fused_levels_CombinedPlot_setI_umap.rpca.log_2025-10-06_18-45-14.jpg)
+
 ## Part 3: Profiling QC and Marker Distributions
 
 ### 3.1 Metadata & QC Violin Plots
@@ -102,6 +106,8 @@ plot_violin_qc_single(
 )
 ```
 
+![](images/OHMmy-advanced-visualization/CD8_fused_ViolinQC_label_T4.1_log_rpca_2026-05-29_00-31-31.jpg)
+
 ### 3.2 Marker Gene Violin Plots
 
 You can similarly pass a list of specific gene features to evaluate
@@ -121,6 +127,8 @@ plot_violin_qc_single(
   output_dir = paste0(out_dir, "violin_genes/")
 )
 ```
+
+![](images/OHMmy-advanced-visualization/CD8_fused_L4_ViolinGene_label_T4.1_log_rpca_2026-05-29_10-50-57.jpg)
 
 ### 3.3 Split Dot Plots with Dendrograms
 
@@ -148,6 +156,8 @@ plot_dot_dendro_split(
 )
 ```
 
+![](images/OHMmy-advanced-visualization/DotPlot_RowColDendro_label_T3_log_rpca_T3_log_rpca_Lineage_Identity_pct0_chunk1_20260516_162443.jpg)
+
 ## Part 4: Gene Co-Expression and Blend Plots
 
 Understanding how two genes interact (or are mutually exclusive) in the
@@ -171,6 +181,8 @@ plot_blend_nebulosa(
 )
 ```
 
+![](images/OHMmy-advanced-visualization/DENV_NKT_q90_RBM39_vs_MT-CO1_BlendNebulosa_exceptPossLoLoUmapRpcaLog_2026-04-20_22-38-58.jpg)
+
 ## Part 5: Clinical and Technical Demographics
 
 Finally, after defining your clusters, you often need to see how
@@ -193,3 +205,5 @@ for (meta in metadata_to_check) {
   )
 }
 ```
+
+![](images/OHMmy-advanced-visualization/cell_count_plot_ind_label_20260504_220321.jpg)

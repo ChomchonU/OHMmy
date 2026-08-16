@@ -43,6 +43,8 @@ plot_metadata_stats(
 )
 ```
 
+![](images/OHMmy-statistical-analysis/metadata_age_by_severity_unfaceted_20260704_113945.jpg)![](images/OHMmy-statistical-analysis/metadata_sex_by_symptomatic_unfaceted_20260704_114001.jpg)
+
 ## Part 2: Cell Type Abundance
 
 To determine if a specific cell population expands or contracts during
@@ -69,6 +71,8 @@ plot_cell_abundance(
   output_dir = paste0(out_dir, "abundance/")
 )
 ```
+
+![](images/OHMmy-statistical-analysis/cell_abundance_facet_by_cluster_serotype_20260731_203713.jpg)
 
 ## Part 3: Statistical Gene-Pair Correlations
 
@@ -102,3 +106,5 @@ cor_results <- plot_gene_pair_correlations(
 # You can view the raw correlation table output directly in the console
 print(cor_results$data)
 ```
+
+![](images/OHMmy-statistical-analysis/DENV_NKT_GenePairCor_except.possLo.lo.log.rpca.log_snn_res.2_2026-03-23_15-07-42.jpg)

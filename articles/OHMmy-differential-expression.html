@@ -102,6 +102,7 @@ heatmap of the top genes.</p>
 <span></span>
 <span><span class="co"># You can access the saved dataframe directly for the next step</span></span>
 <span><span class="va">gsea_input_df</span> <span class="op">&lt;-</span> <span class="va">marker_results</span><span class="op">$</span><span class="va">markers</span></span></code></pre></div>
+<p><img src="images/OHMmy-differential-expression/CD8_fused_label_T3_log_fastmnn_Heatmap_topMarkers_2026-05-13_12-52-50.jpg" class="r-plt" alt="" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="part-2-pathway-enrichment-gsea-ora">Part 2: Pathway Enrichment (GSEA &amp; ORA)<a class="anchor" aria-label="anchor" href="#part-2-pathway-enrichment-gsea-ora"></a>
@@ -127,6 +128,9 @@ positive and negative markers) to find coordinated pathway shifts.</p>
 <span>  top_n_per_direction <span class="op">=</span> <span class="fl">30</span>, <span class="co"># Plot the top 30 up/down pathways per cluster</span></span>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"GSEA/"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-differential-expression/Hallmark_GSEA_Clustered_Dendro_Dotplot_20260731_121932.jpg" class="r-plt" alt="" width="50%" style="display: block; margin: auto;"><img src="images/OHMmy-differential-expression/Hallmark_GSEA_Signed_Significance_Dotplot_20260731_121932.jpg" class="r-plt" alt="" width="50%" style="display: block; margin: auto;"></p>
+<p><img src="images/OHMmy-differential-expression/Hallmark_T0_GSEA_NES_Dotplot_20260731_121932.jpg" class="r-plt" alt="" width="100%"></p>
+<p><img src="images/OHMmy-differential-expression/Hallmark_T0_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20260731_121932.jpg" class="r-plt" alt="" width="100%"></p>
 </div>
 <div class="section level3">
 <h3 id="over-representation-analysis-ora">2.2 Over-Representation Analysis (ORA)<a class="anchor" aria-label="anchor" href="#over-representation-analysis-ora"></a>
@@ -142,6 +146,8 @@ if they overlap significantly with known pathway gene lists.</p>
 <span>  top_n_per_cluster <span class="op">=</span> <span class="fl">30</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"ORA/"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-differential-expression/Hallmark_Global_Activated_Clustered_Dendro_20260731_123020.jpg" class="r-plt" alt="" width="50%" style="display: block; margin: auto;"><img src="images/OHMmy-differential-expression/Hallmark_Global_Suppressed_Dotplot_20260731_123020.jpg" class="r-plt" alt="" width="50%" style="display: block; margin: auto;"></p>
+<p><img src="images/OHMmy-differential-expression/Hallmark_ORA_Signed_Significance_Dotplot_20260731_123020.jpg" class="r-plt" alt="" width="100%"></p>
 </div>
 </div>
 <div class="section level2">
@@ -174,6 +180,7 @@ conditions.</p>
 <span><span class="co"># Save the plot</span></span>
 <span><span class="fu">ggsave</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"DESeq2/volcano_disease_vs_control.png"</span><span class="op">)</span>, </span>
 <span>       plot <span class="op">=</span> <span class="va">volcano_plot</span>, width <span class="op">=</span> <span class="fl">20</span>, height <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-differential-expression/Volcano_Trio_DHF_vs_AD_20260726_105713.png" class="r-plt" alt="" width="100%"></p>
 </div>
 <div class="section level3">
 <h3 id="heatmaps-of-differentially-expressed-genes">3.2 Heatmaps of Differentially Expressed Genes<a class="anchor" aria-label="anchor" href="#heatmaps-of-differentially-expressed-genes"></a>
@@ -201,6 +208,7 @@ individual patients, we use
 <span>  n_padj <span class="op">=</span> <span class="fl">50</span>, <span class="co"># Plot top 50 significant genes</span></span>
 <span>  out_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"DESeq2/"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/OHMmy-differential-expression/Heatmap_SD_vs_AD_all_topP_1000_topLFC_1000_20260726_115057.png" class="r-plt" alt="" width="100%"></p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

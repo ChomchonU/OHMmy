@@ -105,15 +105,15 @@ plot_blend_nebulosa(
 
 This is just a fraction of what `OHMmy` can do! To see the complete, end-to-end tutorials covering all functions—including complex hierarchical dot plots, PCA diagnostics, and functional enrichment—visit our official package website:
 
-🔗 [**OHMmy Official Documentation Website**](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/)
+🔗 [**OHMmy Official Documentation Website**](https://chomchonu.github.io/OHMmy/)
 
 Available Guides:
 
--   [Comprehensive End-to-End Workflow](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-comprehensive.html)
+-   [Comprehensive End-to-End Workflow](https://chomchonu.github.io/OHMmy/articles/OHMmy-comprehensive.html)
 
--   [Data Processing & Clustering](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-processing-clustering.html)
+-   [Data Processing & Clustering](https://chomchonu.github.io/OHMmy/articles/OHMmy-processing-clustering.html)
 
--   [Advanced Visualizations & Marker Analysis](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.html)
+-   [Advanced Visualizations & Marker Analysis](https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.html)
 
 -   [Statistical Abundance & Correlations](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-statistical-analysis.html)
 

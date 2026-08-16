@@ -121,18 +121,18 @@ hierarchical dot plots, PCA diagnostics, and functional enrichment—visit
 our official package website:
 
 🔗 [**OHMmy Official Documentation
-Website**](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/)
+Website**](https://chomchonu.github.io/OHMmy/)
 
 Available Guides:
 
 - [Comprehensive End-to-End
-  Workflow](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-comprehensive.html)
+  Workflow](https://chomchonu.github.io/OHMmy/articles/OHMmy-comprehensive.html)
 
 - [Data Processing &
-  Clustering](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-processing-clustering.html)
+  Clustering](https://chomchonu.github.io/OHMmy/articles/OHMmy-processing-clustering.html)
 
 - [Advanced Visualizations & Marker
-  Analysis](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.html)
+  Analysis](https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.html)
 
 - [Statistical Abundance &
   Correlations](https://www.google.com/search?q=https://chomchonu.github.io/OHMmy/articles/OHMmy-statistical-analysis.html)

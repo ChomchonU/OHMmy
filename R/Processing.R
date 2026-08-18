@@ -271,7 +271,7 @@ ClusterAndUMAP <- function(seurat_obj,
 #' @param sample_name Character. A prefix used for saving the elbow plot file. Default is "seurat".
 #'
 #' @return An integrated \code{Seurat} object with the \code{DefaultAssay} set to "SCT". The split RNA and SCT layers are automatically re-joined at the end of the pipeline.
-#' @importFrom SeuratObject JoinLayers
+#' @importFrom SeuratObject JoinLayers Layers
 #' @export
 #'
 #' @examples
@@ -512,7 +512,7 @@ ProcessSeuratSCT <- function(
 #' @param sample_name Character. A prefix used for saving the elbow plot file. Default is "seurat".
 #'
 #' @return An integrated \code{Seurat} object with the \code{DefaultAssay} set to "RNA". The split RNA layers are automatically re-joined at the end of the pipeline.
-#' @importFrom SeuratObject JoinLayers
+#' @importFrom SeuratObject JoinLayers Layers
 #' @export
 #'
 #' @examples

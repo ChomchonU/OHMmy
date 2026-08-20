@@ -7,6 +7,7 @@
 FindTopMarkersAndHeatmap(
   seurat_obj,
   sample_name = "Sample",
+  use_sct = FALSE,
   marker_diff_thresh = 0.1,
   marker_pval_adj = 0.05,
   marker_avg_log2FC_thresh = 0.5,
@@ -25,6 +26,8 @@ FindTopMarkersAndHeatmap(
 \item{seurat_obj}{A Seurat object containing single-cell data with active identities (\code{Idents}) set.}
 
 \item{sample_name}{Character. The name of the biological sample, used for plot titles, filenames, and sub-directory routing. Default is "Sample".}
+
+\item{use_sct}{Logical. If \code{TRUE}, sets the default assay to \code{"SCT"}, runs \code{\link[Seurat]{PrepSCTFindMarkers}} to ensure model comparability across samples/batches, and performs marker identification on the SCT assay. Defaults to \code{FALSE}.}
 
 \item{marker_diff_thresh}{Numeric. The minimum required absolute difference in the percentage of expressing cells between groups (\code{abs(pct.1 - pct.2)}). Default is 0.1.}
 

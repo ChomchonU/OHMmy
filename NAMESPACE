@@ -44,7 +44,10 @@ export(run_soupx_post_clustering)
 import(Seurat)
 import(dplyr)
 import(ggplot2)
-importFrom(SeuratObject,JoinLayers)
+importFrom(SeuratObject,
+  JoinLayers,
+  Layers
+)
 importFrom(SoupX,
   SoupChannel,
   adjustCounts,

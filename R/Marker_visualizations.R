@@ -207,6 +207,7 @@ plot_split_dotplots_by_gene_cluster <- function(df,
 #'
 #' @param seurat_obj A Seurat object containing single-cell data with active identities (\code{Idents}) set.
 #' @param sample_name Character. The name of the biological sample, used for plot titles, filenames, and sub-directory routing. Default is "Sample".
+#' @param use_sct Logical. If \code{TRUE}, sets the default assay to \code{"SCT"}, runs \code{\link[Seurat]{PrepSCTFindMarkers}} to ensure model comparability across samples/batches, and performs marker identification on the SCT assay. Defaults to \code{FALSE}.
 #' @param marker_diff_thresh Numeric. The minimum required absolute difference in the percentage of expressing cells between groups (\code{abs(pct.1 - pct.2)}). Default is 0.1.
 #' @param marker_pval_adj Numeric. The maximum adjusted p-value allowed for a gene to be considered a significant marker. Default is 0.05.
 #' @param marker_avg_log2FC_thresh Numeric. The minimum absolute log2 fold change required. Default is 0.5.
@@ -254,6 +255,7 @@ plot_split_dotplots_by_gene_cluster <- function(df,
 FindTopMarkersAndHeatmap <- function(
     seurat_obj,
     sample_name = "Sample",
+    use_sct = FALSE,          # <-- NEW VARIABLE ADDED HERE
     marker_diff_thresh = 0.1,
     marker_pval_adj = 0.05,
     marker_avg_log2FC_thresh = 0.5,
@@ -266,7 +268,6 @@ FindTopMarkersAndHeatmap <- function(
     compare = NULL,
     add_timestamp = TRUE,
     onlyPos = TRUE
-
 ) {
   require(Seurat)
   require(dplyr)
@@ -276,12 +277,24 @@ FindTopMarkersAndHeatmap <- function(
   # Helper to sanitize filenames
   sanitize <- function(x) gsub("[^A-Za-z0-9_.-]+", "_", x)
 
-  message("[", sample_name, "] Finding markers...")
+  # --- NEW: SCT Preparation Block ---
+  if (isTRUE(use_sct)) {
+    message("[", sample_name, "] Preparing SCT models for marker discovery...")
+    DefaultAssay(seurat_obj) <- "SCT"
+    seurat_obj <- PrepSCTFindMarkers(seurat_obj)
+    active_assay <- "SCT"
+  } else {
+    active_assay <- DefaultAssay(seurat_obj) # Will fallback to RNA or the current default
+  }
+
+  message("[", sample_name, "] Finding markers using ", active_assay, " assay...")
 
   if(is.null(compare)) {
-    markers <- FindAllMarkers(seurat_obj, only.pos = onlyPos, logfc.threshold = 0, min.pct = 0)
+    # --- Passed active_assay here ---
+    markers <- FindAllMarkers(seurat_obj, assay = active_assay, only.pos = onlyPos, logfc.threshold = 0, min.pct = 0)
   } else {
-    markers <- FindMarkers(seurat_obj, ident.1 = compare[1], ident.2 = compare[2], only.pos = onlyPos, logfc.threshold = 0, min.pct = 0)
+    # --- Passed active_assay here ---
+    markers <- FindMarkers(seurat_obj, assay = active_assay, ident.1 = compare[1], ident.2 = compare[2], only.pos = onlyPos, logfc.threshold = 0, min.pct = 0)
 
     # --- CRITICAL PATCH FOR PAIRWISE COMPARISON ---
     # FindMarkers lacks 'gene' and 'cluster' columns. We must create them.
@@ -311,7 +324,9 @@ FindTopMarkersAndHeatmap <- function(
     slice_max(order_by = score, n = top_n)
 
   message(" [", sample_name, "] Plotting heatmap...")
-  heatmap <- DoHeatmap(seurat_obj, features = top_markers$gene) +
+
+  # --- Passed active_assay here ---
+  heatmap <- DoHeatmap(seurat_obj, features = top_markers$gene, assay = active_assay) +
     ggtitle(paste0("Top Markers - ", sample_name))
 
   # Prepare output path

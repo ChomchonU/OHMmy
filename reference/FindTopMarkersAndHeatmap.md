@@ -15,6 +15,7 @@ GSEA/ORA).
 FindTopMarkersAndHeatmap(
   seurat_obj,
   sample_name = "Sample",
+  use_sct = FALSE,
   marker_diff_thresh = 0.1,
   marker_pval_adj = 0.05,
   marker_avg_log2FC_thresh = 0.5,
@@ -41,6 +42,13 @@ FindTopMarkersAndHeatmap(
 
   Character. The name of the biological sample, used for plot titles,
   filenames, and sub-directory routing. Default is "Sample".
+
+- use_sct:
+
+  Logical. If `TRUE`, sets the default assay to `"SCT"`, runs
+  [`PrepSCTFindMarkers`](https://satijalab.org/seurat/reference/PrepSCTFindMarkers.html)
+  to ensure model comparability across samples/batches, and performs
+  marker identification on the SCT assay. Defaults to `FALSE`.
 
 - marker_diff_thresh:
 

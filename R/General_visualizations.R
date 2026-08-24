@@ -50,7 +50,7 @@
 #' }
 plot_combined <- function(seurat_obj,
                           cluster_col,
-                          genes_list , # Changed from genes_list to reflect it takes metadata too
+                          genes_list,
                           sample_name = "Sample",
                           reduction = "umap.cca",
                           viridis_palette = "viridis",
@@ -64,8 +64,9 @@ plot_combined <- function(seurat_obj,
   require(ggplot2)
   require(patchwork)
   require(lubridate)
+  require(SingleCellExperiment) # <-- ADDED: Required for the v5 bypass
 
-  chains <- names(genes_list )
+  chains <- names(genes_list)
   combined_plot_list <- list()
 
   Idents(seurat_obj) <- cluster_col
@@ -80,11 +81,14 @@ plot_combined <- function(seurat_obj,
     pb <- txtProgressBar(min = 0, max = length(chains), style = 3)
   }
 
+  # Extract reduction coordinates once (saves computation time in the loop)
+  red_coords <- SeuratObject::Embeddings(seurat_obj, reduction = reduction)
+
   for (i in seq_along(chains)) {
     chain <- chains[i]
     features <- genes_list[[chain]]
 
-    # MODIFIED: Check for features in both gene names AND metadata columns
+    # Check for features in both gene names AND metadata columns
     available_features <- c(rownames(seurat_obj), colnames(seurat_obj@meta.data))
     features_in_data <- intersect(features, available_features)
 
@@ -99,6 +103,8 @@ plot_combined <- function(seurat_obj,
 
     # --- Build interleaved plots (feature | density) per feature
     interleaved_plots <- lapply(features_in_data, function(feat) {
+
+      # 1. Standard FeaturePlot
       p_feat <- FeaturePlot(
         seurat_obj,
         reduction = reduction,
@@ -109,12 +115,29 @@ plot_combined <- function(seurat_obj,
         order = TRUE
       ) + ggtitle(paste(feat, "- Feature"))
 
-      p_dens <- Plot_Density_Custom(
-        seurat_obj,
-        reduction = reduction,
-        features = feat,
-        viridis_palette = viridis_palette
-      ) + ggtitle(paste(feat, "- Density"))
+      # ====================================================================
+      # 2. V5-SAFE DENSITY PLOT BYPASS
+      # ====================================================================
+      # Fetch data using the safe 'layer' argument
+      feat_data <- SeuratObject::FetchData(seurat_obj, vars = feat, layer = "data")
+
+      # Build a temporary, ultra-lightweight SCE object
+      sce_mini <- SingleCellExperiment::SingleCellExperiment(
+        assays = list(logcounts = t(as.matrix(feat_data))),
+        reducedDims = list(target_red = red_coords)
+      )
+
+      # Pass SCE directly to Nebulosa (bypasses Seurat v5 crash completely)
+      p_dens <- suppressWarnings({
+        Nebulosa::plot_density(
+          sce_mini,
+          features = feat,
+          reduction = "target_red"
+        ) +
+          ggtitle(paste(feat, "- Density")) +
+          ggplot2::scale_color_viridis_c(option = viridis_palette) # Replicate scCustomize styling
+      })
+      # ====================================================================
 
       list(p_feat, p_dens)
     })

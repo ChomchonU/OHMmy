@@ -16,6 +16,7 @@ ClusterAndUMAP(
   sample_name = "Sample",
   dims = 1:50,
   k.param = 20,
+  algorithm = 1,
   reduction = "integrated.har",
   umap_name = "umap.har",
   cluster_prefix = "RNA_snn_res.",
@@ -56,6 +57,12 @@ ClusterAndUMAP(
 
   Integer. The number of nearest neighbors to compute during
   `FindNeighbors`. Default is 20.
+
+- algorithm:
+
+  Integer. Specifies the community detection algorithm to use for
+  clustering. Options are: 1 = Original Louvain, 2 = Louvain with
+  multilevel refinement, 3 = SLM, and 4 = Leiden. Default is 1.
 
 - reduction:
 

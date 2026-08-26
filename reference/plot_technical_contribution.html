@@ -57,6 +57,7 @@ which components to exclude or which variables require regression (<code>vars.to
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_technical_contribution</span><span class="op">(</span></span>
 <span>  <span class="va">seurat_obj</span>,</span>
 <span>  <span class="va">sample_name</span>,</span>
+<span>  reduction <span class="op">=</span> <span class="st">"pca.log"</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="st">"Output_R/Find_vartoregress"</span>,</span>
 <span>  technical_keywords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"^MT-"</span>, <span class="st">"^RPL"</span>, <span class="st">"^RPS"</span>, <span class="st">"^IG[HKL]"</span>, <span class="st">"MALAT1"</span>, <span class="st">"NEAT1"</span>, <span class="st">"XIST"</span><span class="op">)</span>,</span>
 <span>  max_pcs <span class="op">=</span> <span class="fl">40</span>,</span>
@@ -70,11 +71,15 @@ which components to exclude or which variables require regression (<code>vars.to
 
 
 <dl><dt id="arg-seurat-obj">seurat_obj<a class="anchor" aria-label="anchor" href="#arg-seurat-obj"></a></dt>
-<dd><p>A Seurat object containing single-cell data. Must have a reduction named "pca.log".</p></dd>
+<dd><p>A Seurat object containing single-cell data.</p></dd>
 
 
 <dt id="arg-sample-name">sample_name<a class="anchor" aria-label="anchor" href="#arg-sample-name"></a></dt>
 <dd><p>Character. The identifier for the biological sample, used for plot titles and file naming.</p></dd>
+
+
+<dt id="arg-reduction">reduction<a class="anchor" aria-label="anchor" href="#arg-reduction"></a></dt>
+<dd><p>Character. The dimensional reduction to extract feature loadings from. Default is "pca.log".</p></dd>
 
 
 <dt id="arg-output-dir">output_dir<a class="anchor" aria-label="anchor" href="#arg-output-dir"></a></dt>

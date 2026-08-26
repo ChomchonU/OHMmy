@@ -235,8 +235,9 @@ plot_vizdimloadings <- function(seurat_obj,
 #' Ensure your Seurat object's PCA was saved under this name, or modify the function
 #' to accept a custom reduction name.
 #'
-#' @param seurat_obj A Seurat object containing single-cell data. Must have a reduction named "pca.log".
+#' @param seurat_obj A Seurat object containing single-cell data.
 #' @param sample_name Character. The identifier for the biological sample, used for plot titles and file naming.
+#' @param reduction Character. The dimensional reduction to extract feature loadings from. Default is "pca.log".
 #' @param output_dir Character. Directory path where the generated JPEG will be saved. Default is "Output_R/Find_vartoregress".
 #' @param technical_keywords Character vector. Regular expressions defining the "technical" genes to track. Default includes prefixes for mitochondrial ("^MT-"), ribosomal ("^RPL", "^RPS"), immunoglobulin (\code{"^IG[HKL]"}), and common lncRNAs ("MALAT1", "NEAT1", "XIST").
 #' @param max_pcs Integer. The maximum number of principal components to evaluate. Default is 40.
@@ -265,27 +266,29 @@ plot_vizdimloadings <- function(seurat_obj,
 #' }
 plot_technical_contribution <- function(seurat_obj,
                                         sample_name,
+                                        reduction = "pca.log", # <-- NEW ARGUMENT
                                         output_dir = "Output_R/Find_vartoregress",
                                         technical_keywords = c("^MT-", "^RPL", "^RPS", "^IG[HKL]", "MALAT1", "NEAT1", "XIST"),
                                         max_pcs = 40,
                                         n_top_genes = 500,
                                         cutoff = 15) {
+
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
   failed_samples <- character(0)
-  message("Processing sample: ", sample_name)
+  message("Processing sample: ", sample_name, " using reduction: ", reduction)
 
-  # Check if PCA reduction exists
-  if (!("pca.log" %in% names(seurat_obj@reductions))) {
-    message(" PCA reduction 'pca.log' not found for ", sample_name)
+  # Check if the specified reduction exists
+  if (!(reduction %in% names(seurat_obj@reductions))) {
+    message(" Reduction '", reduction, "' not found for ", sample_name)
     return(c(sample_name))
   }
 
-  # Load PCA loadings
+  # Load loadings using the specified reduction
   pca_loadings <- tryCatch({
-    Loadings(seurat_obj[["pca.log"]])
+    SeuratObject::Loadings(seurat_obj[[reduction]])
   }, error = function(e) {
-    message("Failed to load PCA loadings for ", sample_name, ": ", e$message)
+    message("Failed to load loadings for ", reduction, " in ", sample_name, ": ", e$message)
     return(NULL)
   })
 
@@ -293,12 +296,13 @@ plot_technical_contribution <- function(seurat_obj,
 
   results <- list()
   num_pcs <- min(max_pcs, ncol(pca_loadings))
+  actual_pc_names <- colnames(pca_loadings)[1:num_pcs] # Capture actual names (e.g., PC_1 or harmony_1)
 
   # Initialize progress bar
   pb <- txtProgressBar(min = 0, max = num_pcs, style = 3)
 
   for (i in 1:num_pcs) {
-    pc_name <- colnames(pca_loadings)[i]
+    pc_name <- actual_pc_names[i]
     pc_load <- pca_loadings[, i]
 
     pos_genes <- names(sort(pc_load, decreasing = TRUE)[1:(n_top_genes / 2)])
@@ -326,7 +330,9 @@ plot_technical_contribution <- function(seurat_obj,
   close(pb)  # Close progress bar
 
   plot_df <- do.call(rbind, results)
-  plot_df$PC <- factor(plot_df$PC, levels = paste0("PC_", 1:num_pcs))
+
+  # Use the dynamically extracted names for factor levels so plotting works for any reduction type
+  plot_df$PC <- factor(plot_df$PC, levels = actual_pc_names)
   plot_df$Direction <- factor(plot_df$Direction, levels = c("Positive", "Negative"))
 
   p <- ggplot(plot_df, aes(x = PC, y = PercentTechnical, fill = Direction)) +
@@ -334,9 +340,9 @@ plot_technical_contribution <- function(seurat_obj,
     geom_hline(yintercept = cutoff, linetype = "dashed", color = "black") +
     scale_fill_manual(values = c("Positive" = "steelblue", "Negative" = "orange")) +
     labs(
-      title = paste0("Technical Gene Contribution (Top ", n_top_genes / 2, " Pos & Neg Loadings) - ", sample_name),
+      title = paste0("Technical Gene Contribution (Top ", n_top_genes / 2, " Pos/Neg) - ", sample_name, " [", reduction, "]"),
       y = "Weighted % Technical Contribution",
-      x = "PC",
+      x = "Component",
       fill = "Loading Direction"
     ) +
     theme_bw() +
@@ -346,7 +352,10 @@ plot_technical_contribution <- function(seurat_obj,
     )
 
   timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-  filename <- file.path(output_dir, paste0("tech_contrib_posneg_split_", sample_name, "_", timestamp, ".jpg"))
+
+  # Automatically append the reduction name to the file to prevent overwriting
+  safe_reduction_name <- gsub("\\.", "_", reduction)
+  filename <- file.path(output_dir, paste0("tech_contrib_", safe_reduction_name, "_posneg_split_", sample_name, "_", timestamp, ".jpg"))
 
   tryCatch({
     ggsave(filename, plot = p, width = 15, height = 10, dpi = 300)

@@ -7,6 +7,7 @@
 plot_technical_contribution(
   seurat_obj,
   sample_name,
+  reduction = "pca.log",
   output_dir = "Output_R/Find_vartoregress",
   technical_keywords = c("^MT-", "^RPL", "^RPS", "^IG[HKL]", "MALAT1", "NEAT1", "XIST"),
   max_pcs = 40,
@@ -15,9 +16,11 @@ plot_technical_contribution(
 )
 }
 \arguments{
-\item{seurat_obj}{A Seurat object containing single-cell data. Must have a reduction named "pca.log".}
+\item{seurat_obj}{A Seurat object containing single-cell data.}
 
 \item{sample_name}{Character. The identifier for the biological sample, used for plot titles and file naming.}
+
+\item{reduction}{Character. The dimensional reduction to extract feature loadings from. Default is "pca.log".}
 
 \item{output_dir}{Character. Directory path where the generated JPEG will be saved. Default is "Output_R/Find_vartoregress".}
 

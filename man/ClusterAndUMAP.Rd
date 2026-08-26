@@ -9,6 +9,7 @@ ClusterAndUMAP(
   sample_name = "Sample",
   dims = 1:50,
   k.param = 20,
+  algorithm = 1,
   reduction = "integrated.har",
   umap_name = "umap.har",
   cluster_prefix = "RNA_snn_res.",
@@ -34,6 +35,9 @@ ClusterAndUMAP(
 \item{dims}{Numeric vector. The dimensions of the reduction to use as input for constructing the neighbor graph and UMAP (e.g., \code{1:50}). Default is \code{1:50}.}
 
 \item{k.param}{Integer. The number of nearest neighbors to compute during \code{FindNeighbors}. Default is 20.}
+
+\item{algorithm}{Integer. Specifies the community detection algorithm to use for clustering.
+Options are: 1 = Original Louvain, 2 = Louvain with multilevel refinement, 3 = SLM, and 4 = Leiden. Default is 1.}
 
 \item{reduction}{Character. The name of the dimensional reduction to use (e.g., "pca", "integrated.har", "harmony"). Default is "integrated.har".}
 

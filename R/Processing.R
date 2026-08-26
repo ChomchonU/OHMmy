@@ -87,6 +87,8 @@ CleanSeuratReductions <- function(seurat_obj) {
 #' @param sample_name Character. The identifier for the sample or dataset, used for console logging, plot titles, and file naming. Default is "Sample".
 #' @param dims Numeric vector. The dimensions of the reduction to use as input for constructing the neighbor graph and UMAP (e.g., \code{1:50}). Default is \code{1:50}.
 #' @param k.param Integer. The number of nearest neighbors to compute during \code{FindNeighbors}. Default is 20.
+#' @param algorithm Integer. Specifies the community detection algorithm to use for clustering.
+#' Options are: 1 = Original Louvain, 2 = Louvain with multilevel refinement, 3 = SLM, and 4 = Leiden. Default is 1.
 #' @param reduction Character. The name of the dimensional reduction to use (e.g., "pca", "integrated.har", "harmony"). Default is "integrated.har".
 #' @param umap_name Character. The name to assign to the generated UMAP reduction. Default is "umap.har".
 #' @param cluster_prefix Character. The prefix to use for naming the cluster metadata columns. Default is "RNA_snn_res.".
@@ -137,6 +139,7 @@ ClusterAndUMAP <- function(seurat_obj,
                            sample_name = "Sample",
                            dims = 1:50,
                            k.param = 20,
+                           algorithm = 1,
                            reduction = "integrated.har",
                            umap_name = "umap.har",
                            cluster_prefix = "RNA_snn_res.",
@@ -194,7 +197,7 @@ ClusterAndUMAP <- function(seurat_obj,
       meta_name <- sub("\\.0$", "", meta_name)
 
       if (force_clustering || !(meta_name %in% colnames(seurat_obj@meta.data))) {
-        seurat_obj <- FindClusters(seurat_obj, resolution = res, graph.name = graph_name)
+        seurat_obj <- FindClusters(seurat_obj, resolution = res, graph.name = graph_name, algorithm = algorithm)
       }
 
       setTxtProgressBar(pb, i)

@@ -272,6 +272,8 @@ ClusterAndUMAP <- function(seurat_obj,
 #' @param clustering_resolution Numeric. Included for pipeline compatibility; sets the target resolution (though actual clustering is typically handled downstream). Default is 0.8.
 #' @param verbose Logical. If \code{TRUE}, outputs progress messages and Seurat logs to the console. Default is \code{TRUE}.
 #' @param sample_name Character. A prefix used for saving the elbow plot file. Default is "seurat".
+#' @param boost_genes A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Set to \code{NULL} to disable feature boosting. Default is \code{c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")}.
+#' @param boost_multiplier A numeric value indicating the weight factor applied to the \code{boost_genes}. The scaled expression data for these genes will be multiplied by this number. Default is \code{10}. Set to \code{1} to disable.
 #'
 #' @return An integrated \code{Seurat} object with the \code{DefaultAssay} set to "SCT". The split RNA and SCT layers are automatically re-joined at the end of the pipeline.
 #' @importFrom SeuratObject JoinLayers Layers
@@ -309,7 +311,9 @@ ProcessSeuratSCT <- function(
     k.score = NULL,
     clustering_resolution = 0.8,
     verbose = TRUE,
-    sample_name = "seurat"
+    sample_name = "seurat",
+    boost_genes = c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1"),
+    boost_multiplier = 1
 ) {
   message("Splitting RNA layer by batch...")
   DefaultAssay(seurat_obj) <- "RNA"
@@ -323,6 +327,30 @@ ProcessSeuratSCT <- function(
   tcr_variable_genes <- intersect(tcr_bcr_genes, VariableFeatures(seurat_obj))
   VariableFeatures(seurat_obj) <- setdiff(VariableFeatures(seurat_obj), tcr_variable_genes)
   message("Removed ", length(tcr_variable_genes), " TCR & BCR genes.")
+
+  # ---> NEW: Feature Boosting Logic (Execute after SCT, before PCA) <---
+  if (!is.null(boost_genes) && boost_multiplier > 1) {
+    message("Boosting expression variance for specified lineage markers...")
+
+    # Extract scale.data safely
+    scale_mat <- GetAssayData(seurat_obj, assay = "SCT", layer = "scale.data") # Use layer="scale.data" for V5, slot="scale.data" for V4
+
+    # Ensure we only try to boost genes that actually survived the SCT filtering
+    valid_boost_genes <- intersect(boost_genes, rownames(scale_mat))
+
+    if (length(valid_boost_genes) > 0) {
+      # Multiply the scaled expression values
+      scale_mat[valid_boost_genes, ] <- scale_mat[valid_boost_genes, ] * boost_multiplier
+
+      # Put the boosted data back into the Seurat object
+      seurat_obj <- SetAssayData(seurat_obj, assay = "SCT", layer = "scale.data", new.data = scale_mat)
+
+      message("Successfully boosted ", length(valid_boost_genes), " genes by a factor of ", boost_multiplier, ":")
+      message(paste(valid_boost_genes, collapse = ", "))
+    } else {
+      warning("None of the specified boost_genes were found in the SCT scale.data matrix.")
+    }
+  }
 
   # --- BATCH AWARENESS & PCA ---
   batch_counts <- table(seurat_obj[[batch_col]])
@@ -513,6 +541,8 @@ ProcessSeuratSCT <- function(
 #' @param clustering_resolution Numeric. Included for pipeline compatibility; sets the target resolution. Default is 1.
 #' @param verbose Logical. If \code{TRUE}, outputs progress messages and Seurat logs to the console. Default is \code{TRUE}.
 #' @param sample_name Character. A prefix used for saving the elbow plot file. Default is "seurat".
+#' @param boost_genes A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Set to \code{NULL} to disable feature boosting. Default is \code{c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")}.
+#' @param boost_multiplier A numeric value indicating the weight factor applied to the \code{boost_genes}. The scaled expression data for these genes will be multiplied by this number. Default is \code{10}. Set to \code{1} to disable.
 #'
 #' @return An integrated \code{Seurat} object with the \code{DefaultAssay} set to "RNA". The split RNA layers are automatically re-joined at the end of the pipeline.
 #' @importFrom SeuratObject JoinLayers Layers
@@ -553,7 +583,9 @@ ProcessSeuratLOG <- function(
     k.score = NULL,
     clustering_resolution = 1,
     verbose = TRUE,
-    sample_name = "seurat"
+    sample_name = "seurat",
+    boost_genes = c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1"),
+    boost_multiplier = 1
 ) {
   message("Splitting RNA layer by batch...")
   DefaultAssay(seurat_obj) <- "RNA"
@@ -573,6 +605,30 @@ ProcessSeuratLOG <- function(
 
   message("Scaling data and regressing variables...")
   seurat_obj <- ScaleData(seurat_obj, vars.to.regress = vars_to_regress, features = VariableFeatures(seurat_obj), verbose = verbose)
+
+  # ---> NEW: Feature Boosting Logic (Execute after RNA, before PCA) <---
+  if (!is.null(boost_genes) && boost_multiplier > 1) {
+    message("Boosting expression variance for specified lineage markers...")
+
+    # Extract scale.data safely
+    scale_mat <- GetAssayData(seurat_obj, assay = "RNA", layer = "scale.data") # Use layer="scale.data" for V5, slot="scale.data" for V4
+
+    # Ensure we only try to boost genes that actually survived the RNA filtering
+    valid_boost_genes <- intersect(boost_genes, rownames(scale_mat))
+
+    if (length(valid_boost_genes) > 0) {
+      # Multiply the scaled expression values
+      scale_mat[valid_boost_genes, ] <- scale_mat[valid_boost_genes, ] * boost_multiplier
+
+      # Put the boosted data back into the Seurat object
+      seurat_obj <- SetAssayData(seurat_obj, assay = "RNA", layer = "scale.data", new.data = scale_mat)
+
+      message("Successfully boosted ", length(valid_boost_genes), " genes by a factor of ", boost_multiplier, ":")
+      message(paste(valid_boost_genes, collapse = ", "))
+    } else {
+      warning("None of the specified boost_genes were found in the SCT scale.data matrix.")
+    }
+  }
 
   # --- BATCH AWARENESS & PCA ---
   batch_counts <- table(seurat_obj[[batch_col]])

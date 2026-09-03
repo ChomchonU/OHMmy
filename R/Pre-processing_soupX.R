@@ -728,3 +728,7 @@ addSoupXMetaToSeurat <- function(original_seurat,
   message("Done: Metadata and counts transferred successfully.")
   return(updated_seurat)
 }
+
+# -----------------------------------------------------------
+
+

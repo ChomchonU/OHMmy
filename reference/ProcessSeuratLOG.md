@@ -30,7 +30,9 @@ ProcessSeuratLOG(
   k.score = NULL,
   clustering_resolution = 1,
   verbose = TRUE,
-  sample_name = "seurat"
+  sample_name = "seurat",
+  boost_genes = c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1"),
+  boost_multiplier = 1
 )
 ```
 
@@ -124,6 +126,22 @@ ProcessSeuratLOG(
 
   Character. A prefix used for saving the elbow plot file. Default is
   "seurat".
+
+- boost_genes:
+
+  A character vector of gene names whose variance should be artificially
+  increased prior to PCA. This forces the dimensionality reduction to
+  prioritize these specific lineage markers, which is highly useful for
+  cleanly separating biologically distinct but transcriptomically
+  similar populations (e.g., NK cells vs. CD8+ T cells). Set to `NULL`
+  to disable feature boosting. Default is
+  `c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")`.
+
+- boost_multiplier:
+
+  A numeric value indicating the weight factor applied to the
+  `boost_genes`. The scaled expression data for these genes will be
+  multiplied by this number. Default is `10`. Set to `1` to disable.
 
 ## Value
 

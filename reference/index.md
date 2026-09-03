@@ -89,3 +89,5 @@
   : Run Comprehensive Global Over-Representation Analysis (ORA)
 - [`run_soupx_post_clustering()`](https://chomchonu.github.io/OHMmy/reference/run_soupx_post_clustering.md)
   : Execute Final SoupX Contamination Removal and Seurat Initialization
+- [`score_consensus()`](https://chomchonu.github.io/OHMmy/reference/score_consensus.md)
+  : Calculate Consensus Labels for CD8 vs NK Cells

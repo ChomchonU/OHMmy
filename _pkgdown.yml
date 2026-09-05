@@ -1,4 +1,6 @@
 url: https://chomchonu.github.io/OHMmy/
+title: OHMmy
+description: An R package providing advanced, robust wrappers for single-cell transcriptomics and Seurat workflows.
 template:
   bootstrap: 5
 

@@ -672,12 +672,12 @@ plot_dot_dendro_multi <- function(
   # 5. Execute Save Operations
   if ("col_dend" %in% save_options) {
     ggsave(file.path(output_dir, paste0("GeneDendrogram_", safe_prefix, "_", timestamp, ".jpg")),
-           p_col_dend, width = min(75, max(15, 0.3 * length(keep_features))), height = 20)
+           p_col_dend, width = min(75, max(15, 0.3 * length(keep_features))), height = 20, , limitsize = FALSE)
   }
 
   if ("row_dend" %in% save_options) {
     ggsave(file.path(output_dir, paste0("ClusterDendrogram_", safe_prefix, "_", timestamp, ".jpg")),
-           p_row_dend, width = 10, height = max(10, 0.4 * nrow(mat_avg)))
+           p_row_dend, width = 10, , limitsize = FALSE, height = max(10, 0.4 * nrow(mat_avg)))
   }
 
   if ("gene_list" %in% save_options) {

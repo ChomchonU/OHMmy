@@ -17,7 +17,7 @@ a list of fresh Seurat objects ready for downstream quality control."></head><bo
 
     <a class="navbar-brand me-2" href="../index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -27,6 +27,7 @@ a list of fresh Seurat objects ready for downstream quality control."></head><bo
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/PicooO12/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -75,10 +76,14 @@ a list of fresh <code>Seurat</code> objects ready for downstream quality control
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A structured, named list containing three top-level elements:</p><ul><li><p><code>final_seurat</code>: A list of the final, initialized <code>Seurat</code> objects containing the background-corrected counts and baseline metadata.</p></li>
-<li><p><code>soup_objects</code>: The output list from the contamination estimation step, containing the updated <code>SoupChannel</code> objects and corrected matrices.</p></li>
+    <p>The same structure as <code><a href="run_soupx_post_clustering.html">run_soupx_post_clustering()</a></code>: a named list with</p><ul><li><p><code>final_seurat</code>: A list of the final, initialized <code>Seurat</code> objects containing the background-corrected counts and baseline metadata.</p></li>
+<li><p><code>soup_objects</code>: A list of the updated <code>SoupChannel</code> objects with their final <code>rho</code> values.</p></li>
 <li><p><code>seurat_clustering</code>: A list of the preliminary <code>Seurat</code> objects used to generate the high-resolution clusters for ambient RNA estimation.</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="prepare_soupx_inputs.html">prepare_soupx_inputs()</a></code> and <code><a href="run_soupx_post_clustering.html">run_soupx_post_clustering()</a></code>, which this function chains. Use them directly to test several <code>multiFac</code> values without reloading the data, or to restrict the adjustment to selected samples.</p></div>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

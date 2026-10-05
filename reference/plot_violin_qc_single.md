@@ -69,7 +69,8 @@ plot_violin_qc_single(
 
 - width:
 
-  Numeric. The base width of the saved plot. Default is 20.
+  Numeric. The width (in inches) of both saved figures; the height grows
+  with the number of panels (three per row). Default is 20.
 
 - dpi:
 

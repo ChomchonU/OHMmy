@@ -58,8 +58,11 @@ score_consensus(
 - method:
 
   Character; the method to determine the CD8 vs NK decision boundary.
-  One of `"fixed"`, `"trough"` (density valley), or `"gmm"` (Gaussian
-  Mixture Model).
+  One of `"fixed"`, `"trough"` (density valley), or `"gmm"` (decision
+  boundary of a two-component Gaussian mixture; requires the mclust
+  package to be installed). If a data-driven method cannot find a
+  cutoff, `fixed_cut` is used and the `fallback` column of the returned
+  `cutoffs` table is `TRUE`.
 
 - fixed_cut:
 

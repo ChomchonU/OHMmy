@@ -76,8 +76,8 @@ ClusterAndUMAP(
 
 - cluster_prefix:
 
-  Character. The prefix to use for naming the cluster metadata columns.
-  Default is "RNA_snn_res.".
+  Character. The prefix of the cluster metadata columns, used to build
+  the `clustree`. Default is "RNA_snn_res.".
 
 - graph_name:
 
@@ -148,6 +148,12 @@ A named list containing three elements:
 
 - `plot_file`: A character string of the exact file path where the plot
   was saved.
+
+## Details
+
+Seurat names cluster columns `paste0(graph_name, "_res.", resolution)`.
+For the `clustree` plot to find them, `cluster_prefix` should therefore
+be `paste0(graph_name, "_res.")` (the defaults follow this rule).
 
 ## Examples
 

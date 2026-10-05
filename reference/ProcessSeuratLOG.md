@@ -19,7 +19,7 @@ ProcessSeuratLOG(
   vars_to_regress = NULL,
   tcr_bcr_patterns = "^TR[ABDG]|^IG[HKL]",
   reduction_name = "pca.SCT",
-  integration_method = HarmonyIntegration,
+  integration_method = "HarmonyIntegration",
   integration_reduction = "integrated.har.SCT",
   dims = 1:30,
   interactive_mode = FALSE,
@@ -54,32 +54,36 @@ ProcessSeuratLOG(
 
 - tcr_bcr_patterns:
 
-  Character. A regular expression matching TCR and BCR gene segments
-  (e.g., TRAV, TRBV, IGHV) to exclude them from the variable features
-  list. Default is `"^TR[ABDG]|^IG[HKL]"`.
+  Character. A regular expression matching TCR and BCR gene segments to
+  exclude from the variable features list. Default is
+  `"^TR[ABDG]|^IG[HKL]"`. Note that this default also matches
+  non-receptor genes such as *TRAF1* or *IGHMBP2*;
+  `"^TR[ABDG]V|^IG[HKL]V"` restricts the filter to variable segments.
 
 - reduction_name:
 
   Character. The name to assign to the pre-integration PCA reduction.
-  Default is "pca.SCT" (Note: you may want to rename this default to
-  "pca" since this is the LogNormalize workflow).
+  Default is "pca.SCT" (kept for backward compatibility; a name such as
+  "pca.log" is clearer for this workflow).
 
 - integration_method:
 
   Character. The integration algorithm to use in `IntegrateLayers`.
   Options: "HarmonyIntegration", "RPCAIntegration", "CCAIntegration", or
-  "FastMNNIntegration". Default is "HarmonyIntegration".
+  "FastMNNIntegration" (the latter requires the SeuratWrappers package
+  to be attached). Default is "HarmonyIntegration".
 
 - integration_reduction:
 
   Character. The name to assign to the final integrated dimensional
-  reduction. Default is "integrated.har.SCT" (Note: you may want to
-  adjust this default for standard RNA).
+  reduction. Default is "integrated.har.SCT" (kept for backward
+  compatibility; a name such as "integrated.har.log" is clearer for this
+  workflow).
 
 - dims:
 
-  Numeric vector. The dimensions (PCs) to use for the integration step.
-  Default is `1:30`.
+  Numeric vector. The dimensions (PCs) to use for the integration step
+  (RPCA/CCA). Default is `1:30`.
 
 - interactive_mode:
 
@@ -114,8 +118,10 @@ ProcessSeuratLOG(
 
 - clustering_resolution:
 
-  Numeric. Included for pipeline compatibility; sets the target
-  resolution. Default is 1.
+  Numeric. Retained for pipeline compatibility; clustering itself is
+  performed downstream (e.g., by
+  [`ClusterAndUMAP()`](https://chomchonu.github.io/OHMmy/reference/ClusterAndUMAP.md)).
+  Default is 1.
 
 - verbose:
 
@@ -133,20 +139,27 @@ ProcessSeuratLOG(
   increased prior to PCA. This forces the dimensionality reduction to
   prioritize these specific lineage markers, which is highly useful for
   cleanly separating biologically distinct but transcriptomically
-  similar populations (e.g., NK cells vs. CD8+ T cells). Set to `NULL`
-  to disable feature boosting. Default is
+  similar populations (e.g., NK cells vs. CD8+ T cells). Only used when
+  `boost_multiplier > 1`; set to `NULL` to disable. Default is
   `c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")`.
 
 - boost_multiplier:
 
   A numeric value indicating the weight factor applied to the
   `boost_genes`. The scaled expression data for these genes will be
-  multiplied by this number. Default is `10`. Set to `1` to disable.
+  multiplied by this number. Default is `1` (no boosting).
 
 ## Value
 
 An integrated `Seurat` object with the `DefaultAssay` set to "RNA". The
 split RNA layers are automatically re-joined at the end of the pipeline.
+
+## See also
+
+[`ProcessSeuratSCT()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratSCT.md)
+for the SCTransform equivalent and
+[`ClusterAndUMAP()`](https://chomchonu.github.io/OHMmy/reference/ClusterAndUMAP.md)
+for the next step.
 
 ## Examples
 

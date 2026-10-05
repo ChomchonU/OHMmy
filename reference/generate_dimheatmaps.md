@@ -79,8 +79,10 @@ generate_dimheatmaps(
 
 ## Value
 
-Invisibly returns `NULL`. The primary purpose of this function is its
-side effect of saving JPEG plots to the specified output directory.
+Invisibly returns a character vector naming any PC windows that failed
+to plot (empty if all succeeded). The primary purpose of this function
+is its side effect of saving JPEG plots to the specified output
+directory.
 
 ## Examples
 

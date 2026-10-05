@@ -23,7 +23,7 @@ A combined view of both the top 20 genes and the significant target genes.
 
     <a class="navbar-brand me-2" href="../index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,7 @@ A combined view of both the top 20 genes and the significant target genes.
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/PicooO12/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -68,7 +69,7 @@ to automatically extract and label:</p><ol><li><p>The top 10 significantly upreg
 
 
 <dl><dt id="arg-res">res<a class="anchor" aria-label="anchor" href="#arg-res"></a></dt>
-<dd><p>A data frame containing differential expression results. Must contain row names as gene symbols, and the columns <code>padj</code> (adjusted p-value) and <code>log2FoldChange</code>.</p></dd>
+<dd><p>A data frame (or DESeq2 <code>DESeqResults</code> object) containing differential expression results. Must have gene symbols as row names and the columns <code>padj</code> (adjusted p-value) and <code>log2FoldChange</code>. Requires the <span class="pkg">EnhancedVolcano</span> package.</p></dd>
 
 
 <dt id="arg-main-title">main_title<a class="anchor" aria-label="anchor" href="#arg-main-title"></a></dt>

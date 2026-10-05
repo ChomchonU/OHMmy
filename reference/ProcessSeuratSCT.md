@@ -56,9 +56,11 @@ ProcessSeuratSCT(
 
 - tcr_bcr_patterns:
 
-  Character. A regular expression matching TCR and BCR gene segments
-  (e.g., TRAV, TRBV, IGHV) to exclude them from the variable features
-  list. Default is `"^TR[ABDG]|^IG[HKL]"`.
+  Character. A regular expression matching TCR and BCR gene segments to
+  exclude from the variable features list. Default is
+  `"^TR[ABDG]|^IG[HKL]"`. Note that this default also matches
+  non-receptor genes such as *TRAF1* or *IGHMBP2*;
+  `"^TR[ABDG]V|^IG[HKL]V"` restricts the filter to variable segments.
 
 - reduction_name:
 
@@ -69,7 +71,8 @@ ProcessSeuratSCT(
 
   Character. The integration algorithm to use in `IntegrateLayers`.
   Options: "HarmonyIntegration", "RPCAIntegration", "CCAIntegration", or
-  "FastMNNIntegration". Default is "HarmonyIntegration".
+  "FastMNNIntegration" (the latter requires the SeuratWrappers package
+  to be attached). Default is "HarmonyIntegration".
 
 - integration_reduction:
 
@@ -78,8 +81,8 @@ ProcessSeuratSCT(
 
 - dims:
 
-  Numeric vector. The dimensions (PCs) to use for the integration step.
-  Default is `1:50`.
+  Numeric vector. The dimensions (PCs) to use for the integration step
+  (RPCA/CCA). Default is `1:50`.
 
 - interactive_mode:
 
@@ -114,8 +117,9 @@ ProcessSeuratSCT(
 
 - clustering_resolution:
 
-  Numeric. Included for pipeline compatibility; sets the target
-  resolution (though actual clustering is typically handled downstream).
+  Numeric. Retained for pipeline compatibility; clustering itself is
+  performed downstream (e.g., by
+  [`ClusterAndUMAP()`](https://chomchonu.github.io/OHMmy/reference/ClusterAndUMAP.md)).
   Default is 0.8.
 
 - verbose:
@@ -134,21 +138,27 @@ ProcessSeuratSCT(
   increased prior to PCA. This forces the dimensionality reduction to
   prioritize these specific lineage markers, which is highly useful for
   cleanly separating biologically distinct but transcriptomically
-  similar populations (e.g., NK cells vs. CD8+ T cells). Set to `NULL`
-  to disable feature boosting. Default is
+  similar populations (e.g., NK cells vs. CD8+ T cells). Only used when
+  `boost_multiplier > 1`; set to `NULL` to disable. Default is
   `c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")`.
 
 - boost_multiplier:
 
   A numeric value indicating the weight factor applied to the
   `boost_genes`. The scaled expression data for these genes will be
-  multiplied by this number. Default is `10`. Set to `1` to disable.
+  multiplied by this number. Default is `1` (no boosting).
 
 ## Value
 
 An integrated `Seurat` object with the `DefaultAssay` set to "SCT". The
-split RNA and SCT layers are automatically re-joined at the end of the
-pipeline.
+split RNA layers are re-joined at the end of the pipeline.
+
+## See also
+
+[`ProcessSeuratLOG()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratLOG.md)
+for the LogNormalize equivalent and
+[`ClusterAndUMAP()`](https://chomchonu.github.io/OHMmy/reference/ClusterAndUMAP.md)
+for the next step.
 
 ## Examples
 

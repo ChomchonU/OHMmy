@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -54,6 +55,7 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
+            <h4 data-toc-skip class="date">2026-10-05</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/PicooO12/OHMmy/blob/master/vignettes/OHMmy-advanced-visualization.Rmd" class="external-link"><code>vignettes/OHMmy-advanced-visualization.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-advanced-visualization.Rmd</code></div>
@@ -62,189 +64,588 @@ Uansiri</h4>
     
     
 <div class="section level2">
-<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>Once clustering is complete, interpreting the biological identity of
-those clusters requires flexible, high-quality visualizations.
-<code>OHMmy</code> provides robust wrappers around popular plotting
-libraries (like <code>ggplot2</code> and <code>Nebulosa</code>) to
-automate the generation of UMAP overlays, Dot Plots, Violin Plots, and
-Co-expression overlays.</p>
-<p>This guide walks through the major visualization functions using a
-processed Seurat object.</p>
+<p>Once cells are clustered, the next step is to interpret them. OHMmy
+wraps the most common figures into functions that save a
+publication-ready file <strong>and</strong> return the ggplot/patchwork
+object, so you can keep customising in R.</p>
+<table class="table">
+<colgroup>
+<col width="38%">
+<col width="61%">
+</colgroup>
+<thead><tr class="header">
+<th>Theme</th>
+<th>Functions</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Colours</td>
+<td><code><a href="../reference/make_cluster_palette.html">make_cluster_palette()</a></code></td>
+</tr>
+<tr class="even">
+<td>Embedding overlays</td>
+<td>
+<code><a href="../reference/PlotDimByFactors.html">PlotDimByFactors()</a></code>, <code><a href="../reference/plot_combined.html">plot_combined()</a></code>
+</td>
+</tr>
+<tr class="odd">
+<td>Distributions</td>
+<td>
+<code><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single()</a></code>,
+<code><a href="../reference/extract_binned_expression.html">extract_binned_expression()</a></code>
+</td>
+</tr>
+<tr class="even">
+<td>Clustered dot plots</td>
+<td>
+<code><a href="../reference/plot_dot_dendro.html">plot_dot_dendro()</a></code>,
+<code><a href="../reference/plot_dot_dendro_split.html">plot_dot_dendro_split()</a></code>,
+<code><a href="../reference/plot_dot_dendro_multi.html">plot_dot_dendro_multi()</a></code>
+</td>
+</tr>
+<tr class="odd">
+<td>Co-expression</td>
+<td>
+<code><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa()</a></code>,
+<code><a href="../reference/dot-blend_feature_plot_v5.html">.blend_feature_plot_v5()</a></code>
+</td>
+</tr>
+<tr class="even">
+<td>Lineage resolution</td>
+<td><code><a href="../reference/score_consensus.html">score_consensus()</a></code></td>
+</tr>
+</tbody>
+</table>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PicooO12/OHMmy" class="external-link">OHMmy</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"ohmmy-vignette-helpers.R"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Load your clustered Seurat object</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"data/seurat_clustered.rds"</span><span class="op">)</span></span>
-<span><span class="va">out_dir</span> <span class="op">&lt;-</span> <span class="st">"results/visualizations/"</span></span></code></pre></div>
+<span><span class="va">pbmc</span> <span class="op">&lt;-</span> <span class="fu">load_pbmc3k_ohmmy</span><span class="op">(</span><span class="op">)</span>   <span class="co"># built in "Data Processing, Integration, and Clustering"</span></span>
+<span><span class="va">out_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"OHMmy-advanced-visualization"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">out_dir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">cell_type</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;       CD4 T       CD8 T          NK           B   CD14 Mono FCGR3A Mono </span></span>
+<span><span class="co">#&gt;        1165         285         157         341         477         163 </span></span>
+<span><span class="co">#&gt;          DC    Platelet </span></span>
+<span><span class="co">#&gt;          34          16</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="part-1-dimensionality-reduction-metadata-overlays">Part 1: Dimensionality Reduction &amp; Metadata Overlays<a class="anchor" aria-label="anchor" href="#part-1-dimensionality-reduction-metadata-overlays"></a>
+<h2 id="colour-palettes-for-many-clusters">1. Colour palettes for many clusters<a class="anchor" aria-label="anchor" href="#colour-palettes-for-many-clusters"></a>
 </h2>
-<p>To quickly visualize how different metadata categories (like
-predicted cell types, patient phases, or clusters) map onto your UMAP,
-use <code><a href="../reference/PlotDimByFactors.html">PlotDimByFactors()</a></code>. This function automatically handles
-formatting and saving.</p>
+<p><code><a href="../reference/make_cluster_palette.html">make_cluster_palette()</a></code> returns <code>n</code> maximally
+distinct colours from curated qualitative palettes
+(<code>"kelly"</code>, <code>"alphabet"</code>,
+<code>"polychrome"</code>) or from a blend of RColorBrewer sets
+(<code>"auto"</code>). When <code>n</code> is larger than the palette,
+it interpolates.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Visualize clusters and cell type predictions on the UMAP</span></span>
-<span><span class="fu"><a href="../reference/PlotDimByFactors.html">PlotDimByFactors</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  factors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"seurat_clusters"</span>, <span class="st">"predicted.celltype.l2"</span><span class="op">)</span>,</span>
-<span>  reduction <span class="op">=</span> <span class="st">"umap"</span>,</span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"umap_overlays/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/OHMmy-advanced-visualization/denv_nkt_regress_rpca_DimPlot_CellType_umap.rpca.log_2025-08-11_17-44-27.jpg" class="r-plt" alt="" width="50%" style="display: block; margin: auto;"><img src="images/OHMmy-advanced-visualization/denv_nkt_regress_rpca_DimPlot_Phase_umap.rpca.log_2025-08-11_17-44-27.jpg" class="r-plt" alt="" width="50%" style="display: block; margin: auto;"></p>
+<code class="sourceCode R"><span><span class="va">pal_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"kelly"</span>, <span class="st">"alphabet"</span>, <span class="st">"polychrome"</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="va">p</span>, i <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">16</span>, col <span class="op">=</span> <span class="fu"><a href="../reference/make_cluster_palette.html">make_cluster_palette</a></span><span class="op">(</span><span class="fl">16</span>, palette <span class="op">=</span> <span class="va">p</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pal_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">i</span>, <span class="va">palette</span>, fill <span class="op">=</span> <span class="va">col</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">"white"</span>, linewidth <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_identity.html" class="external-link">scale_fill_identity</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="cn">NULL</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>, panel.grid <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/palettes-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
-<h2 id="part-2-feature-density-mapping-plot_combined">Part 2: Feature Density Mapping (<code>plot_combined</code>)<a class="anchor" aria-label="anchor" href="#part-2-feature-density-mapping-plot_combined"></a>
+<h2 id="embedding-overlays">2. Embedding overlays<a class="anchor" aria-label="anchor" href="#embedding-overlays"></a>
 </h2>
-<p>The <code><a href="../reference/plot_combined.html">plot_combined()</a></code> function automatically loops through
-custom lists—whether they are gene expression signatures or continuous
-metadata features (like sequencing depth or clinical metrics)—and maps
-their gradients across your UMAP space.</p>
+<div class="section level3">
+<h3 id="one-umap-per-metadata-column">One UMAP per metadata column<a class="anchor" aria-label="anchor" href="#one-umap-per-metadata-column"></a>
+</h3>
+<p><code><a href="../reference/PlotDimByFactors.html">PlotDimByFactors()</a></code> draws one <code>DimPlot</code> per
+metadata column, saves each to disk and returns the plots as a named
+list.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># 1. Define lists containing marker genes or numerical QC/clinical metadata</span></span>
-<span><span class="va">feature_subsets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  Markers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"GZMB"</span>, <span class="st">"NCAM1"</span>, <span class="st">"FCGR3A"</span><span class="op">)</span>,</span>
-<span>  QC_Clinical <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCount_RNA"</span>, <span class="st">"nFeature_RNA"</span>, <span class="st">"pct_counts_mt"</span>, <span class="st">"log10_viremia"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 2. Generate combined feature density plots on UMAP</span></span>
-<span><span class="fu"><a href="../reference/plot_combined.html">plot_combined</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
-<span>  reduction <span class="op">=</span> <span class="st">"umap"</span>,</span>
-<span>  genes_list <span class="op">=</span> <span class="va">feature_subsets</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"feature_density/"</span><span class="op">)</span>,</span>
-<span>  save_format <span class="op">=</span> <span class="st">"jpg"</span>,</span>
-<span>  width <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  dpi <span class="op">=</span> <span class="fl">300</span></span>
+<code class="sourceCode R"><span><span class="va">dim_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PlotDimByFactors.html">PlotDimByFactors</a></span><span class="op">(</span></span>
+<span>  seurat_obj  <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  factors     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cell_type"</span>, <span class="st">"seurat_clusters"</span>, <span class="st">"batch"</span>, <span class="st">"Phase"</span><span class="op">)</span>,</span>
+<span>  sample_name <span class="op">=</span> <span class="st">"pbmc3k"</span>,</span>
+<span>  reduction   <span class="op">=</span> <span class="st">"umap.har"</span>,</span>
+<span>  output_dir  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"dimplots"</span><span class="op">)</span>,</span>
+<span>  dpi         <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  verbose     <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/OHMmy-advanced-visualization/denv_nkt_cleaned_all_regress_fused_levels_CombinedPlot_setI_umap.rpca.log_2025-10-06_18-45-14.jpg" class="r-plt" alt="" width="100%"></p>
-</div>
-<div class="section level2">
-<h2 id="part-3-profiling-qc-and-marker-distributions">Part 3: Profiling QC and Marker Distributions<a class="anchor" aria-label="anchor" href="#part-3-profiling-qc-and-marker-distributions"></a>
-</h2>
-<div class="section level3">
-<h3 id="metadata-qc-violin-plots">3.1 Metadata &amp; QC Violin Plots<a class="anchor" aria-label="anchor" href="#metadata-qc-violin-plots"></a>
-</h3>
-<p>To inspect how numerical QC features, cell cycle scores, or clinical
-metadata variables (e.g., <code>age</code>, <code>log10_viremia</code>)
-are distributed across your clusters, use
-<code><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single()</a></code> by passing them into
-<code>qc_meta_features</code>.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">qc_metrics</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCount_RNA"</span>, <span class="st">"nFeature_RNA"</span>, <span class="st">"pct_counts_mt"</span>, <span class="st">"age"</span>, <span class="st">"log10_viremia"</span>, <span class="st">"S.Score"</span>, <span class="st">"G2M.Score"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
-<span>  qc_meta_features <span class="op">=</span> <span class="va">qc_metrics</span>,</span>
-<span>  res_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
-<span>  assay <span class="op">=</span> <span class="st">"RNA"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"violin_qc/"</span><span class="op">)</span>,</span>
-<span>  save_format <span class="op">=</span> <span class="st">"jpg"</span>,</span>
-<span>  width <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  dpi <span class="op">=</span> <span class="fl">300</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/OHMmy-advanced-visualization/CD8_fused_ViolinQC_label_T4.1_log_rpca_2026-05-29_00-31-31.jpg" class="r-plt" alt="" width="100%"></p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">dim_plots</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "cell_type"       "seurat_clusters" "batch"           "Phase"</span></span>
+<span><span class="va">dim_plots</span><span class="op">$</span><span class="va">cell_type</span> <span class="op">&lt;-</span> <span class="va">dim_plots</span><span class="op">$</span><span class="va">cell_type</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_colour_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="../reference/make_cluster_palette.html">make_cluster_palette</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nlevels.html" class="external-link">nlevels</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">cell_type</span><span class="op">)</span>, <span class="st">"kelly"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span><span class="va">dim_plots</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SeuratTheme.html" class="external-link">NoLegend</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/dim-factors-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
-<h3 id="marker-gene-violin-plots">3.2 Marker Gene Violin Plots<a class="anchor" aria-label="anchor" href="#marker-gene-violin-plots"></a>
+<h3 id="feature-plots-paired-with-density-estimates">Feature plots paired with density estimates<a class="anchor" aria-label="anchor" href="#feature-plots-paired-with-density-estimates"></a>
 </h3>
-<p>You can similarly pass a list of specific gene features to evaluate
-marker expression across clusters.</p>
+<p>Sparse genes are hard to read on a standard <code>FeaturePlot</code>.
+<code><a href="../reference/plot_combined.html">plot_combined()</a></code> places each feature next to its
+kernel-density estimate (Nebulosa), using a Seurat v5-safe
+implementation. Features can be <strong>genes or numeric metadata
+columns</strong>, and each list element becomes one saved figure.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">marker_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"GZMB"</span>, <span class="st">"NCAM1"</span>, <span class="st">"CCR7"</span>, <span class="st">"IL7R"</span>, <span class="st">"MKI67"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
-<span>  gene_features <span class="op">=</span> <span class="va">marker_genes</span>,</span>
-<span>  res_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
-<span>  assay <span class="op">=</span> <span class="st">"RNA"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"violin_genes/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/OHMmy-advanced-visualization/CD8_fused_L4_ViolinGene_label_T4.1_log_rpca_2026-05-29_10-50-57.jpg" class="r-plt" alt="" width="100%"></p>
-</div>
-<div class="section level3">
-<h3 id="split-dot-plots-with-dendrograms">3.3 Split Dot Plots with Dendrograms<a class="anchor" aria-label="anchor" href="#split-dot-plots-with-dendrograms"></a>
-</h3>
-<p>For a macroscopic view of gene expression across subsets, the
-<code><a href="../reference/plot_dot_dendro_split.html">plot_dot_dendro_split()</a></code> function creates beautiful Dot
-Plots grouped by feature categories.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># 1. Create a data frame assigning genes to functional groups</span></span>
-<span><span class="va">feature_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"CD8B"</span>, <span class="st">"NCAM1"</span>, <span class="st">"GZMB"</span>, <span class="st">"GZMK"</span>, <span class="st">"CCR7"</span>, <span class="st">"IL7R"</span><span class="op">)</span>,</span>
-<span>  group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Lineage"</span>, <span class="st">"Lineage"</span>, <span class="st">"Lineage"</span>, <span class="st">"Effector"</span>, <span class="st">"Effector"</span>, <span class="st">"Naive"</span>, <span class="st">"Naive"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">feature_sets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  Lymphoid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD3E"</span>, <span class="st">"MS4A1"</span>, <span class="st">"GNLY"</span><span class="op">)</span>,</span>
+<span>  Myeloid  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD14"</span>, <span class="st">"FCGR3A"</span>, <span class="st">"FCER1A"</span><span class="op">)</span>,</span>
+<span>  QC       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCount_RNA"</span>, <span class="st">"pct_counts_mt"</span>, <span class="st">"percent.ribo"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 2. Generate the grouped Dot Plot</span></span>
-<span><span class="fu"><a href="../reference/plot_dot_dendro_split.html">plot_dot_dendro_split</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>, </span>
-<span>  meta_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>, </span>
-<span>  feature_df <span class="op">=</span> <span class="va">feature_df</span>, </span>
-<span>  scale <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  prefix <span class="op">=</span> <span class="st">"Marker_Panel"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"dot_plots/"</span><span class="op">)</span></span>
+<span><span class="va">combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_combined.html">plot_combined</a></span><span class="op">(</span></span>
+<span>  seurat_obj  <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  cluster_col <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>  genes_list  <span class="op">=</span> <span class="va">feature_sets</span>,</span>
+<span>  sample_name <span class="op">=</span> <span class="st">"pbmc3k"</span>,</span>
+<span>  reduction   <span class="op">=</span> <span class="st">"umap.har"</span>,</span>
+<span>  output_dir  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"combined"</span><span class="op">)</span>,</span>
+<span>  dpi         <span class="op">=</span> <span class="fl">72</span>,</span>
+<span>  verbose     <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/OHMmy-advanced-visualization/DotPlot_RowColDendro_label_T3_log_rpca_T3_log_rpca_Lineage_Identity_pct0_chunk1_20260516_162443.jpg" class="r-plt" alt="" width="100%"></p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="part-4-gene-co-expression-and-blend-plots">Part 4: Gene Co-Expression and Blend Plots<a class="anchor" aria-label="anchor" href="#part-4-gene-co-expression-and-blend-plots"></a>
-</h2>
-<p>Understanding how two genes interact (or are mutually exclusive) in
-the same cell requires specialized density and correlation plots.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">combined</span><span class="op">$</span><span class="va">combined_plots</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Lymphoid" "Myeloid"  "QC"</span></span>
+<span><span class="va">combined</span><span class="op">$</span><span class="va">combined_plots</span><span class="op">$</span><span class="va">Lymphoid</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/combined-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Generate density blend plots for specific receptor/effector pairs</span></span>
-<span><span class="fu"><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
-<span>  gene_pairs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CX3CR1"</span>, <span class="st">"GZMB"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PDCD1"</span>, <span class="st">"TIGIT"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  reduction <span class="op">=</span> <span class="st">"umap"</span>,</span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Dual_Expression"</span>,</span>
-<span>  blend_threshold <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"blend_plots/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/OHMmy-advanced-visualization/DENV_NKT_q90_RBM39_vs_MT-CO1_BlendNebulosa_exceptPossLoLoUmapRpcaLog_2026-04-20_22-38-58.jpg" class="r-plt" alt="" width="100%"></p>
+<code class="sourceCode R"><span><span class="va">combined</span><span class="op">$</span><span class="va">combined_plots</span><span class="op">$</span><span class="va">QC</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/combined-show-2.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="part-5-clinical-and-technical-demographics">Part 5: Clinical and Technical Demographics<a class="anchor" aria-label="anchor" href="#part-5-clinical-and-technical-demographics"></a>
+<h2 id="distributions-across-clusters">3. Distributions across clusters<a class="anchor" aria-label="anchor" href="#distributions-across-clusters"></a>
 </h2>
-<p>Finally, after defining your clusters, you often need to see how
-clinical metadata (like disease severity or batch) is distributed across
-them.</p>
+<div class="section level3">
+<h3 id="violin-plots-for-qc-metrics-and-genes">Violin plots for QC metrics and genes<a class="anchor" aria-label="anchor" href="#violin-plots-for-qc-metrics-and-genes"></a>
+</h3>
+<p><code><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single()</a></code> saves one figure for QC metadata
+and one for genes, grouped by any identity column.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Plot the distribution of patient metadata across your defined clusters</span></span>
-<span><span class="va">metadata_to_check</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"batch"</span>, <span class="st">"severity"</span>, <span class="st">"Phase"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single</a></span><span class="op">(</span></span>
+<span>  seurat_obj       <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  sample_name      <span class="op">=</span> <span class="st">"pbmc3k"</span>,</span>
+<span>  qc_meta_features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCount_RNA"</span>, <span class="st">"nFeature_RNA"</span>, <span class="st">"pct_counts_mt"</span><span class="op">)</span>,</span>
+<span>  gene_features    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD3E"</span>, <span class="st">"CD8A"</span>, <span class="st">"GNLY"</span>, <span class="st">"MS4A1"</span>, <span class="st">"CD14"</span>, <span class="st">"FCGR3A"</span><span class="op">)</span>,</span>
+<span>  res_col          <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>  output_dir       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"violins"</span><span class="op">)</span>,</span>
+<span>  dpi              <span class="op">=</span> <span class="fl">90</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-05_15-28-12.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-05_15-28-12.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level3">
+<h3 id="discretising-expression-into-low-int-high">Discretising expression into Low / Int / High<a class="anchor" aria-label="anchor" href="#discretising-expression-into-low-int-high"></a>
+</h3>
+<p><code><a href="../reference/extract_binned_expression.html">extract_binned_expression()</a></code> returns the average
+expression and percent expressed per group. For each gene it then bins
+the groups into terciles (<code>Low</code>, <code>Int</code>,
+<code>High</code>). This is useful for writing marker tables or for
+defining “marker-high” populations. The terciles are relative to the
+groups being compared: with eight cell types, for example, the three
+highest-expressing groups of each gene are labelled
+<code>High</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">binned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_binned_expression.html">extract_binned_expression</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  gene_list  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD3E"</span>, <span class="st">"CD8A"</span>, <span class="st">"GNLY"</span>, <span class="st">"MS4A1"</span>, <span class="st">"CD14"</span>, <span class="st">"FCGR3A"</span>, <span class="st">"FCER1A"</span>, <span class="st">"PPBP"</span><span class="op">)</span>,</span>
+<span>  group_col  <span class="op">=</span> <span class="st">"cell_type"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">binned</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 5</span></span></span>
+<span><span class="co">#&gt;   Cluster Gene   AvgExpression PctExpress Expression_Level</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>           </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> CD4 T   CD3E          7.54        76.8  High            </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> CD4 T   CD8A          0.728       11.0  High            </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> CD4 T   GNLY          0.563       10.3  Low             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> CD4 T   MS4A1         0.196        4.89 Low             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> CD4 T   CD14          0.084<span style="text-decoration: underline;">0</span>       1.80 Int             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> CD4 T   FCGR3A        0.204        4.46 Low</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">binned</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">Gene</span>, <span class="va">Cluster</span>, fill <span class="op">=</span> <span class="va">Expression_Level</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">"white"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">geom_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">PctExpress</span><span class="op">)</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Low <span class="op">=</span> <span class="st">"#f0f0f0"</span>, Int <span class="op">=</span> <span class="st">"#9ecae1"</span>, High <span class="op">=</span> <span class="st">"#08519c"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="cn">NULL</span>, y <span class="op">=</span> <span class="cn">NULL</span>, fill <span class="op">=</span> <span class="st">"Tercile"</span>, caption <span class="op">=</span> <span class="st">"Numbers: % of cells expressing"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/binned-plot-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="hierarchically-clustered-dot-plots">4. Hierarchically clustered dot plots<a class="anchor" aria-label="anchor" href="#hierarchically-clustered-dot-plots"></a>
+</h2>
+<p>The dot-plot family takes a two-column data frame,
+<code>feature_df</code>, that maps genes (<code>feature</code>) to
+panels (<code>group</code>). Groups are matched by
+<strong>prefix</strong>: with <code>prefix = "PBMC"</code>, every group
+starting with <code>"PBMC_"</code> is plotted. This lets one table hold
+several marker panels, for example <code>PBMC_*</code> and
+<code>Tcell_*</code>.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">feature_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  group   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"PBMC_"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">pbmc_marker_sets</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/lengths.html" class="external-link">lengths</a></span><span class="op">(</span><span class="va">pbmc_marker_sets</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">pbmc_marker_sets</span>, use.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">feature_df</span>, <span class="fl">8</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        group feature</span></span>
+<span><span class="co">#&gt; 1 PBMC_CD4 T    IL7R</span></span>
+<span><span class="co">#&gt; 2 PBMC_CD4 T    CCR7</span></span>
+<span><span class="co">#&gt; 3 PBMC_CD4 T    LDHB</span></span>
+<span><span class="co">#&gt; 4 PBMC_CD4 T    CD3E</span></span>
+<span><span class="co">#&gt; 5 PBMC_CD4 T     MAL</span></span>
+<span><span class="co">#&gt; 6 PBMC_CD8 T    CD8A</span></span>
+<span><span class="co">#&gt; 7 PBMC_CD8 T    CD8B</span></span>
+<span><span class="co">#&gt; 8 PBMC_CD8 T    CD3D</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="plot_dot_dendro-genes-and-clusters-clustered-together">
+<code>plot_dot_dendro()</code>: genes and clusters clustered
+together<a class="anchor" aria-label="anchor" href="#plot_dot_dendro-genes-and-clusters-clustered-together"></a>
+</h3>
+<p>Genes expressed in fewer than <code>pct_threshold</code> % of cells
+in every group are dropped. Rows and columns are then ordered by
+hierarchical clustering, and both dendrograms are drawn. The function
+also saves standalone dendrograms and a text file of the clustered gene
+order.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_dot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dot_dendro.html">plot_dot_dendro</a></span><span class="op">(</span></span>
+<span>  seurat_obj    <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  meta_col      <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>  feature_df    <span class="op">=</span> <span class="va">feature_df</span>,</span>
+<span>  prefix        <span class="op">=</span> <span class="st">"PBMC"</span>,</span>
+<span>  pct_threshold <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  output_dir    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"dot_dendro"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_dot</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/dot-dendro-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level3">
+<h3 id="plot_dot_dendro_split-large-panels-in-chunks">
+<code>plot_dot_dendro_split()</code>: large panels in chunks<a class="anchor" aria-label="anchor" href="#plot_dot_dendro_split-large-panels-in-chunks"></a>
+</h3>
+<p>With long marker lists, <code><a href="../reference/plot_dot_dendro_split.html">plot_dot_dendro_split()</a></code> keeps
+the <strong>global</strong> clustering but splits the gene axis into
+chunks of <code>max_genes_per_plot</code>. The same cluster dendrogram
+is attached to every chunk.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">extended_markers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  T_cell   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD3D"</span>, <span class="st">"CD3E"</span>, <span class="st">"CD2"</span>, <span class="st">"IL7R"</span>, <span class="st">"CCR7"</span>, <span class="st">"SELL"</span>, <span class="st">"LEF1"</span>, <span class="st">"TCF7"</span>, <span class="st">"CD8A"</span>, <span class="st">"CD8B"</span>, <span class="st">"GZMK"</span><span class="op">)</span>,</span>
+<span>  NK       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GNLY"</span>, <span class="st">"NKG7"</span>, <span class="st">"KLRD1"</span>, <span class="st">"KLRF1"</span>, <span class="st">"PRF1"</span>, <span class="st">"GZMB"</span>, <span class="st">"GZMH"</span>, <span class="st">"FCGR3A"</span><span class="op">)</span>,</span>
+<span>  B        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MS4A1"</span>, <span class="st">"CD79A"</span>, <span class="st">"CD79B"</span>, <span class="st">"BANK1"</span>, <span class="st">"TCL1A"</span>, <span class="st">"HLA-DQA1"</span><span class="op">)</span>,</span>
+<span>  Myeloid  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD14"</span>, <span class="st">"LYZ"</span>, <span class="st">"S100A8"</span>, <span class="st">"S100A9"</span>, <span class="st">"VCAN"</span>, <span class="st">"MS4A7"</span>, <span class="st">"LST1"</span>, <span class="st">"CDKN1C"</span>, <span class="st">"FCER1A"</span>, <span class="st">"CST3"</span><span class="op">)</span>,</span>
+<span>  Platelet <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PPBP"</span>, <span class="st">"PF4"</span>, <span class="st">"GNG11"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">feature_df_ext</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  group   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"PBMCext_"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">extended_markers</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/lengths.html" class="external-link">lengths</a></span><span class="op">(</span><span class="va">extended_markers</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">extended_markers</span>, use.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="kw">for</span> <span class="op">(</span><span class="va">meta</span> <span class="kw">in</span> <span class="va">metadata_to_check</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="../reference/plot_cluster_distributions.html">plot_cluster_distributions</a></span><span class="op">(</span></span>
-<span>    seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>, </span>
-<span>    cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
-<span>    batch_col <span class="op">=</span> <span class="va">meta</span>,</span>
-<span>    file_prefix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Dist_"</span>, <span class="va">meta</span><span class="op">)</span>,</span>
-<span>    output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"distributions/"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
+<span><span class="va">split_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dot_dendro_split.html">plot_dot_dendro_split</a></span><span class="op">(</span></span>
+<span>  seurat_obj         <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  meta_col           <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>  feature_df         <span class="op">=</span> <span class="va">feature_df_ext</span>,</span>
+<span>  prefix             <span class="op">=</span> <span class="st">"PBMCext"</span>,</span>
+<span>  pct_threshold      <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  max_genes_per_plot <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  output_dir         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"dot_split"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">split_plots</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 2</span></span>
+<span><span class="va">split_plots</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/dot-split-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">split_plots</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/dot-split-show-2.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level3">
+<h3 id="plot_dot_dendro_multi-several-groupings-in-one-clustering">
+<code>plot_dot_dendro_multi()</code>: several groupings in one
+clustering<a class="anchor" aria-label="anchor" href="#plot_dot_dendro_multi-several-groupings-in-one-clustering"></a>
+</h3>
+<p><code><a href="../reference/plot_dot_dendro_multi.html">plot_dot_dendro_multi()</a></code> stacks the dot-plot summaries of
+<strong>several metadata columns</strong> into one matrix before
+clustering. Here, plotting the marker-based <code>cell_type</code>
+labels next to the unsupervised <code>seurat_clusters</code> shows
+directly which clusters each label absorbed. Rows are named
+<code>&lt;group&gt;_&lt;column&gt;</code>.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">multi_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dot_dendro_multi.html">plot_dot_dendro_multi</a></span><span class="op">(</span></span>
+<span>  seurat_obj    <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  meta_cols     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cell_type"</span>, <span class="st">"seurat_clusters"</span><span class="op">)</span>,</span>
+<span>  feature_df    <span class="op">=</span> <span class="va">feature_df</span>,</span>
+<span>  prefix        <span class="op">=</span> <span class="st">"PBMC"</span>,</span>
+<span>  pct_threshold <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  output_dir    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"dot_multi"</span><span class="op">)</span>,</span>
+<span>  save_options  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"combined"</span>, <span class="st">"gene_list"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261005_152821.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">multi_df</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster_var"</span>, <span class="st">"feature"</span>, <span class="st">"avg.exp.scaled"</span>, <span class="st">"pct.exp"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              cluster_var feature avg.exp.scaled  pct.exp</span></span>
+<span><span class="co">#&gt; IL7R...1 CD4 T_cell_type    IL7R      1.6552981 66.18026</span></span>
+<span><span class="co">#&gt; CCR7...2 CD4 T_cell_type    CCR7      2.0153829 36.30901</span></span>
+<span><span class="co">#&gt; LDHB...3 CD4 T_cell_type    LDHB      1.9231096 92.53219</span></span>
+<span><span class="co">#&gt; CD3E...4 CD4 T_cell_type    CD3E      1.3666726 76.82403</span></span>
+<span><span class="co">#&gt; MAL...5  CD4 T_cell_type     MAL      2.4402184 27.29614</span></span>
+<span><span class="co">#&gt; CD8A...6 CD4 T_cell_type    CD8A      0.2086779 10.98712</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="co-expression-blend-and-density-plots">5. Co-expression: blend and density plots<a class="anchor" aria-label="anchor" href="#co-expression-blend-and-density-plots"></a>
+</h2>
+<p><code><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa()</a></code> produces one row per gene pair
+with the two single-gene panels, their colour blend, a 2-D colour key,
+and a Nebulosa density estimate for each gene. Cells below
+<code>blend_threshold</code> (after scaling to 0 to 1) are shown as
+background, which keeps sparse genes readable. All pairs are stacked
+into one saved figure.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">blend</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa</a></span><span class="op">(</span></span>
+<span>  seurat_obj      <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  cluster_col     <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>  gene_pairs      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD3E"</span>, <span class="st">"GNLY"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD14"</span>, <span class="st">"FCGR3A"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  sample_name     <span class="op">=</span> <span class="st">"pbmc3k"</span>,</span>
+<span>  reduction       <span class="op">=</span> <span class="st">"umap.har"</span>,</span>
+<span>  blend_threshold <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  width           <span class="op">=</span> <span class="fl">24</span>,</span>
+<span>  dpi             <span class="op">=</span> <span class="fl">72</span>,</span>
+<span>  output_dir      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"blend"</span><span class="op">)</span>,</span>
+<span>  verbose         <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">blend</span><span class="op">$</span><span class="va">dimensions</span></span>
+<span><span class="co">#&gt; $width</span></span>
+<span><span class="co">#&gt; [1] 24</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $height</span></span>
+<span><span class="co">#&gt; [1] 7.2</span></span>
+<span><span class="va">blend</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/blend-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p>The <em>CD3E</em>/<em>GNLY</em> row separates T cells (green), NK
+cells (red) and the cytotoxic CD8 T cells that express both (yellow).
+The <em>CD14</em>/<em>FCGR3A</em> row shows the two monocyte subsets and
+the intermediate cells between them.</p>
+<p>The four-panel blend is also available on its own as
+<code><a href="../reference/dot-blend_feature_plot_v5.html">.blend_feature_plot_v5()</a></code>, a Seurat v5-compatible
+replacement for <code>FeaturePlot(blend = TRUE)</code>.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/dot-blend_feature_plot_v5.html">.blend_feature_plot_v5</a></span><span class="op">(</span></span>
+<span>  <span class="va">pbmc</span>, gene1 <span class="op">=</span> <span class="st">"CD8A"</span>, gene2 <span class="op">=</span> <span class="st">"GZMK"</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>,</span>
+<span>  cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lightgrey"</span>, <span class="st">"#1b9e77"</span>, <span class="st">"#d95f02"</span><span class="op">)</span>, blend_threshold <span class="op">=</span> <span class="fl">0.15</span>, pt_size <span class="op">=</span> <span class="fl">0.6</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/blend-single-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level2">
+<h2 id="resolving-cd8-t-cells-from-nk-cells-with-score_consensus">6. Resolving CD8 T cells from NK cells with
+<code>score_consensus()</code><a class="anchor" aria-label="anchor" href="#resolving-cd8-t-cells-from-nk-cells-with-score_consensus"></a>
+</h2>
+<p>Cytotoxic CD8 T cells and NK cells share much of their effector
+programme and are often mixed in clustering.
+<code><a href="../reference/score_consensus.html">score_consensus()</a></code> compares one or more <strong>CD8
+signature scores</strong> with an <strong>NK signature score</strong>
+for each cell. It labels a cell CD8 when <code>z(CD8) - z(NK)</code>
+exceeds a cutoff, which can be fixed (<code>"fixed"</code>), the density
+valley (<code>"trough"</code>), or the decision boundary of a
+two-component Gaussian mixture (<code>"gmm"</code>). Two CD8 signatures
+act as <code>primary</code> and <code>confirm</code> scores, and
+disagreements are flagged as ambiguous. Bootstrapping reports how stable
+the cutoff is.</p>
+<p>Any per-cell score can be used, such as <code><a href="https://satijalab.org/seurat/reference/AddModuleScore.html" class="external-link">AddModuleScore()</a></code>
+or UCell. Here we score the CD8 T and NK cells with
+<code><a href="https://satijalab.org/seurat/reference/AddModuleScore.html" class="external-link">AddModuleScore()</a></code>.</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cyto</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">pbmc</span>, subset <span class="op">=</span> <span class="va">cell_type</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8 T"</span>, <span class="st">"NK"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">score_sets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  CD8_core <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"CD8B"</span><span class="op">)</span>,</span>
+<span>  CD8_TCR  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD3D"</span>, <span class="st">"CD3E"</span>, <span class="st">"CD3G"</span>, <span class="st">"CD8A"</span>, <span class="st">"CD8B"</span>, <span class="st">"LCK"</span><span class="op">)</span>,</span>
+<span>  NK_score <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GNLY"</span>, <span class="st">"KLRD1"</span>, <span class="st">"KLRF1"</span>, <span class="st">"FCGR3A"</span>, <span class="st">"NCAM1"</span>, <span class="st">"TYROBP"</span>, <span class="st">"FCER1G"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">s</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">score_sets</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">cyto</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/AddModuleScore.html" class="external-link">AddModuleScore</a></span><span class="op">(</span><span class="va">cyto</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">score_sets</span><span class="op">[[</span><span class="va">s</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, name <span class="op">=</span> <span class="va">s</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">cyto</span><span class="op">@</span><span class="va">meta.data</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">cyto</span><span class="op">@</span><span class="va">meta.data</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">s</span>, <span class="st">"1"</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">s</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p><img src="images/OHMmy-advanced-visualization/cell_count_plot_ind_label_20260504_220321.jpg" class="r-plt" alt="" width="100%"></p>
+<p>With <code>method = "gmm"</code>, the cutoff is the decision boundary
+of a two-component Gaussian mixture fitted with <strong>mclust</strong>,
+which only needs to be installed. If no cutoff can be estimated,
+<code>fixed_cut</code> is used instead, and the <code>fallback</code>
+column of <code>cons$cutoffs</code> reports this.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/score_consensus.html">score_consensus</a></span><span class="op">(</span></span>
+<span>  obj         <span class="op">=</span> <span class="va">cyto</span>,</span>
+<span>  cd8_cols    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8_TCR"</span>, <span class="st">"CD8_core"</span><span class="op">)</span>,</span>
+<span>  nk_col      <span class="op">=</span> <span class="st">"NK_score"</span>,</span>
+<span>  method      <span class="op">=</span> <span class="st">"gmm"</span>,</span>
+<span>  n_boot      <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  boot_target <span class="op">=</span> <span class="st">"cutoff"</span>,</span>
+<span>  make_plots  <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  plot_n      <span class="op">=</span> <span class="fl">300</span>,</span>
+<span>  out_dir     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"cd8_vs_nk"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cons</span><span class="op">$</span><span class="va">cutoffs</span></span>
+<span><span class="co">#&gt;    variant     cutoff fallback   med_diff  q05_diff q95_diff  frac_cd8</span></span>
+<span><span class="co">#&gt; 1  CD8_TCR -0.8463179    FALSE 0.62392346 -2.948398 2.340278 0.6515837</span></span>
+<span><span class="co">#&gt; 2 CD8_core -1.3141486    FALSE 0.02909187 -2.412048 2.700774 0.6945701</span></span>
+<span><span class="va">cons</span><span class="op">$</span><span class="va">agreement</span></span>
+<span><span class="co">#&gt;            CD8_TCR  CD8_core</span></span>
+<span><span class="co">#&gt; CD8_TCR  1.0000000 0.9434389</span></span>
+<span><span class="co">#&gt; CD8_core 0.9434389 1.0000000</span></span>
+<span><span class="va">cons</span><span class="op">$</span><span class="va">bootstrap</span><span class="op">$</span><span class="va">summary</span></span>
+<span><span class="co">#&gt;    variant target   observed      mean        sd     ci_lo      ci_hi fb_rate</span></span>
+<span><span class="co">#&gt; 1  CD8_TCR cutoff -0.8463179 -0.794449 0.1717250 -1.030044 -0.5128929       0</span></span>
+<span><span class="co">#&gt; 2 CD8_core cutoff -1.3141486 -1.294615 0.1148437 -1.530047 -1.0904355       0</span></span></code></pre></div>
+<p>Both variants get a data-driven cutoff
+(<code>fallback = FALSE</code>), and the bootstrap confidence intervals
+show how stable it is. The consensus agrees with the cluster-level
+annotation for the large majority of cells. Most of the remaining cells
+are flagged as <em>Ambiguous</em>, because the primary and confirmatory
+CD8 signatures disagree on them. These cells are good candidates for
+closer inspection:</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span>consensus <span class="op">=</span> <span class="va">cons</span><span class="op">$</span><span class="va">consensus</span>, annotation <span class="op">=</span> <span class="va">cyto</span><span class="op">$</span><span class="va">cell_type</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                        annotation</span></span>
+<span><span class="co">#&gt; consensus               CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC Platelet</span></span>
+<span><span class="co">#&gt;   Ambiguous_CD8_confirm     0     8  14   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   Ambiguous_CD8_primary     0     2   1   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   CD8                       0   273  12   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   NK                        0     2 130   0         0           0   0        0</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">cons</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">Violin_CD8_TCR</span><span class="op">)</span> <span class="op">/</span></span>
+<span>  <span class="op">(</span><span class="va">cons</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">Primary_vs_Confirm</span> <span class="op">|</span> <span class="va">cons</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">Bootstrap_ForestPlot</span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/consensus-plots-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p>The labels are also written to the object’s metadata (prefix
+<code>CD8vNK_</code>), ready for plotting:</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"^CD8vNK_"</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">cons</span><span class="op">$</span><span class="va">obj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "CD8vNK_diff_CD8_TCR"      "CD8vNK_label_CD8_TCR"    </span></span>
+<span><span class="co">#&gt; [3] "CD8vNK_cd8scale_CD8_TCR"  "CD8vNK_diff_CD8_core"    </span></span>
+<span><span class="co">#&gt; [5] "CD8vNK_label_CD8_core"    "CD8vNK_cd8scale_CD8_core"</span></span>
+<span><span class="co">#&gt; [7] "CD8vNK_nkscale"           "CD8vNK_consensus"</span></span>
+<span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">cons</span><span class="op">$</span><span class="va">obj</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>, group.by <span class="op">=</span> <span class="st">"CD8vNK_consensus"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://satijalab.org/seurat/reference/FeaturePlot.html" class="external-link">FeaturePlot</a></span><span class="op">(</span><span class="va">cons</span><span class="op">$</span><span class="va">obj</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>, features <span class="op">=</span> <span class="st">"CD8vNK_diff_CD8_TCR"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_colour_gradient2</a></span><span class="op">(</span>low <span class="op">=</span> <span class="st">"#b2182b"</span>, mid <span class="op">=</span> <span class="st">"grey90"</span>, high <span class="op">=</span> <span class="st">"#2166ac"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/consensus-umap-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level2">
+<h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
+</h2>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
+<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
+<span><span class="co">#&gt; Running under: Ubuntu 22.04.5 LTS</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Matrix products: default</span></span>
+<span><span class="co">#&gt; BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
+<span><span class="co">#&gt; LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; locale:</span></span>
+<span><span class="co">#&gt;  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
+<span><span class="co">#&gt;  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
+<span><span class="co">#&gt;  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
+<span><span class="co">#&gt; [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; time zone: UTC</span></span>
+<span><span class="co">#&gt; tzcode source: system (glibc)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; attached base packages:</span></span>
+<span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; other attached packages:</span></span>
+<span><span class="co">#&gt; [1] ggraph_2.2.2       ggplot2_4.0.3      patchwork_1.3.2    OHMmy_1.0.2       </span></span>
+<span><span class="co">#&gt; [5] Seurat_5.6.0       SeuratObject_5.4.0 sp_2.2-3          </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
+<span><span class="co">#&gt;   [1] RcppAnnoy_0.0.23            splines_4.6.1              </span></span>
+<span><span class="co">#&gt;   [3] later_1.4.8                 tibble_3.3.1               </span></span>
+<span><span class="co">#&gt;   [5] R.oo_1.27.1                 polyclip_1.10-7            </span></span>
+<span><span class="co">#&gt;   [7] fastDummies_1.7.6           lifecycle_1.0.5            </span></span>
+<span><span class="co">#&gt;   [9] rstatix_1.1.0               globals_0.19.1             </span></span>
+<span><span class="co">#&gt;  [11] lattice_0.22-9              MASS_7.3-65                </span></span>
+<span><span class="co">#&gt;  [13] backports_1.5.1             magrittr_2.0.5             </span></span>
+<span><span class="co">#&gt;  [15] plotly_4.12.1               sass_0.4.10                </span></span>
+<span><span class="co">#&gt;  [17] rmarkdown_2.32              jquerylib_0.1.4            </span></span>
+<span><span class="co">#&gt;  [19] yaml_2.3.12                 httpuv_1.6.17              </span></span>
+<span><span class="co">#&gt;  [21] otel_0.2.0                  sctransform_0.4.3          </span></span>
+<span><span class="co">#&gt;  [23] spam_2.11-4                 spatstat.sparse_3.2-0      </span></span>
+<span><span class="co">#&gt;  [25] reticulate_1.47.0           cowplot_1.2.0              </span></span>
+<span><span class="co">#&gt;  [27] pbapply_1.7-5               RColorBrewer_1.1-3         </span></span>
+<span><span class="co">#&gt;  [29] abind_1.4-8                 GenomicRanges_1.64.0       </span></span>
+<span><span class="co">#&gt;  [31] Rtsne_0.17                  purrr_1.2.2                </span></span>
+<span><span class="co">#&gt;  [33] R.utils_2.13.0              BiocGenerics_0.58.1        </span></span>
+<span><span class="co">#&gt;  [35] pracma_2.4.6                tweenr_2.0.3               </span></span>
+<span><span class="co">#&gt;  [37] IRanges_2.46.0              S4Vectors_0.50.3           </span></span>
+<span><span class="co">#&gt;  [39] ggrepel_0.9.8               irlba_2.3.7                </span></span>
+<span><span class="co">#&gt;  [41] listenv_1.1.0               spatstat.utils_3.2-5       </span></span>
+<span><span class="co">#&gt;  [43] goftest_1.2-3               RSpectra_0.16-2            </span></span>
+<span><span class="co">#&gt;  [45] spatstat.random_3.5-2       fitdistrplus_1.2-6         </span></span>
+<span><span class="co">#&gt;  [47] parallelly_1.48.0           pkgdown_2.2.1              </span></span>
+<span><span class="co">#&gt;  [49] DelayedArray_0.38.2         codetools_0.2-20           </span></span>
+<span><span class="co">#&gt;  [51] ggforce_0.5.0               tidyselect_1.2.1           </span></span>
+<span><span class="co">#&gt;  [53] farver_2.1.2                SoupX_1.6.2                </span></span>
+<span><span class="co">#&gt;  [55] viridis_0.6.5               matrixStats_1.5.0          </span></span>
+<span><span class="co">#&gt;  [57] stats4_4.6.1                spatstat.explore_3.8-3     </span></span>
+<span><span class="co">#&gt;  [59] Seqinfo_1.2.0               jsonlite_2.0.0             </span></span>
+<span><span class="co">#&gt;  [61] ks_1.15.3                   tidygraph_1.3.1            </span></span>
+<span><span class="co">#&gt;  [63] progressr_1.0.0             Formula_1.2-6              </span></span>
+<span><span class="co">#&gt;  [65] ggridges_0.5.7              survival_3.8-6             </span></span>
+<span><span class="co">#&gt;  [67] systemfonts_1.3.2           tools_4.6.1                </span></span>
+<span><span class="co">#&gt;  [69] ragg_1.5.2                  ica_1.0-3                  </span></span>
+<span><span class="co">#&gt;  [71] Rcpp_1.1.2                  glue_1.8.1                 </span></span>
+<span><span class="co">#&gt;  [73] SparseArray_1.12.3          gridExtra_2.3.1            </span></span>
+<span><span class="co">#&gt;  [75] xfun_0.61                   MatrixGenerics_1.24.0      </span></span>
+<span><span class="co">#&gt;  [77] dplyr_1.2.1                 withr_3.0.3                </span></span>
+<span><span class="co">#&gt;  [79] fastmap_1.2.0               clustree_0.5.1             </span></span>
+<span><span class="co">#&gt;  [81] digest_0.6.39               R6_2.6.1                   </span></span>
+<span><span class="co">#&gt;  [83] mime_0.13                   textshaping_1.0.5          </span></span>
+<span><span class="co">#&gt;  [85] Cairo_1.7-0                 scattermore_1.2            </span></span>
+<span><span class="co">#&gt;  [87] tensor_1.5.1                jpeg_0.1-11                </span></span>
+<span><span class="co">#&gt;  [89] spatstat.data_3.1-9         R.methodsS3_1.8.2          </span></span>
+<span><span class="co">#&gt;  [91] RhpcBLASctl_0.23-42         utf8_1.2.6                 </span></span>
+<span><span class="co">#&gt;  [93] Nebulosa_1.22.0             tidyr_1.3.2                </span></span>
+<span><span class="co">#&gt;  [95] generics_0.1.4              data.table_1.18.6.1        </span></span>
+<span><span class="co">#&gt;  [97] S4Arrays_1.12.1             graphlayouts_1.2.5         </span></span>
+<span><span class="co">#&gt;  [99] httr_1.4.9                  htmlwidgets_1.6.4          </span></span>
+<span><span class="co">#&gt; [101] uwot_0.2.5                  pkgconfig_2.0.3            </span></span>
+<span><span class="co">#&gt; [103] gtable_0.3.6                lmtest_0.9-40              </span></span>
+<span><span class="co">#&gt; [105] S7_0.2.2                    XVector_0.52.0             </span></span>
+<span><span class="co">#&gt; [107] SingleCellExperiment_1.34.0 htmltools_0.5.9            </span></span>
+<span><span class="co">#&gt; [109] carData_3.0-6               dotCall64_1.2              </span></span>
+<span><span class="co">#&gt; [111] Biobase_2.72.0              scales_1.4.0               </span></span>
+<span><span class="co">#&gt; [113] png_0.1-9                   harmony_2.0.5              </span></span>
+<span><span class="co">#&gt; [115] spatstat.univar_3.2-0       ggdendro_0.2.0             </span></span>
+<span><span class="co">#&gt; [117] knitr_1.52                  reshape2_1.4.5             </span></span>
+<span><span class="co">#&gt; [119] checkmate_2.3.4             nlme_3.1-169               </span></span>
+<span><span class="co">#&gt; [121] cachem_1.1.0                zoo_1.9-1                  </span></span>
+<span><span class="co">#&gt; [123] stringr_1.6.0               KernSmooth_2.23-26         </span></span>
+<span><span class="co">#&gt; [125] vipor_0.4.7                 parallel_4.6.1             </span></span>
+<span><span class="co">#&gt; [127] miniUI_0.1.2                ggrastr_1.0.2              </span></span>
+<span><span class="co">#&gt; [129] desc_1.4.3                  pillar_1.11.1              </span></span>
+<span><span class="co">#&gt; [131] grid_4.6.1                  vctrs_0.7.3                </span></span>
+<span><span class="co">#&gt; [133] RANN_2.6.3                  promises_1.5.0             </span></span>
+<span><span class="co">#&gt; [135] ggpubr_1.0.0                car_3.1-5                  </span></span>
+<span><span class="co">#&gt; [137] xtable_1.8-8                cluster_2.1.8.2            </span></span>
+<span><span class="co">#&gt; [139] beeswarm_0.4.0              evaluate_1.0.5             </span></span>
+<span><span class="co">#&gt; [141] mvtnorm_1.4-2               cli_3.6.6                  </span></span>
+<span><span class="co">#&gt; [143] compiler_4.6.1              rlang_1.3.0                </span></span>
+<span><span class="co">#&gt; [145] leidenbase_0.1.37           future.apply_1.20.2        </span></span>
+<span><span class="co">#&gt; [147] ggsignif_0.6.4              labeling_0.4.3             </span></span>
+<span><span class="co">#&gt; [149] mclust_6.1.3                ggbeeswarm_0.7.3           </span></span>
+<span><span class="co">#&gt; [151] plyr_1.8.9                  fs_2.1.0                   </span></span>
+<span><span class="co">#&gt; [153] stringi_1.8.9               viridisLite_0.4.3          </span></span>
+<span><span class="co">#&gt; [155] deldir_2.0-4                spatstat.geom_3.8-3        </span></span>
+<span><span class="co">#&gt; [157] Matrix_1.7-5                RcppHNSW_0.7.0             </span></span>
+<span><span class="co">#&gt; [159] future_1.76.0               shiny_1.14.0               </span></span>
+<span><span class="co">#&gt; [161] SummarizedExperiment_1.42.0 ROCR_1.0-12                </span></span>
+<span><span class="co">#&gt; [163] igraph_2.3.4                broom_1.0.13               </span></span>
+<span><span class="co">#&gt; [165] memoise_2.0.1               bslib_0.12.0</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

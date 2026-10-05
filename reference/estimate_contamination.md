@@ -53,21 +53,20 @@ estimate_contamination(
 
 - mulFac:
 
-  Numeric. A percentage to artificially add to the auto-estimated
-  contamination fraction (e.g., `mulFac = 5` adds `0.05` to the `rho`
-  value). Default is 0.
+  Numeric. Percentage points to add to the auto-estimated contamination
+  fraction (e.g., `mulFac = 5` adds `0.05` to `rho`). Default is 0.
 
 - manual_contam:
 
-  Character vector. A list of specific sample names to apply the
-  `mulFac` adjustment to. Only evaluated if `manual = TRUE`. Default is
-  an empty list.
+  Character vector. Sample names to which the `mulFac` adjustment is
+  applied. Only evaluated if `manual = TRUE`. Default is an empty list.
 
 - manual:
 
-  Logical. Controls the application of `mulFac`. If `FALSE`, `mulFac` is
-  applied globally to ALL samples. If `TRUE`, `mulFac` is applied ONLY
-  to the specific samples listed in `manual_contam`. Default is FALSE.
+  Logical. Controls where `mulFac` is applied. If `FALSE` (default), it
+  is added to every sample. If `TRUE`, it is added only to the samples
+  listed in `manual_contam`; all other samples keep their auto-estimated
+  `rho`.
 
 - methods:
 

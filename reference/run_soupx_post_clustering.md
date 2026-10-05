@@ -36,9 +36,9 @@ run_soupx_post_clustering(
 
 - manual_contam:
 
-  Character vector. An optional list of specific sample names to
-  selectively apply the `multiFac` adjustment to. Default is an empty
-  list.
+  Character vector. Optional sample names to which the `multiFac`
+  adjustment is restricted. When empty (the default), `multiFac` is
+  applied to every sample.
 
 - pCut:
 

@@ -74,12 +74,6 @@ A character vector containing the names of any samples that failed to
 process (e.g., due to missing reductions). Returns an empty character
 vector (`character(0)`) if successful.
 
-## Note
-
-This function explicitly looks for a dimensionality reduction named
-`"pca.log"`. Ensure your Seurat object's PCA was saved under this name,
-or modify the function to accept a custom reduction name.
-
 ## Examples
 
 ``` r

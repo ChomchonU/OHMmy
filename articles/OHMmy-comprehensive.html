@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -54,6 +55,7 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
+            <h4 data-toc-skip class="date">2026-10-05</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/PicooO12/OHMmy/blob/master/vignettes/OHMmy-comprehensive.Rmd" class="external-link"><code>vignettes/OHMmy-comprehensive.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-comprehensive.Rmd</code></div>
@@ -64,227 +66,579 @@ Uansiri</h4>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>Welcome to <code>OHMmy</code>. This package is designed to streamline
-highly complex single-cell RNA sequencing workflows. From ambient RNA
-decontamination and technical noise regression to differential
-expression and pathway enrichment, <code>OHMmy</code> provides robust,
-automated wrappers around industry-standard tools (like Seurat, SoupX,
-Nebulosa, and DESeq2).</p>
-<p>This comprehensive guide walks through a complete analysis
-pipeline.</p>
+<p><strong>OHMmy</strong> provides reproducible wrappers for a complete
+Seurat v5 scRNA-seq analysis: ambient-RNA removal with SoupX,
+normalisation and batch integration, diagnostics of technical noise,
+publication-ready visualisation, donor-aware statistics, and pathway
+enrichment. Every plotting function saves a timestamped, high-resolution
+file <strong>and</strong> returns the underlying ggplot or data, so
+OHMmy fits both batch scripts on an HPC cluster and interactive
+analysis.</p>
+<p>This article gives a short, runnable tour of the main steps on one
+dataset. The other articles cover each module in depth:</p>
+<table class="table">
+<colgroup>
+<col width="52%">
+<col width="47%">
+</colgroup>
+<thead><tr class="header">
+<th>Article</th>
+<th>Covers</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><a href="OHMmy-soupx-workflow.html">Ambient RNA Decontamination with
+SoupX</a></td>
+<td>Reading Cell Ranger output, estimating and removing ambient RNA</td>
+</tr>
+<tr class="even">
+<td><a href="OHMmy-processing-clustering.html">Data Processing,
+Integration, and Clustering</a></td>
+<td>LogNormalize / SCTransform pipelines, integration, resolution
+sweeps</td>
+</tr>
+<tr class="odd">
+<td><a href="OHMmy-diagnostics-evaluation.html">Diagnostic and Variable
+Evaluation</a></td>
+<td>PC heatmaps and loadings, technical-gene contribution, PC-covariate
+correlation</td>
+</tr>
+<tr class="even">
+<td><a href="OHMmy-advanced-visualization.html">Advanced Visualization
+and Marker Analysis</a></td>
+<td>UMAP overlays, density plots, clustered dot plots, blend plots,
+CD8/NK resolution</td>
+</tr>
+<tr class="odd">
+<td><a href="OHMmy-statistical-analysis.html">Statistical
+Analysis</a></td>
+<td>Confounder checks, differential abundance, compositions, gene-pair
+correlations</td>
+</tr>
+<tr class="even">
+<td><a href="OHMmy-differential-expression.html">Differential Expression
+and Pathway Enrichment</a></td>
+<td>Markers, GSEA, ORA, pseudo-bulk DESeq2 visualisation</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="function-index">Function index<a class="anchor" aria-label="anchor" href="#function-index"></a>
+</h2>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="23%">
+<col width="47%">
+<col width="28%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Module</th>
+<th align="left">Function</th>
+<th align="left">Article</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Ambient RNA (SoupX)</td>
+<td align="left"><code><a href="../reference/get_sample_names.html">get_sample_names()</a></code></td>
+<td align="left">SoupX</td>
+</tr>
+<tr class="even">
+<td align="left">Ambient RNA (SoupX)</td>
+<td align="left"><code><a href="../reference/load_counts.html">load_counts()</a></code></td>
+<td align="left">SoupX</td>
+</tr>
+<tr class="odd">
+<td align="left">Ambient RNA (SoupX)</td>
+<td align="left"><code><a href="../reference/create_soup_channels.html">create_soup_channels()</a></code></td>
+<td align="left">SoupX</td>
+</tr>
+<tr class="even">
+<td align="left">Ambient RNA (SoupX)</td>
+<td align="left"><code><a href="../reference/create_seurat_for_clustering.html">create_seurat_for_clustering()</a></code></td>
+<td align="left">SoupX</td>
+</tr>
+<tr class="odd">
+<td align="left">Ambient RNA (SoupX)</td>
+<td align="left"><code><a href="../reference/estimate_contamination.html">estimate_contamination()</a></code></td>
+<td align="left">SoupX</td>
+</tr>
+<tr class="even">
+<td align="left">Ambient RNA (SoupX)</td>
+<td align="left"><code><a href="../reference/create_final_seurat.html">create_final_seurat()</a></code></td>
+<td align="left">SoupX</td>
+</tr>
+<tr class="odd">
+<td align="left">Ambient RNA (SoupX)</td>
+<td align="left"><code><a href="../reference/prepare_soupx_inputs.html">prepare_soupx_inputs()</a></code></td>
+<td align="left">SoupX</td>
+</tr>
+<tr class="even">
+<td align="left">Ambient RNA (SoupX)</td>
+<td align="left"><code><a href="../reference/run_soupx_post_clustering.html">run_soupx_post_clustering()</a></code></td>
+<td align="left">SoupX</td>
+</tr>
+<tr class="odd">
+<td align="left">Ambient RNA (SoupX)</td>
+<td align="left"><code><a href="../reference/process_soupx_samples.html">process_soupx_samples()</a></code></td>
+<td align="left">SoupX</td>
+</tr>
+<tr class="even">
+<td align="left">Ambient RNA (SoupX)</td>
+<td align="left"><code><a href="../reference/addSoupXMetaToSeurat.html">addSoupXMetaToSeurat()</a></code></td>
+<td align="left">SoupX</td>
+</tr>
+<tr class="odd">
+<td align="left">Processing</td>
+<td align="left"><code><a href="../reference/ProcessSeuratLOG.html">ProcessSeuratLOG()</a></code></td>
+<td align="left">Processing</td>
+</tr>
+<tr class="even">
+<td align="left">Processing</td>
+<td align="left"><code><a href="../reference/ProcessSeuratSCT.html">ProcessSeuratSCT()</a></code></td>
+<td align="left">Processing</td>
+</tr>
+<tr class="odd">
+<td align="left">Processing</td>
+<td align="left"><code><a href="../reference/ClusterAndUMAP.html">ClusterAndUMAP()</a></code></td>
+<td align="left">Processing</td>
+</tr>
+<tr class="even">
+<td align="left">Processing</td>
+<td align="left"><code><a href="../reference/CleanSeuratReductions.html">CleanSeuratReductions()</a></code></td>
+<td align="left">Processing</td>
+</tr>
+<tr class="odd">
+<td align="left">Diagnostics</td>
+<td align="left"><code><a href="../reference/generate_dimheatmaps.html">generate_dimheatmaps()</a></code></td>
+<td align="left">Diagnostics</td>
+</tr>
+<tr class="even">
+<td align="left">Diagnostics</td>
+<td align="left"><code><a href="../reference/plot_vizdimloadings.html">plot_vizdimloadings()</a></code></td>
+<td align="left">Diagnostics</td>
+</tr>
+<tr class="odd">
+<td align="left">Diagnostics</td>
+<td align="left"><code><a href="../reference/plot_technical_contribution.html">plot_technical_contribution()</a></code></td>
+<td align="left">Diagnostics</td>
+</tr>
+<tr class="even">
+<td align="left">Diagnostics</td>
+<td align="left"><code><a href="../reference/plot_stacked_technical_contribution.html">plot_stacked_technical_contribution()</a></code></td>
+<td align="left">Diagnostics</td>
+</tr>
+<tr class="odd">
+<td align="left">Diagnostics</td>
+<td align="left"><code><a href="../reference/plot_pc_metadata_correlation.html">plot_pc_metadata_correlation()</a></code></td>
+<td align="left">Diagnostics</td>
+</tr>
+<tr class="even">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/make_cluster_palette.html">make_cluster_palette()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="odd">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/PlotDimByFactors.html">PlotDimByFactors()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="even">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/plot_combined.html">plot_combined()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="odd">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="even">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/extract_binned_expression.html">extract_binned_expression()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="odd">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/plot_dot_dendro.html">plot_dot_dendro()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="even">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/plot_dot_dendro_split.html">plot_dot_dendro_split()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="odd">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/plot_dot_dendro_multi.html">plot_dot_dendro_multi()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="even">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="odd">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/dot-blend_feature_plot_v5.html">.blend_feature_plot_v5()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="even">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/plot_gene_markers_with_dendro.html">plot_gene_markers_with_dendro()</a></code></td>
+<td align="left">Differential expression</td>
+</tr>
+<tr class="odd">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/plot_split_dotplots_by_gene_cluster.html">plot_split_dotplots_by_gene_cluster()</a></code></td>
+<td align="left">Differential expression</td>
+</tr>
+<tr class="even">
+<td align="left">Lineage resolution</td>
+<td align="left"><code><a href="../reference/score_consensus.html">score_consensus()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="odd">
+<td align="left">Statistics</td>
+<td align="left"><code><a href="../reference/plot_metadata_stats.html">plot_metadata_stats()</a></code></td>
+<td align="left">Statistics</td>
+</tr>
+<tr class="even">
+<td align="left">Statistics</td>
+<td align="left"><code><a href="../reference/plot_cell_abundance.html">plot_cell_abundance()</a></code></td>
+<td align="left">Statistics</td>
+</tr>
+<tr class="odd">
+<td align="left">Statistics</td>
+<td align="left"><code><a href="../reference/plot_cluster_distributions.html">plot_cluster_distributions()</a></code></td>
+<td align="left">Statistics</td>
+</tr>
+<tr class="even">
+<td align="left">Statistics</td>
+<td align="left"><code><a href="../reference/plot_gene_pair_correlations.html">plot_gene_pair_correlations()</a></code></td>
+<td align="left">Statistics</td>
+</tr>
+<tr class="odd">
+<td align="left">Markers &amp; DE</td>
+<td align="left"><code><a href="../reference/FindTopMarkersAndHeatmap.html">FindTopMarkersAndHeatmap()</a></code></td>
+<td align="left">Differential expression</td>
+</tr>
+<tr class="even">
+<td align="left">Markers &amp; DE</td>
+<td align="left"><code><a href="../reference/run_global_gsea.html">run_global_gsea()</a></code></td>
+<td align="left">Differential expression</td>
+</tr>
+<tr class="odd">
+<td align="left">Markers &amp; DE</td>
+<td align="left"><code><a href="../reference/run_global_ora.html">run_global_ora()</a></code></td>
+<td align="left">Differential expression</td>
+</tr>
+<tr class="even">
+<td align="left">Markers &amp; DE</td>
+<td align="left"><code><a href="../reference/generate_volcano_trio.html">generate_volcano_trio()</a></code></td>
+<td align="left">Differential expression</td>
+</tr>
+<tr class="odd">
+<td align="left">Markers &amp; DE</td>
+<td align="left"><code><a href="../reference/get_top_mixed_genes.html">get_top_mixed_genes()</a></code></td>
+<td align="left">Differential expression</td>
+</tr>
+<tr class="even">
+<td align="left">Markers &amp; DE</td>
+<td align="left"><code><a href="../reference/generate_and_save_heatmap.html">generate_and_save_heatmap()</a></code></td>
+<td align="left">Differential expression</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="the-example-dataset">The example dataset<a class="anchor" aria-label="anchor" href="#the-example-dataset"></a>
+</h2>
+<p>All articles use the 10x Genomics <strong>3k PBMC</strong> dataset
+(pbmc3k). It is downloaded once and cached. The helper file
+<code>ohmmy-vignette-helpers.R</code> also spreads the cells across a
+<strong>simulated cohort of 12 donors</strong> (Healthy, Mild and
+Severe, in two sequencing batches), so that the cohort-level functions
+can be demonstrated. Monocyte-like cells were deliberately over-assigned
+to Mild and Severe donors. <em>The donor, severity, batch, age and sex
+columns are synthetic.</em></p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PicooO12/OHMmy" class="external-link">OHMmy</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"ohmmy-vignette-helpers.R"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Define a global output directory for this pipeline</span></span>
-<span><span class="va">out_dir</span> <span class="op">&lt;-</span> <span class="st">"results/comprehensive_workflow/"</span></span>
+<span><span class="va">out_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"OHMmy-comprehensive"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">out_dir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="ambient-rna-decontamination-soupx">1. Ambient RNA Decontamination (SoupX)<a class="anchor" aria-label="anchor" href="#ambient-rna-decontamination-soupx"></a>
+<h2 id="load-qc-and-annotate-the-cohort">1. Load, QC and annotate the cohort<a class="anchor" aria-label="anchor" href="#load-qc-and-annotate-the-cohort"></a>
 </h2>
-<p>Cell-free ambient RNA can severely confound downstream clustering.
-<code>OHMmy</code> provides seamless wrappers to load standard outputs
-(e.g., from CellRanger) and accurately remove this contamination before
-building our Seurat object.</p>
+<p>Ambient-RNA removal with SoupX would normally come first. It needs
+the raw droplet matrices, so it is demonstrated separately in the SoupX
+article.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># 1. Process SoupX across all samples in your directories</span></span>
-<span><span class="va">soup_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_soupx_samples.html">process_soupx_samples</a></span><span class="op">(</span></span>
-<span>  filtered_dir <span class="op">=</span> <span class="st">"data/filtered/"</span>, </span>
-<span>  raw_dir <span class="op">=</span> <span class="st">"data/raw/"</span>, </span>
-<span>  multiFac <span class="op">=</span> <span class="fl">1</span> </span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 2. Transfer the cleaned counts and metadata back to your raw Seurat object</span></span>
-<span><span class="va">seurat_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"data/seurat_raw.rds"</span><span class="op">)</span></span>
-<span><span class="va">seurat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/addSoupXMetaToSeurat.html">addSoupXMetaToSeurat</a></span><span class="op">(</span></span>
-<span>  original_seurat <span class="op">=</span> <span class="va">seurat_raw</span>,</span>
-<span>  soupx_seurat_list <span class="op">=</span> <span class="va">soup_results</span><span class="op">$</span><span class="va">final_seurat</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">pbmc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/CreateSeuratObject.html" class="external-link">CreateSeuratObject</a></span><span class="op">(</span><span class="fu">pbmc3k_counts</span><span class="op">(</span><span class="op">)</span>, project <span class="op">=</span> <span class="st">"pbmc3k"</span>, min.cells <span class="op">=</span> <span class="fl">3</span>, min.features <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
+<span><span class="va">pbmc</span><span class="op">[[</span><span class="st">"pct_counts_mt"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/PercentageFeatureSet.html" class="external-link">PercentageFeatureSet</a></span><span class="op">(</span><span class="va">pbmc</span>, pattern <span class="op">=</span> <span class="st">"^MT-"</span><span class="op">)</span></span>
+<span><span class="va">pbmc</span><span class="op">[[</span><span class="st">"percent.ribo"</span><span class="op">]</span><span class="op">]</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/PercentageFeatureSet.html" class="external-link">PercentageFeatureSet</a></span><span class="op">(</span><span class="va">pbmc</span>, pattern <span class="op">=</span> <span class="st">"^RP[SL]"</span><span class="op">)</span></span>
+<span><span class="va">pbmc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">pbmc</span>, subset <span class="op">=</span> <span class="va">nFeature_RNA</span> <span class="op">&gt;</span> <span class="fl">200</span> <span class="op">&amp;</span> <span class="va">nFeature_RNA</span> <span class="op">&lt;</span> <span class="fl">2500</span> <span class="op">&amp;</span> <span class="va">pct_counts_mt</span> <span class="op">&lt;</span> <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="va">pbmc</span> <span class="op">&lt;-</span> <span class="fu">add_mock_cohort</span><span class="op">(</span><span class="va">pbmc</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">severity</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Healthy    Mild  Severe </span></span>
+<span><span class="co">#&gt;     802     810    1026</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="processing-integration-and-clustering">2. Processing, Integration, and Clustering<a class="anchor" aria-label="anchor" href="#processing-integration-and-clustering"></a>
+<h2 id="normalise-integrate-and-cluster">2. Normalise, integrate and cluster<a class="anchor" aria-label="anchor" href="#normalise-integrate-and-cluster"></a>
 </h2>
-<p>Next, we normalize the data, regress out technical noise (like cell
-cycle or mitochondrial percentages), integrate across batches, and
-systematically determine the best clustering resolution.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># 1. Log-Normalization, technical regression, and Batch Integration</span></span>
-<span><span class="va">seurat_integrated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ProcessSeuratLOG.html">ProcessSeuratLOG</a></span><span class="op">(</span></span>
-<span>  <span class="va">seurat_clean</span>,</span>
-<span>  batch_col <span class="op">=</span> <span class="st">"batch"</span>,</span>
-<span>  vars_to_regress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pct_counts_mt"</span>, <span class="st">"S.Score"</span>, <span class="st">"G2M.Score"</span><span class="op">)</span>,</span>
-<span>  tcr_bcr_patterns <span class="op">=</span> <span class="st">"^TR[ABDG]|^IG[HKL]"</span>, <span class="co"># Exclude V(D)J genes from clustering</span></span>
-<span>  integration_method <span class="op">=</span> <span class="st">"CCAIntegration"</span>,</span>
-<span>  reduction_name <span class="op">=</span> <span class="st">"pca.log"</span>,</span>
-<span>  integration_reduction <span class="op">=</span> <span class="st">"integrated.cca.log"</span>,</span>
-<span>  dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">40</span></span>
-<span><span class="op">)</span> </span>
-<span></span>
-<span><span class="co"># 2. Run UMAP and test clustering across multiple resolutions</span></span>
-<span><span class="va">cluster_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ClusterAndUMAP.html">ClusterAndUMAP</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_integrated</span>,</span>
-<span>  reduction <span class="op">=</span> <span class="st">"integrated.cca.log"</span>,</span>
-<span>  dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">40</span>,</span>
-<span>  cluster_resolutions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">2</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
-<span>  final_resolution <span class="op">=</span> <span class="fl">1.0</span>, </span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
-<span>  plot_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"clustree/"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">pbmc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ProcessSeuratLOG.html">ProcessSeuratLOG</a></span><span class="op">(</span></span>
+<span>  <span class="va">pbmc</span>,</span>
+<span>  batch_col             <span class="op">=</span> <span class="st">"batch"</span>,</span>
+<span>  vars_to_regress       <span class="op">=</span> <span class="st">"pct_counts_mt"</span>,</span>
+<span>  tcr_bcr_patterns      <span class="op">=</span> <span class="st">"^TR[ABDG]V|^IG[HKL]V"</span>,</span>
+<span>  reduction_name        <span class="op">=</span> <span class="st">"pca.log"</span>,</span>
+<span>  integration_method    <span class="op">=</span> <span class="st">"HarmonyIntegration"</span>,</span>
+<span>  integration_reduction <span class="op">=</span> <span class="st">"harmony.log"</span>,</span>
+<span>  verbose               <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Extract the fully processed object</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="va">cluster_results</span><span class="op">$</span><span class="va">seurat</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="quality-control-principal-component-diagnostics">3. Quality Control &amp; Principal Component Diagnostics<a class="anchor" aria-label="anchor" href="#quality-control-principal-component-diagnostics"></a>
-</h2>
-<p>Before annotating, we verify that our clusters are biologically
-driven and not artifacts of technical noise (e.g., sequencing depth or
-ribosomal genes).</p>
+<span><span class="va">clus</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ClusterAndUMAP.html">ClusterAndUMAP</a></span><span class="op">(</span></span>
+<span>  <span class="va">pbmc</span>,</span>
+<span>  sample_name         <span class="op">=</span> <span class="st">"pbmc3k"</span>,</span>
+<span>  reduction           <span class="op">=</span> <span class="st">"harmony.log"</span>,</span>
+<span>  dims                <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span>,</span>
+<span>  umap_name           <span class="op">=</span> <span class="st">"umap.har"</span>,</span>
+<span>  graph_name          <span class="op">=</span> <span class="st">"har_snn"</span>,</span>
+<span>  cluster_prefix      <span class="op">=</span> <span class="st">"har_snn_res."</span>,</span>
+<span>  cluster_resolutions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">1.2</span>, by <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>,</span>
+<span>  final_resolution    <span class="op">=</span> <span class="fl">0.6</span>,</span>
+<span>  plot_dir            <span class="op">=</span> <span class="va">out_dir</span>,</span>
+<span>  dpi                 <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">pbmc</span> <span class="op">&lt;-</span> <span class="va">clus</span><span class="op">$</span><span class="va">seurat</span></span>
+<span><span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span> <span class="op">&lt;-</span> <span class="va">pbmc</span><span class="op">$</span><span class="va">har_snn_res.0.6</span></span>
+<span><span class="va">pbmc</span> <span class="op">&lt;-</span> <span class="fu">annotate_pbmc</span><span class="op">(</span><span class="va">pbmc</span>, cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># 1. Check QC distributions across your new clusters</span></span>
-<span><span class="fu"><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  res_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
-<span>  qc_meta_features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCount_RNA"</span>, <span class="st">"nFeature_RNA"</span>, <span class="st">"pct_counts_mt"</span><span class="op">)</span>,</span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"QC/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 2. Quantify exactly how much of each PC is driven by technical gene families</span></span>
-<span><span class="fu"><a href="../reference/plot_technical_contribution.html">plot_technical_contribution</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
-<span>  technical_keywords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"^MT-"</span>, <span class="st">"^RPL"</span>, <span class="st">"^RPS"</span><span class="op">)</span>,</span>
-<span>  max_pcs <span class="op">=</span> <span class="fl">40</span>,</span>
-<span>  cutoff <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Diagnostics/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">clus</span><span class="op">$</span><span class="va">clustree</span> <span class="op">+</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">pbmc</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>, group.by <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>                        label <span class="op">=</span> <span class="cn">TRUE</span>, repel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SeuratTheme.html" class="external-link">NoLegend</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-comprehensive_files/figure-html/umap-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
-<h2 id="advanced-visualization-and-annotation">4. Advanced Visualization and Annotation<a class="anchor" aria-label="anchor" href="#advanced-visualization-and-annotation"></a>
+<h2 id="check-the-principal-components-for-technical-noise">3. Check the principal components for technical noise<a class="anchor" aria-label="anchor" href="#check-the-principal-components-for-technical-noise"></a>
 </h2>
-<p>Interpret the biological identity of your clusters using flexible
-UMAP overlays, density mapping, and gene co-expression tools.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># 1. Visualize clusters and metadata overlays on the UMAP</span></span>
-<span><span class="fu"><a href="../reference/PlotDimByFactors.html">PlotDimByFactors</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>, </span>
-<span>  factors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"seurat_clusters"</span>, <span class="st">"predicted.celltype.l2"</span><span class="op">)</span>,</span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"UMAP/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 2. Advanced Dotplots (Grouped with Dendrograms)</span></span>
-<span><span class="va">feature_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"NCAM1"</span>, <span class="st">"GZMB"</span>, <span class="st">"PRF1"</span>, <span class="st">"CCR7"</span>, <span class="st">"IL7R"</span><span class="op">)</span>,</span>
-<span>  group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Lineage"</span>, <span class="st">"Lineage"</span>, <span class="st">"Effector"</span>, <span class="st">"Effector"</span>, <span class="st">"Naive"</span>, <span class="st">"Naive"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="../reference/plot_dot_dendro_split.html">plot_dot_dendro_split</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>, </span>
-<span>  meta_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
-<span>  feature_df <span class="op">=</span> <span class="va">feature_df</span>,</span>
-<span>  prefix <span class="op">=</span> <span class="st">"Marker_Panel"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Dotplots/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 3. Density Blend Overlays (Nebulosa) for Co-Expression</span></span>
-<span><span class="fu"><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>, </span>
-<span>  cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
-<span>  gene_pairs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CX3CR1"</span>, <span class="st">"GZMB"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  reduction <span class="op">=</span> <span class="st">"umap"</span>,</span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Blends/"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_technical_contribution.html">plot_technical_contribution</a></span><span class="op">(</span></span>
+<span>  <span class="va">pbmc</span>, sample_name <span class="op">=</span> <span class="st">"pbmc3k"</span>, reduction <span class="op">=</span> <span class="st">"pca.log"</span>,</span>
+<span>  max_pcs <span class="op">=</span> <span class="fl">20</span>, n_top_genes <span class="op">=</span> <span class="fl">200</span>, output_dir <span class="op">=</span> <span class="va">out_dir</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261005_152914.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
-<h2 id="statistical-abundance-confounder-analysis">5. Statistical Abundance &amp; Confounder Analysis<a class="anchor" aria-label="anchor" href="#statistical-abundance-confounder-analysis"></a>
+<h2 id="visualise-markers">4. Visualise markers<a class="anchor" aria-label="anchor" href="#visualise-markers"></a>
 </h2>
-<p>Ensure your cohorts are clinically balanced, then test for
-significant shifts in cell type proportions between your conditions
-(e.g., Healthy vs. Infected).</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># 1. Confounder Check: Ensure patient metadata is balanced</span></span>
-<span><span class="fu"><a href="../reference/plot_metadata_stats.html">plot_metadata_stats</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  sample_col <span class="op">=</span> <span class="st">"donor_id"</span>,       </span>
-<span>  condition_col <span class="op">=</span> <span class="st">"disease_state"</span>, </span>
-<span>  metadata_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"viral_load"</span>, <span class="st">"sex"</span><span class="op">)</span>, </span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Stats/"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">feature_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  group   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"PBMC_"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">pbmc_marker_sets</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/lengths.html" class="external-link">lengths</a></span><span class="op">(</span><span class="va">pbmc_marker_sets</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">pbmc_marker_sets</span>, use.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 2. Cell Type Abundance: Test for expansion/contraction of clusters</span></span>
-<span><span class="fu"><a href="../reference/plot_cell_abundance.html">plot_cell_abundance</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  sample_col <span class="op">=</span> <span class="st">"donor_id"</span>,       </span>
-<span>  condition_col <span class="op">=</span> <span class="st">"disease_state"</span>, </span>
-<span>  celltype_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>, </span>
-<span>  facet_by_cluster <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  pairwise_label <span class="op">=</span> <span class="st">"p.adj"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Abundance/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">p_dot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dot_dendro.html">plot_dot_dendro</a></span><span class="op">(</span><span class="va">pbmc</span>, meta_col <span class="op">=</span> <span class="st">"cell_type"</span>, feature_df <span class="op">=</span> <span class="va">feature_df</span>,</span>
+<span>                         prefix <span class="op">=</span> <span class="st">"PBMC"</span>, pct_threshold <span class="op">=</span> <span class="fl">10</span>, output_dir <span class="op">=</span> <span class="va">out_dir</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_dot</span></span></code></pre></div>
+<p><img src="OHMmy-comprehensive_files/figure-html/dotplot-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">blend</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa</a></span><span class="op">(</span><span class="va">pbmc</span>, cluster_col <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>                             gene_pairs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD14"</span>, <span class="st">"FCGR3A"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                             reduction <span class="op">=</span> <span class="st">"umap.har"</span>, width <span class="op">=</span> <span class="fl">24</span>, dpi <span class="op">=</span> <span class="fl">72</span>,</span>
+<span>                             output_dir <span class="op">=</span> <span class="va">out_dir</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">blend</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
+<p><img src="OHMmy-comprehensive_files/figure-html/blend-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
-<h2 id="differential-expression-functional-enrichment">6. Differential Expression &amp; Functional Enrichment<a class="anchor" aria-label="anchor" href="#differential-expression-functional-enrichment"></a>
+<h2 id="test-for-differences-in-cell-type-abundance">5. Test for differences in cell-type abundance<a class="anchor" aria-label="anchor" href="#test-for-differences-in-cell-type-abundance"></a>
 </h2>
-<p>Extract biological meaning by discovering defining cluster markers,
-running Gene Set Enrichment Analysis (GSEA), and visualizing
-condition-specific DESeq2 results.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://igordot.github.io/msigdbr/" class="external-link">msigdbr</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 1. Find all cluster markers and automatically generate a heatmap</span></span>
-<span><span class="va">marker_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FindTopMarkersAndHeatmap.html">FindTopMarkersAndHeatmap</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>, </span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
-<span>  output_dir_base <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"Markers/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Extract the marker dataframe for downstream GSEA/ORA</span></span>
-<span><span class="va">my_markers_df</span> <span class="op">&lt;-</span> <span class="va">marker_results</span><span class="op">$</span><span class="va">markers</span></span>
-<span></span>
-<span><span class="co"># 2. PATHWAY ENRICHMENT (GSEA)</span></span>
-<span><span class="va">m_t2g_hallmark</span> <span class="op">&lt;-</span> <span class="fu">msigdbr</span><span class="op">(</span>species <span class="op">=</span> <span class="st">"Homo sapiens"</span>, category <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gs_name"</span>, <span class="st">"gene_symbol"</span><span class="op">)</span><span class="op">]</span></span>
-<span></span>
-<span><span class="va">gsea_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_global_gsea.html">run_global_gsea</a></span><span class="op">(</span></span>
-<span>  GSEA_df <span class="op">=</span> <span class="va">my_markers_df</span>, </span>
-<span>  m_t2g <span class="op">=</span> <span class="va">m_t2g_hallmark</span>, </span>
-<span>  title_prefix <span class="op">=</span> <span class="st">"Hallmark"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"GSEA/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 3. PSEUDO-BULK DIFFERENTIAL EXPRESSION VISUALIZATIONS (DESeq2)</span></span>
-<span><span class="co"># Note: These functions visualize pre-computed DESeq2 results objects (res_obj)</span></span>
-<span></span>
-<span><span class="co"># Volcano Plots</span></span>
-<span><span class="fu"><a href="../reference/generate_volcano_trio.html">generate_volcano_trio</a></span><span class="op">(</span></span>
-<span>  res_obj <span class="op">=</span> <span class="va">deseq2_disease_vs_healthy</span>, </span>
-<span>  plot_title <span class="op">=</span> <span class="st">"Severe Disease vs Healthy Controls"</span>, </span>
-<span>  target_genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"IFNG"</span>, <span class="st">"TNF"</span>, <span class="st">"GZMB"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># DESeq2 Heatmaps across samples</span></span>
-<span><span class="fu"><a href="../reference/generate_and_save_heatmap.html">generate_and_save_heatmap</a></span><span class="op">(</span></span>
-<span>  res_obj <span class="op">=</span> <span class="va">deseq2_disease_vs_healthy</span>,</span>
-<span>  comp_name <span class="op">=</span> <span class="st">"Disease_vs_Healthy"</span>,</span>
-<span>  comp_title <span class="op">=</span> <span class="st">"Severe Disease vs Healthy Controls"</span>,</span>
-<span>  vsd_data <span class="op">=</span> <span class="va">vsd_matrix</span>,               </span>
-<span>  anno_col <span class="op">=</span> <span class="va">annotation_dataframe</span>, </span>
-<span>  ordered_samps <span class="op">=</span> <span class="va">sample_order_list</span>,</span>
-<span>  out_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"DESeq2/"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_abund</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_cell_abundance.html">plot_cell_abundance</a></span><span class="op">(</span></span>
+<span>  <span class="va">pbmc</span>,</span>
+<span>  sample_col     <span class="op">=</span> <span class="st">"donor_id"</span>,</span>
+<span>  condition_col  <span class="op">=</span> <span class="st">"severity"</span>,</span>
+<span>  celltype_col   <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>  pairwise_label <span class="op">=</span> <span class="st">"p.adj"</span>,</span>
+<span>  y_expand       <span class="op">=</span> <span class="fl">0.35</span>,</span>
+<span>  output_dir     <span class="op">=</span> <span class="va">out_dir</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><strong>End of Workflow.</strong> By following these steps, you have
-successfully decontaminated, processed, integrated, evaluated,
-annotated, and statistically analyzed your scRNA-seq dataset!</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_abund</span></span></code></pre></div>
+<p><img src="OHMmy-comprehensive_files/figure-html/abundance-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p>The test recovers the simulated effect: CD14 monocytes increase with
+severity.</p>
+</div>
+<div class="section level2">
+<h2 id="markers-and-pathways">6. Markers and pathways<a class="anchor" aria-label="anchor" href="#markers-and-pathways"></a>
+</h2>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Idents.html" class="external-link">Idents</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"cell_type"</span></span>
+<span><span class="va">mk</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FindTopMarkersAndHeatmap.html">FindTopMarkersAndHeatmap</a></span><span class="op">(</span><span class="va">pbmc</span>, sample_name <span class="op">=</span> <span class="st">"pbmc3k"</span>, top_n <span class="op">=</span> <span class="fl">5</span>, onlyPos <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                               output_dir_base <span class="op">=</span> <span class="va">out_dir</span>, height <span class="op">=</span> <span class="fl">10</span>, dpi <span class="op">=</span> <span class="fl">72</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">hallmark</span> <span class="op">&lt;-</span> <span class="fu">msigdbr</span><span class="fu">::</span><span class="fu"><a href="https://igordot.github.io/msigdbr/reference/msigdbr.html" class="external-link">msigdbr</a></span><span class="op">(</span>species <span class="op">=</span> <span class="st">"Homo sapiens"</span>, collection <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gs_name"</span>, <span class="st">"gene_symbol"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">gsea</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_global_gsea.html">run_global_gsea</a></span><span class="op">(</span></span>
+<span>  GSEA_df      <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">mk</span><span class="op">$</span><span class="va">markers</span>, cluster <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  m_t2g        <span class="op">=</span> <span class="va">hallmark</span>,</span>
+<span>  output_dir   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"gsea"</span><span class="op">)</span>,</span>
+<span>  title_prefix <span class="op">=</span> <span class="st">"Hallmark"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261005_153933.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level2">
+<h2 id="where-to-go-next">Where to go next<a class="anchor" aria-label="anchor" href="#where-to-go-next"></a>
+</h2>
+<ul>
+<li>Clean your raw Cell Ranger output first: see the SoupX article.</li>
+<li>Validate your PC choice before clustering: see the Diagnostics
+article.</li>
+<li>For donor-aware differential expression, pseudo-bulk DESeq2 and its
+visualisations are covered in the Differential Expression article.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
+</h2>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
+<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
+<span><span class="co">#&gt; Running under: Ubuntu 22.04.5 LTS</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Matrix products: default</span></span>
+<span><span class="co">#&gt; BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
+<span><span class="co">#&gt; LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; locale:</span></span>
+<span><span class="co">#&gt;  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
+<span><span class="co">#&gt;  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
+<span><span class="co">#&gt;  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
+<span><span class="co">#&gt; [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; time zone: UTC</span></span>
+<span><span class="co">#&gt; tzcode source: system (glibc)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; attached base packages:</span></span>
+<span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; other attached packages:</span></span>
+<span><span class="co">#&gt; [1] ggraph_2.2.2       patchwork_1.3.2    OHMmy_1.0.2        Seurat_5.6.0      </span></span>
+<span><span class="co">#&gt; [5] SeuratObject_5.4.0 sp_2.2-3          </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
+<span><span class="co">#&gt;   [1] fs_2.1.0                    matrixStats_1.5.0          </span></span>
+<span><span class="co">#&gt;   [3] spatstat.sparse_3.2-0       enrichplot_1.32.1          </span></span>
+<span><span class="co">#&gt;   [5] httr_1.4.9                  RColorBrewer_1.1-3         </span></span>
+<span><span class="co">#&gt;   [7] tools_4.6.1                 sctransform_0.4.3          </span></span>
+<span><span class="co">#&gt;   [9] backports_1.5.1             R6_2.6.1                   </span></span>
+<span><span class="co">#&gt;  [11] lazyeval_0.2.3              uwot_0.2.5                 </span></span>
+<span><span class="co">#&gt;  [13] withr_3.0.3                 gridExtra_2.3.1            </span></span>
+<span><span class="co">#&gt;  [15] progressr_1.0.0             cli_3.6.6                  </span></span>
+<span><span class="co">#&gt;  [17] Biobase_2.72.0              textshaping_1.0.5          </span></span>
+<span><span class="co">#&gt;  [19] Cairo_1.7-0                 spatstat.explore_3.8-3     </span></span>
+<span><span class="co">#&gt;  [21] fastDummies_1.7.6           scatterpie_0.2.6           </span></span>
+<span><span class="co">#&gt;  [23] labeling_0.4.3              sass_0.4.10                </span></span>
+<span><span class="co">#&gt;  [25] mvtnorm_1.4-2               S7_0.2.2                   </span></span>
+<span><span class="co">#&gt;  [27] spatstat.data_3.1-9         ggridges_0.5.7             </span></span>
+<span><span class="co">#&gt;  [29] pbapply_1.7-5               pkgdown_2.2.1              </span></span>
+<span><span class="co">#&gt;  [31] yulab.utils_0.2.5           systemfonts_1.3.2          </span></span>
+<span><span class="co">#&gt;  [33] gson_0.2.1                  DOSE_4.6.0                 </span></span>
+<span><span class="co">#&gt;  [35] R.utils_2.13.0              harmony_2.0.5              </span></span>
+<span><span class="co">#&gt;  [37] parallelly_1.48.0           RSQLite_3.53.3             </span></span>
+<span><span class="co">#&gt;  [39] gridGraphics_0.5-1          generics_0.1.4             </span></span>
+<span><span class="co">#&gt;  [41] ica_1.0-3                   spatstat.random_3.5-2      </span></span>
+<span><span class="co">#&gt;  [43] car_3.1-5                   dplyr_1.2.1                </span></span>
+<span><span class="co">#&gt;  [45] GO.db_3.23.1                Matrix_1.7-5               </span></span>
+<span><span class="co">#&gt;  [47] ggbeeswarm_0.7.3            S4Vectors_0.50.3           </span></span>
+<span><span class="co">#&gt;  [49] abind_1.4-8                 R.methodsS3_1.8.2          </span></span>
+<span><span class="co">#&gt;  [51] lifecycle_1.0.5             SoupX_1.6.2                </span></span>
+<span><span class="co">#&gt;  [53] yaml_2.3.12                 carData_3.0-6              </span></span>
+<span><span class="co">#&gt;  [55] SummarizedExperiment_1.42.0 qvalue_2.44.0              </span></span>
+<span><span class="co">#&gt;  [57] SparseArray_1.12.3          Rtsne_0.17                 </span></span>
+<span><span class="co">#&gt;  [59] grid_4.6.1                  blob_1.3.0                 </span></span>
+<span><span class="co">#&gt;  [61] promises_1.5.0              crayon_1.5.3               </span></span>
+<span><span class="co">#&gt;  [63] ggtangle_0.1.3              miniUI_0.1.2               </span></span>
+<span><span class="co">#&gt;  [65] lattice_0.22-9              msigdbr_26.1.1             </span></span>
+<span><span class="co">#&gt;  [67] cowplot_1.2.0               KEGGREST_1.52.2            </span></span>
+<span><span class="co">#&gt;  [69] pillar_1.11.1               knitr_1.52                 </span></span>
+<span><span class="co">#&gt;  [71] GenomicRanges_1.64.0        future.apply_1.20.2        </span></span>
+<span><span class="co">#&gt;  [73] codetools_0.2-20            glue_1.8.1                 </span></span>
+<span><span class="co">#&gt;  [75] ggiraph_0.9.6               leidenbase_0.1.37          </span></span>
+<span><span class="co">#&gt;  [77] fontLiberation_0.1.0        ggfun_0.2.1                </span></span>
+<span><span class="co">#&gt;  [79] spatstat.univar_3.2-0       data.table_1.18.6.1        </span></span>
+<span><span class="co">#&gt;  [81] treeio_1.36.1               vctrs_0.7.3                </span></span>
+<span><span class="co">#&gt;  [83] png_0.1-9                   spam_2.11-4                </span></span>
+<span><span class="co">#&gt;  [85] gtable_0.3.6                assertthat_0.2.1           </span></span>
+<span><span class="co">#&gt;  [87] cachem_1.1.0                ks_1.15.3                  </span></span>
+<span><span class="co">#&gt;  [89] xfun_0.61                   S4Arrays_1.12.1            </span></span>
+<span><span class="co">#&gt;  [91] mime_0.13                   tidygraph_1.3.1            </span></span>
+<span><span class="co">#&gt;  [93] Seqinfo_1.2.0               pracma_2.4.6               </span></span>
+<span><span class="co">#&gt;  [95] survival_3.8-6              aisdk_1.4.12               </span></span>
+<span><span class="co">#&gt;  [97] SingleCellExperiment_1.34.0 fitdistrplus_1.2-6         </span></span>
+<span><span class="co">#&gt;  [99] ROCR_1.0-12                 nlme_3.1-169               </span></span>
+<span><span class="co">#&gt; [101] ggtree_4.2.0                fontquiver_0.2.1           </span></span>
+<span><span class="co">#&gt; [103] bit64_4.8.6                 RcppAnnoy_0.0.23           </span></span>
+<span><span class="co">#&gt; [105] bslib_0.12.0                irlba_2.3.7                </span></span>
+<span><span class="co">#&gt; [107] vipor_0.4.7                 KernSmooth_2.23-26         </span></span>
+<span><span class="co">#&gt; [109] otel_0.2.0                  BiocGenerics_0.58.1        </span></span>
+<span><span class="co">#&gt; [111] DBI_1.3.0                   processx_3.9.0             </span></span>
+<span><span class="co">#&gt; [113] ggrastr_1.0.2               tidyselect_1.2.1           </span></span>
+<span><span class="co">#&gt; [115] bit_4.6.0                   compiler_4.6.1             </span></span>
+<span><span class="co">#&gt; [117] curl_8.0.0                  httr2_1.3.0                </span></span>
+<span><span class="co">#&gt; [119] fontBitstreamVera_0.1.1     desc_1.4.3                 </span></span>
+<span><span class="co">#&gt; [121] ggdendro_0.2.0              DelayedArray_0.38.2        </span></span>
+<span><span class="co">#&gt; [123] plotly_4.12.1               checkmate_2.3.4            </span></span>
+<span><span class="co">#&gt; [125] scales_1.4.0                lmtest_0.9-40              </span></span>
+<span><span class="co">#&gt; [127] callr_3.8.0                 rappdirs_0.3.4             </span></span>
+<span><span class="co">#&gt; [129] stringr_1.6.0               digest_0.6.39              </span></span>
+<span><span class="co">#&gt; [131] goftest_1.2-3               spatstat.utils_3.2-5       </span></span>
+<span><span class="co">#&gt; [133] rmarkdown_2.32              XVector_0.52.0             </span></span>
+<span><span class="co">#&gt; [135] RhpcBLASctl_0.23-42         htmltools_0.5.9            </span></span>
+<span><span class="co">#&gt; [137] pkgconfig_2.0.3             jpeg_0.1-11                </span></span>
+<span><span class="co">#&gt; [139] MatrixGenerics_1.24.0       fastmap_1.2.0              </span></span>
+<span><span class="co">#&gt; [141] rlang_1.3.0                 htmlwidgets_1.6.4          </span></span>
+<span><span class="co">#&gt; [143] shiny_1.14.0                farver_2.1.2               </span></span>
+<span><span class="co">#&gt; [145] jquerylib_0.1.4             zoo_1.9-1                  </span></span>
+<span><span class="co">#&gt; [147] jsonlite_2.0.0              BiocParallel_1.46.0        </span></span>
+<span><span class="co">#&gt; [149] mclust_6.1.3                GOSemSim_2.38.3            </span></span>
+<span><span class="co">#&gt; [151] R.oo_1.27.1                 magrittr_2.0.5             </span></span>
+<span><span class="co">#&gt; [153] ggplotify_0.1.3             Formula_1.2-6              </span></span>
+<span><span class="co">#&gt; [155] dotCall64_1.2               Rcpp_1.1.2                 </span></span>
+<span><span class="co">#&gt; [157] gdtools_0.5.1               ape_5.8-1                  </span></span>
+<span><span class="co">#&gt; [159] ggnewscale_0.5.2            viridis_0.6.5              </span></span>
+<span><span class="co">#&gt; [161] reticulate_1.47.0           stringi_1.8.9              </span></span>
+<span><span class="co">#&gt; [163] MASS_7.3-65                 plyr_1.8.9                 </span></span>
+<span><span class="co">#&gt; [165] parallel_4.6.1              listenv_1.1.0              </span></span>
+<span><span class="co">#&gt; [167] ggrepel_0.9.8               deldir_2.0-4               </span></span>
+<span><span class="co">#&gt; [169] Biostrings_2.80.2           graphlayouts_1.2.5         </span></span>
+<span><span class="co">#&gt; [171] splines_4.6.1               tensor_1.5.1               </span></span>
+<span><span class="co">#&gt; [173] ps_1.9.3                    clustree_0.5.1             </span></span>
+<span><span class="co">#&gt; [175] igraph_2.3.4                ggpubr_1.0.0               </span></span>
+<span><span class="co">#&gt; [177] spatstat.geom_3.8-3         enrichit_0.2.5             </span></span>
+<span><span class="co">#&gt; [179] ggsignif_0.6.4              RcppHNSW_0.7.0             </span></span>
+<span><span class="co">#&gt; [181] reshape2_1.4.5              stats4_4.6.1               </span></span>
+<span><span class="co">#&gt; [183] evaluate_1.0.5              Nebulosa_1.22.0            </span></span>
+<span><span class="co">#&gt; [185] tweenr_2.0.3                httpuv_1.6.17              </span></span>
+<span><span class="co">#&gt; [187] RANN_2.6.3                  tidyr_1.3.2                </span></span>
+<span><span class="co">#&gt; [189] purrr_1.2.2                 polyclip_1.10-7            </span></span>
+<span><span class="co">#&gt; [191] future_1.76.0               scattermore_1.2            </span></span>
+<span><span class="co">#&gt; [193] ggplot2_4.0.3               ggforce_0.5.0              </span></span>
+<span><span class="co">#&gt; [195] broom_1.0.13                xtable_1.8-8               </span></span>
+<span><span class="co">#&gt; [197] tidytree_0.4.8              RSpectra_0.16-2            </span></span>
+<span><span class="co">#&gt; [199] tidydr_0.0.6                rstatix_1.1.0              </span></span>
+<span><span class="co">#&gt; [201] later_1.4.8                 viridisLite_0.4.3          </span></span>
+<span><span class="co">#&gt; [203] ragg_1.5.2                  tibble_3.3.1               </span></span>
+<span><span class="co">#&gt; [205] aplot_0.3.2                 clusterProfiler_4.20.0     </span></span>
+<span><span class="co">#&gt; [207] memoise_2.0.1               beeswarm_0.4.0             </span></span>
+<span><span class="co">#&gt; [209] AnnotationDbi_1.74.0        IRanges_2.46.0             </span></span>
+<span><span class="co">#&gt; [211] cluster_2.1.8.2             globals_0.19.1</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

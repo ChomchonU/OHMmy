@@ -19,7 +19,7 @@ downwards to accommodate the smallest batch size, preventing common integration 
 
     <a class="navbar-brand me-2" href="../index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,6 +29,7 @@ downwards to accommodate the smallest batch size, preventing common integration 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/PicooO12/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -63,7 +64,7 @@ downwards to accommodate the smallest batch size, preventing common integration 
 <span>  vars_to_regress <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  tcr_bcr_patterns <span class="op">=</span> <span class="st">"^TR[ABDG]|^IG[HKL]"</span>,</span>
 <span>  reduction_name <span class="op">=</span> <span class="st">"pca.SCT"</span>,</span>
-<span>  integration_method <span class="op">=</span> <span class="va">HarmonyIntegration</span>,</span>
+<span>  integration_method <span class="op">=</span> <span class="st">"HarmonyIntegration"</span>,</span>
 <span>  integration_reduction <span class="op">=</span> <span class="st">"integrated.har.SCT"</span>,</span>
 <span>  dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">30</span>,</span>
 <span>  interactive_mode <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -97,23 +98,23 @@ downwards to accommodate the smallest batch size, preventing common integration 
 
 
 <dt id="arg-tcr-bcr-patterns">tcr_bcr_patterns<a class="anchor" aria-label="anchor" href="#arg-tcr-bcr-patterns"></a></dt>
-<dd><p>Character. A regular expression matching TCR and BCR gene segments (e.g., TRAV, TRBV, IGHV) to exclude them from the variable features list. Default is <code>"^TR[ABDG]|^IG[HKL]"</code>.</p></dd>
+<dd><p>Character. A regular expression matching TCR and BCR gene segments to exclude from the variable features list. Default is <code>"^TR[ABDG]|^IG[HKL]"</code>. Note that this default also matches non-receptor genes such as <em>TRAF1</em> or <em>IGHMBP2</em>; <code>"^TR[ABDG]V|^IG[HKL]V"</code> restricts the filter to variable segments.</p></dd>
 
 
 <dt id="arg-reduction-name">reduction_name<a class="anchor" aria-label="anchor" href="#arg-reduction-name"></a></dt>
-<dd><p>Character. The name to assign to the pre-integration PCA reduction. Default is "pca.SCT" (Note: you may want to rename this default to "pca" since this is the LogNormalize workflow).</p></dd>
+<dd><p>Character. The name to assign to the pre-integration PCA reduction. Default is "pca.SCT" (kept for backward compatibility; a name such as "pca.log" is clearer for this workflow).</p></dd>
 
 
 <dt id="arg-integration-method">integration_method<a class="anchor" aria-label="anchor" href="#arg-integration-method"></a></dt>
-<dd><p>Character. The integration algorithm to use in <code>IntegrateLayers</code>. Options: "HarmonyIntegration", "RPCAIntegration", "CCAIntegration", or "FastMNNIntegration". Default is "HarmonyIntegration".</p></dd>
+<dd><p>Character. The integration algorithm to use in <code>IntegrateLayers</code>. Options: "HarmonyIntegration", "RPCAIntegration", "CCAIntegration", or "FastMNNIntegration" (the latter requires the <span class="pkg">SeuratWrappers</span> package to be attached). Default is "HarmonyIntegration".</p></dd>
 
 
 <dt id="arg-integration-reduction">integration_reduction<a class="anchor" aria-label="anchor" href="#arg-integration-reduction"></a></dt>
-<dd><p>Character. The name to assign to the final integrated dimensional reduction. Default is "integrated.har.SCT" (Note: you may want to adjust this default for standard RNA).</p></dd>
+<dd><p>Character. The name to assign to the final integrated dimensional reduction. Default is "integrated.har.SCT" (kept for backward compatibility; a name such as "integrated.har.log" is clearer for this workflow).</p></dd>
 
 
 <dt id="arg-dims">dims<a class="anchor" aria-label="anchor" href="#arg-dims"></a></dt>
-<dd><p>Numeric vector. The dimensions (PCs) to use for the integration step. Default is <code>1:30</code>.</p></dd>
+<dd><p>Numeric vector. The dimensions (PCs) to use for the integration step (RPCA/CCA). Default is <code>1:30</code>.</p></dd>
 
 
 <dt id="arg-interactive-mode">interactive_mode<a class="anchor" aria-label="anchor" href="#arg-interactive-mode"></a></dt>
@@ -141,7 +142,7 @@ downwards to accommodate the smallest batch size, preventing common integration 
 
 
 <dt id="arg-clustering-resolution">clustering_resolution<a class="anchor" aria-label="anchor" href="#arg-clustering-resolution"></a></dt>
-<dd><p>Numeric. Included for pipeline compatibility; sets the target resolution. Default is 1.</p></dd>
+<dd><p>Numeric. Retained for pipeline compatibility; clustering itself is performed downstream (e.g., by <code><a href="ClusterAndUMAP.html">ClusterAndUMAP()</a></code>). Default is 1.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -153,16 +154,20 @@ downwards to accommodate the smallest batch size, preventing common integration 
 
 
 <dt id="arg-boost-genes">boost_genes<a class="anchor" aria-label="anchor" href="#arg-boost-genes"></a></dt>
-<dd><p>A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Set to <code>NULL</code> to disable feature boosting. Default is <code>c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")</code>.</p></dd>
+<dd><p>A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Only used when <code>boost_multiplier &gt; 1</code>; set to <code>NULL</code> to disable. Default is <code>c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")</code>.</p></dd>
 
 
 <dt id="arg-boost-multiplier">boost_multiplier<a class="anchor" aria-label="anchor" href="#arg-boost-multiplier"></a></dt>
-<dd><p>A numeric value indicating the weight factor applied to the <code>boost_genes</code>. The scaled expression data for these genes will be multiplied by this number. Default is <code>10</code>. Set to <code>1</code> to disable.</p></dd>
+<dd><p>A numeric value indicating the weight factor applied to the <code>boost_genes</code>. The scaled expression data for these genes will be multiplied by this number. Default is <code>1</code> (no boosting).</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An integrated <code>Seurat</code> object with the <code>DefaultAssay</code> set to "RNA". The split RNA layers are automatically re-joined at the end of the pipeline.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="ProcessSeuratSCT.html">ProcessSeuratSCT()</a></code> for the SCTransform equivalent and <code><a href="ClusterAndUMAP.html">ClusterAndUMAP()</a></code> for the next step.</p></div>
     </div>
 
     <div class="section level2">

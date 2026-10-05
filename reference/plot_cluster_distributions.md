@@ -12,10 +12,9 @@ automatically saved to the specified output directory.
 ``` r
 plot_cluster_distributions(
   seurat_obj,
-  cluster_col = "label_T3_log_rpca",
-  batch_col = "exist_GTS",
-  output_dir =
-    "C:/Users/ADMIN/Desktop/Dengue_summer/Output_R/Plots_count_dis/CD8_subset/rpca",
+  cluster_col = "seurat_clusters",
+  batch_col = "orig.ident",
+  output_dir = "Plots_cluster_distributions",
   file_prefix = "ind_label"
 )
 ```
@@ -29,17 +28,17 @@ plot_cluster_distributions(
 - cluster_col:
 
   Character. The name of the metadata column representing cell clusters
-  or identity classes. Default is "label_T3_log_rpca".
+  or identity classes. Default is "seurat_clusters".
 
 - batch_col:
 
   Character. The name of the metadata column representing batches,
-  samples, or conditions (e.g., "exist_GTS"). Default is "exist_GTS".
+  samples, or conditions. Default is "orig.ident".
 
 - output_dir:
 
-  Character. The directory path where the generated JPEGs will be saved.
-  Default is a specific local directory path.
+  Character. The directory path where the generated JPEGs will be saved
+  (created if missing). Default is "Plots_cluster_distributions".
 
 - file_prefix:
 

@@ -48,7 +48,7 @@ run_global_gsea(
 - output_dir:
 
   Character. Directory path where all plots and CSV summaries will be
-  saved.
+  saved (created if missing; a trailing slash is optional).
 
 - title_prefix:
 
@@ -99,9 +99,11 @@ run_global_gsea(
 
 ## Value
 
-Invisibly returns a `tibble` (`combined_df`) containing the concatenated
-GSEA results across all evaluated clusters. Outputs multiple JPEG plots
-and CSV tables as side effects to the specified `output_dir`.
+A data frame (`combined_df`) containing the concatenated GSEA results
+across all evaluated clusters, or `NULL` if no pathway was significant.
+Outputs multiple JPEG plots (the classic enrichment plots require the
+enrichplot package) and CSV tables as side effects to the specified
+`output_dir`.
 
 ## Note
 

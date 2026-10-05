@@ -37,8 +37,9 @@ plot_dot_dendro(
 - feature_df:
 
   A data frame mapping genes to categories. Must contain a `group`
-  column (to filter by prefix) and a `feature` column (containing the
-  gene names).
+  column and a `feature` column (containing the gene names). Only rows
+  whose `group` starts with `paste0(prefix, "_")` are plotted, e.g.
+  `"PBMC_Tcell"` for `prefix = "PBMC"`.
 
 - scale:
 
@@ -53,7 +54,7 @@ plot_dot_dendro(
 - output_dir:
 
   Character. Directory path where the generated JPEGs and text file will
-  be saved. Default is "Output_R".
+  be saved (created if missing). Default is "Output_R".
 
 - prefix:
 

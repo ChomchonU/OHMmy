@@ -19,7 +19,7 @@ correction method to remove the background noise and returns the cleaned count m
 
     <a class="navbar-brand me-2" href="../index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,6 +29,7 @@ correction method to remove the background noise and returns the cleaned count m
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/PicooO12/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -91,15 +92,15 @@ correction method to remove the background noise and returns the cleaned count m
 
 
 <dt id="arg-mulfac">mulFac<a class="anchor" aria-label="anchor" href="#arg-mulfac"></a></dt>
-<dd><p>Numeric. A percentage to artificially add to the auto-estimated contamination fraction (e.g., <code>mulFac = 5</code> adds <code>0.05</code> to the <code>rho</code> value). Default is 0.</p></dd>
+<dd><p>Numeric. Percentage points to add to the auto-estimated contamination fraction (e.g., <code>mulFac = 5</code> adds <code>0.05</code> to <code>rho</code>). Default is 0.</p></dd>
 
 
 <dt id="arg-manual-contam">manual_contam<a class="anchor" aria-label="anchor" href="#arg-manual-contam"></a></dt>
-<dd><p>Character vector. A list of specific sample names to apply the <code>mulFac</code> adjustment to. Only evaluated if <code>manual = TRUE</code>. Default is an empty list.</p></dd>
+<dd><p>Character vector. Sample names to which the <code>mulFac</code> adjustment is applied. Only evaluated if <code>manual = TRUE</code>. Default is an empty list.</p></dd>
 
 
 <dt id="arg-manual">manual<a class="anchor" aria-label="anchor" href="#arg-manual"></a></dt>
-<dd><p>Logical. Controls the application of <code>mulFac</code>. If <code>FALSE</code>, <code>mulFac</code> is applied globally to ALL samples. If <code>TRUE</code>, <code>mulFac</code> is applied ONLY to the specific samples listed in <code>manual_contam</code>. Default is FALSE.</p></dd>
+<dd><p>Logical. Controls where <code>mulFac</code> is applied. If <code>FALSE</code> (default), it is added to every sample. If <code>TRUE</code>, it is added only to the samples listed in <code>manual_contam</code>; all other samples keep their auto-estimated <code>rho</code>.</p></dd>
 
 
 <dt id="arg-methods">methods<a class="anchor" aria-label="anchor" href="#arg-methods"></a></dt>

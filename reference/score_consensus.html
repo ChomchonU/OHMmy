@@ -13,7 +13,7 @@ variant, optionally bootstraps for stability, and generates diagnostic plots."><
 
     <a class="navbar-brand me-2" href="../index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@ variant, optionally bootstraps for stability, and generates diagnostic plots."><
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/PicooO12/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -93,7 +94,7 @@ variant, optionally bootstraps for stability, and generates diagnostic plots.</p
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>Character; the method to determine the CD8 vs NK decision boundary. One of <code>"fixed"</code>, <code>"trough"</code> (density valley), or <code>"gmm"</code> (Gaussian Mixture Model).</p></dd>
+<dd><p>Character; the method to determine the CD8 vs NK decision boundary. One of <code>"fixed"</code>, <code>"trough"</code> (density valley), or <code>"gmm"</code> (decision boundary of a two-component Gaussian mixture; requires the <span class="pkg">mclust</span> package to be installed). If a data-driven method cannot find a cutoff, <code>fixed_cut</code> is used and the <code>fallback</code> column of the returned <code>cutoffs</code> table is <code>TRUE</code>.</p></dd>
 
 
 <dt id="arg-fixed-cut">fixed_cut<a class="anchor" aria-label="anchor" href="#arg-fixed-cut"></a></dt>

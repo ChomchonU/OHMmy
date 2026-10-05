@@ -21,7 +21,7 @@ get_sample_names(filtered_dir)
 
 ## Value
 
-A character vector of cleaned sample names, derived from the
+An unnamed character vector of cleaned sample names, derived from the
 sub-directory names.
 
 ## Examples

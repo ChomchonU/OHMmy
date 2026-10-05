@@ -50,7 +50,7 @@ run_global_ora(
 - output_dir:
 
   Character. Directory path where all plots and CSV summaries will be
-  saved.
+  saved (created if missing; a trailing slash is optional).
 
 - title_prefix:
 
@@ -106,9 +106,10 @@ run_global_ora(
 
 ## Value
 
-Invisibly returns a `tibble` (`combined_df`) containing the concatenated
-enrichment results across all clusters and directions. Outputs multiple
-JPEG plots and CSV tables as side effects to the specified `output_dir`.
+A data frame (`combined_df`) containing the concatenated enrichment
+results across all clusters and directions, or `NULL` if no pathway was
+enriched. Outputs multiple JPEG plots and CSV tables as side effects to
+the specified `output_dir`.
 
 ## Examples
 

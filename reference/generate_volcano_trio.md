@@ -24,9 +24,10 @@ generate_volcano_trio(res, main_title, target_genes)
 
 - res:
 
-  A data frame containing differential expression results. Must contain
-  row names as gene symbols, and the columns `padj` (adjusted p-value)
-  and `log2FoldChange`.
+  A data frame (or DESeq2 `DESeqResults` object) containing differential
+  expression results. Must have gene symbols as row names and the
+  columns `padj` (adjusted p-value) and `log2FoldChange`. Requires the
+  EnhancedVolcano package.
 
 - main_title:
 

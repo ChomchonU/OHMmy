@@ -48,8 +48,9 @@ generate_and_save_heatmap(
 
 - vsd_data:
 
-  A `SummarizedExperiment` object or matrix containing normalized
-  expression data (e.g., the output of DESeq2's `vst()` or `rlog()`).
+  A `SummarizedExperiment`-derived object (e.g., the output of DESeq2's
+  `vst()` or `rlog()`) or a numeric matrix of normalized expression with
+  genes as rows and samples as columns.
 
 - anno_col:
 
@@ -73,7 +74,8 @@ generate_and_save_heatmap(
 
 - out_dir:
 
-  Character. Directory path where the generated PNG will be saved.
+  Character. Directory path where the generated PNG will be saved
+  (created if missing).
 
 - ts:
 
@@ -88,8 +90,9 @@ generate_and_save_heatmap(
 
 ## Value
 
-Invisibly returns `NULL`. The function is called for its side effect of
-saving the combined plot to disk.
+Invisibly returns the path of the saved PNG, or `NULL` when fewer than
+two significant genes are available. The function is called for its side
+effect of saving the combined plot to disk.
 
 ## Examples
 

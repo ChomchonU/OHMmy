@@ -34,17 +34,27 @@ process_soupx_samples(filtered_dir, raw_dir, multiFac = 0)
 
 ## Value
 
-A structured, named list containing three top-level elements:
+The same structure as
+[`run_soupx_post_clustering()`](https://chomchonu.github.io/OHMmy/reference/run_soupx_post_clustering.md):
+a named list with
 
 - `final_seurat`: A list of the final, initialized `Seurat` objects
   containing the background-corrected counts and baseline metadata.
 
-- `soup_objects`: The output list from the contamination estimation
-  step, containing the updated `SoupChannel` objects and corrected
-  matrices.
+- `soup_objects`: A list of the updated `SoupChannel` objects with their
+  final `rho` values.
 
 - `seurat_clustering`: A list of the preliminary `Seurat` objects used
   to generate the high-resolution clusters for ambient RNA estimation.
+
+## See also
+
+[`prepare_soupx_inputs()`](https://chomchonu.github.io/OHMmy/reference/prepare_soupx_inputs.md)
+and
+[`run_soupx_post_clustering()`](https://chomchonu.github.io/OHMmy/reference/run_soupx_post_clustering.md),
+which this function chains. Use them directly to test several `multiFac`
+values without reloading the data, or to restrict the adjustment to
+selected samples.
 
 ## Examples
 

@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -113,11 +114,13 @@
 <span>  <span class="va">seurat_obj</span>, </span>
 <span>  batch_col <span class="op">=</span> <span class="st">"batch"</span>, </span>
 <span>  vars_to_regress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pct_counts_mt"</span>, <span class="st">"S.Score"</span><span class="op">)</span>,</span>
-<span>  integration_method <span class="op">=</span> <span class="st">"CCAIntegration"</span></span>
+<span>  reduction_name <span class="op">=</span> <span class="st">"pca.log"</span>,</span>
+<span>  integration_method <span class="op">=</span> <span class="st">"CCAIntegration"</span>,</span>
+<span>  integration_reduction <span class="op">=</span> <span class="st">"integrated.cca.log"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Compute UMAP and cluster across multiple resolutions</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ClusterAndUMAP.html">ClusterAndUMAP</a></span><span class="op">(</span><span class="va">seurat_obj</span>, reduction <span class="op">=</span> <span class="st">"integrated.cca.log"</span><span class="op">)</span><span class="op">$</span><span class="va">seurat</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ClusterAndUMAP.html">ClusterAndUMAP</a></span><span class="op">(</span><span class="va">seurat_obj</span>, reduction <span class="op">=</span> <span class="st">"integrated.cca.log"</span>, umap_name <span class="op">=</span> <span class="st">"umap.cca"</span><span class="op">)</span><span class="op">$</span><span class="va">seurat</span></span>
 <span></span>
 <span><span class="co"># ---------------------------------------------------------</span></span>
 <span><span class="co"># 3. Analyze &amp; Visualize</span></span>
@@ -134,7 +137,8 @@
 <span><span class="fu"><a href="reference/plot_blend_nebulosa.html">plot_blend_nebulosa</a></span><span class="op">(</span></span>
 <span>  <span class="va">seurat_obj</span>, </span>
 <span>  cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>, </span>
-<span>  gene_pairs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"GZMB"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  gene_pairs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"GZMB"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  reduction <span class="op">=</span> <span class="st">"umap.cca"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -145,7 +149,9 @@
 <p>Available Guides:</p>
 <ul>
 <li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-comprehensive.html">Comprehensive End-to-End Workflow</a></p></li>
+<li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-soupx-workflow.html">Ambient RNA Decontamination with SoupX</a></p></li>
 <li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-processing-clustering.html">Data Processing &amp; Clustering</a></p></li>
+<li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-diagnostics-evaluation.html">Diagnostic &amp; Variable Evaluation</a></p></li>
 <li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.html">Advanced Visualizations &amp; Marker Analysis</a></p></li>
 <li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-statistical-analysis.html">Statistical Abundance &amp; Correlations</a></p></li>
 <li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-differential-expression.html">Differential Expression &amp; Pathway Enrichment</a></p></li>
@@ -163,7 +169,7 @@
 <div class="section level2">
 <h2 id="page_facing_up-license">📄 License<a class="anchor" aria-label="anchor" href="#page_facing_up-license"></a>
 </h2>
-<p>This project is licensed under the MIT License - see the <a href="https://www.google.com/search?q=LICENSE" class="external-link">LICENSE</a> file for details.</p>
+<p>This project is licensed under the MIT License - see the <a href="LICENSE.html">LICENSE</a> file for details.</p>
 </div>
 <div class="section level2">
 <h2 id="robot-ai-acknowledgement">🤖 AI Acknowledgement<a class="anchor" aria-label="anchor" href="#robot-ai-acknowledgement"></a>

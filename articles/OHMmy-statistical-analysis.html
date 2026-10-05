@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -54,6 +55,7 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
+            <h4 data-toc-skip class="date">2026-10-05</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/PicooO12/OHMmy/blob/master/vignettes/OHMmy-statistical-analysis.Rmd" class="external-link"><code>vignettes/OHMmy-statistical-analysis.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-statistical-analysis.Rmd</code></div>
@@ -62,100 +64,370 @@ Uansiri</h4>
     
     
 <div class="section level2">
-<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>Beyond visualizing clusters and marker genes, rigorous single-cell
-analysis requires statistical testing. <code>OHMmy</code> provides
-built-in tools to assess clinical cohort balance, calculate differential
-cell type abundance, and compute statistical correlations between
-genes.</p>
+<p>Cohort-level questions, such as whether a population expands in
+disease, must be tested with the <strong>donor</strong> as the unit of
+replication, not the cell. Treating thousands of cells from a few donors
+as independent observations (pseudoreplication) produces very small
+p-values with no biological meaning. The OHMmy statistics functions
+aggregate to the donor level before testing:</p>
+<table class="table">
+<colgroup>
+<col width="52%">
+<col width="47%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code><a href="../reference/plot_metadata_stats.html">plot_metadata_stats()</a></code></td>
+<td>Check that donor-level covariates (age, sex, batch, …) are balanced
+across conditions</td>
+</tr>
+<tr class="even">
+<td><code><a href="../reference/plot_cell_abundance.html">plot_cell_abundance()</a></code></td>
+<td>Test per-donor cell-type proportions across conditions, with
+automatic test selection and brackets</td>
+</tr>
+<tr class="odd">
+<td><code><a href="../reference/plot_cluster_distributions.html">plot_cluster_distributions()</a></code></td>
+<td>Stacked bar charts of counts and proportions for any two metadata
+columns</td>
+</tr>
+<tr class="even">
+<td><code><a href="../reference/plot_gene_pair_correlations.html">plot_gene_pair_correlations()</a></code></td>
+<td>Per-cluster correlation between gene pairs</td>
+</tr>
+</tbody>
+</table>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PicooO12/OHMmy" class="external-link">OHMmy</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"ohmmy-vignette-helpers.R"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Load your fully annotated Seurat object</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"data/seurat_annotated.rds"</span><span class="op">)</span></span>
-<span><span class="va">out_dir</span> <span class="op">&lt;-</span> <span class="st">"results/statistics/"</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="part-1-confounder-quality-control-metadata-stats">Part 1: Confounder Quality Control (Metadata Stats)<a class="anchor" aria-label="anchor" href="#part-1-confounder-quality-control-metadata-stats"></a>
-</h2>
-<p>Before testing for differences in cell abundance between two
-conditions (e.g., Healthy vs. Disease), you must ensure your patient
-cohorts are balanced. If all your diseased patients are significantly
-older or have different clinical backgrounds than your healthy controls,
-your results will be confounded.</p>
-<p>The <code><a href="../reference/plot_metadata_stats.html">plot_metadata_stats()</a></code> function automatically tests
-categorical and continuous clinical variables across your
-conditions.</p>
+<span><span class="va">pbmc</span> <span class="op">&lt;-</span> <span class="fu">load_pbmc3k_ohmmy</span><span class="op">(</span><span class="op">)</span>   <span class="co"># built in "Data Processing, Integration, and Clustering"</span></span>
+<span><span class="va">out_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"OHMmy-statistics"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">out_dir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="the-simulated-cohort">The simulated cohort<a class="anchor" aria-label="anchor" href="#the-simulated-cohort"></a>
+</h3>
+<p>The pbmc3k cells are spread across 12 simulated donors in three
+severity groups. By construction, monocyte-like cells were over-assigned
+to Mild and Severe donors (see <code>add_mock_cohort()</code> in
+<code>ohmmy-vignette-helpers.R</code>), so a correct analysis should
+find <strong>more CD14 monocytes with increasing severity</strong> and
+no other systematic difference.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/plot_metadata_stats.html">plot_metadata_stats</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  sample_col <span class="op">=</span> <span class="st">"donor_id"</span>,       <span class="co"># The column containing individual patient/mouse IDs</span></span>
-<span>  condition_col <span class="op">=</span> <span class="st">"disease_state"</span>, <span class="co"># The experimental condition (e.g., Control vs. Infected)</span></span>
-<span>  metadata_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"viral_load"</span>, <span class="st">"sex"</span>, <span class="st">"batch"</span><span class="op">)</span>, </span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"confounder_qc/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/OHMmy-statistical-analysis/metadata_age_by_severity_unfaceted_20260704_113945.jpg" class="r-plt" alt="" width="50%" style="display: block; margin: auto;"><img src="images/OHMmy-statistical-analysis/metadata_sex_by_symptomatic_unfaceted_20260704_114001.jpg" class="r-plt" alt="" width="50%" style="display: block; margin: auto;"></p>
+<code class="sourceCode R"><span><span class="va">donors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">@</span><span class="va">meta.data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"donor_id"</span>, <span class="st">"severity"</span>, <span class="st">"infection_status"</span>, <span class="st">"batch"</span>, <span class="st">"age"</span>, <span class="st">"sex"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">donors</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
+<span><span class="va">donors</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">donors</span><span class="op">$</span><span class="va">donor_id</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="co">#&gt;    donor_id severity infection_status   batch age sex</span></span>
+<span><span class="co">#&gt; 4       D01  Healthy          Healthy Batch_1  34   F</span></span>
+<span><span class="co">#&gt; 2       D02  Healthy          Healthy Batch_2  51   M</span></span>
+<span><span class="co">#&gt; 1       D03  Healthy          Healthy Batch_1  28   M</span></span>
+<span><span class="co">#&gt; 6       D04  Healthy          Healthy Batch_2  45   F</span></span>
+<span><span class="co">#&gt; 7       D05     Mild         Infected Batch_1  39   F</span></span>
+<span><span class="co">#&gt; 8       D06     Mild         Infected Batch_2  62   M</span></span>
+<span><span class="co">#&gt; 11      D07     Mild         Infected Batch_1  47   F</span></span>
+<span><span class="co">#&gt; 5       D08     Mild         Infected Batch_2  30   M</span></span>
+<span><span class="co">#&gt; 10      D09   Severe         Infected Batch_1  55   M</span></span>
+<span><span class="co">#&gt; 3       D10   Severe         Infected Batch_2  41   F</span></span>
+<span><span class="co">#&gt; 9       D11   Severe         Infected Batch_1  66   M</span></span>
+<span><span class="co">#&gt; 12      D12   Severe         Infected Batch_2  36   F</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
-<h2 id="part-2-cell-type-abundance">Part 2: Cell Type Abundance<a class="anchor" aria-label="anchor" href="#part-2-cell-type-abundance"></a>
+<h2 id="confounder-checks-with-plot_metadata_stats">1. Confounder checks with <code>plot_metadata_stats()</code><a class="anchor" aria-label="anchor" href="#confounder-checks-with-plot_metadata_stats"></a>
 </h2>
-<p>To determine if a specific cell population expands or contracts
-during an infection or treatment, use
-<code><a href="../reference/plot_cell_abundance.html">plot_cell_abundance()</a></code>. This function aggregates cell counts
-per patient, calculates normalized proportions, and performs statistical
-testing between your conditions.</p>
+<p>Before comparing conditions, confirm that the groups do not differ in
+covariates that could explain the result.
+<code><a href="../reference/plot_metadata_stats.html">plot_metadata_stats()</a></code> reduces the metadata to one row per
+<code>sample_col</code>, detects whether each variable is continuous or
+categorical, and chooses the test:</p>
+<ul>
+<li>
+<strong>continuous, 2 groups:</strong> Mann-Whitney U
+(<code>"mann_whitney"</code>) or t-test (<code>"t_test"</code>)</li>
+<li>
+<strong>continuous, 3 or more groups:</strong> Kruskal-Wallis
+(<code>"kruskal.test"</code>) or ANOVA (<code>"anova"</code>), followed
+by Dunn’s or Tukey post-hoc tests. With
+<code>strict_posthoc = TRUE</code>, the post-hoc tests run only when the
+global test is significant.</li>
+<li>
+<strong>categorical:</strong> Chi-square (<code>"chisq"</code>) or
+Fisher’s exact test (<code>"fisher"</code>, recommended for small
+cohorts)</li>
+</ul>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/plot_cell_abundance.html">plot_cell_abundance</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  sample_col <span class="op">=</span> <span class="st">"donor_id"</span>,       </span>
-<span>  condition_col <span class="op">=</span> <span class="st">"disease_state"</span>, </span>
-<span>  celltype_col <span class="op">=</span> <span class="st">"cell_type_annotation"</span>, <span class="co"># The column containing your cluster labels</span></span>
-<span>  </span>
-<span>  <span class="co"># Visualization settings</span></span>
-<span>  facet_by_cluster <span class="op">=</span> <span class="cn">TRUE</span>,       <span class="co"># Creates individual plots for each cell type</span></span>
-<span>  pairwise_label <span class="op">=</span> <span class="st">"p.adj"</span>,      <span class="co"># Display adjusted p-values on the plot</span></span>
-<span>  base_size <span class="op">=</span> <span class="fl">2.5</span>,</span>
-<span>  y_expand <span class="op">=</span> <span class="fl">0.35</span>,               <span class="co"># Adds headroom for the statistical significance bars</span></span>
-<span>  </span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"abundance/"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">meta_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_metadata_stats.html">plot_metadata_stats</a></span><span class="op">(</span></span>
+<span>  seurat_obj         <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  sample_col         <span class="op">=</span> <span class="st">"donor_id"</span>,</span>
+<span>  condition_col      <span class="op">=</span> <span class="st">"severity"</span>,</span>
+<span>  metadata_vars      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"batch"</span><span class="op">)</span>,</span>
+<span>  continuous_test_n3 <span class="op">=</span> <span class="st">"kruskal.test"</span>,</span>
+<span>  categorical_test   <span class="op">=</span> <span class="st">"fisher"</span>,</span>
+<span>  output_dir         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"metadata"</span><span class="op">)</span>,</span>
+<span>  dpi                <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/OHMmy-statistical-analysis/cell_abundance_facet_by_cluster_serotype_20260731_203713.jpg" class="r-plt" alt="" width="100%"></p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span><span class="va">meta_res</span><span class="op">$</span><span class="va">plots</span>, nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="OHMmy-statistical-analysis_files/figure-html/meta-stats-plots-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p>Every result is also returned as a table:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">meta_res</span><span class="op">$</span><span class="va">stats</span><span class="op">$</span><span class="va">age</span><span class="op">$</span><span class="va">Global</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 6</span></span></span>
+<span><span class="co">#&gt;   .y.       n statistic    df     p method        </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> age      12      1.38     2 0.500 Kruskal-Wallis</span></span>
+<span><span class="va">meta_res</span><span class="op">$</span><span class="va">stats</span><span class="op">$</span><span class="va">sex</span><span class="op">$</span><span class="va">Global</span></span>
+<span><span class="co">#&gt;   Facet Method p</span></span>
+<span><span class="co">#&gt; 1   All fisher 1</span></span>
+<span><span class="va">meta_res</span><span class="op">$</span><span class="va">stats</span><span class="op">$</span><span class="va">batch</span><span class="op">$</span><span class="va">Global</span></span>
+<span><span class="co">#&gt;   Facet Method p</span></span>
+<span><span class="co">#&gt; 1   All fisher 1</span></span></code></pre></div>
+<p>None of the covariates differ between severity groups, so they are
+unlikely to confound the abundance analysis below. The same function
+handles two-group designs. Here age is compared between healthy and
+infected donors with a t-test:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">meta_2grp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_metadata_stats.html">plot_metadata_stats</a></span><span class="op">(</span></span>
+<span>  seurat_obj         <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  sample_col         <span class="op">=</span> <span class="st">"donor_id"</span>,</span>
+<span>  condition_col      <span class="op">=</span> <span class="st">"infection_status"</span>,</span>
+<span>  metadata_vars      <span class="op">=</span> <span class="st">"age"</span>,</span>
+<span>  continuous_test_n2 <span class="op">=</span> <span class="st">"t_test"</span>,</span>
+<span>  output_dir         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"metadata"</span><span class="op">)</span>,</span>
+<span>  dpi                <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">meta_2grp</span><span class="op">$</span><span class="va">stats</span><span class="op">$</span><span class="va">age</span><span class="op">$</span><span class="va">Global</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 9</span></span></span>
+<span><span class="co">#&gt;   .y.   group1  group2      n1    n2 statistic    df     p p.signif</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> age   Healthy Infected     4     8     -<span style="color: #BB0000;">1.08</span>  7.47 0.312 ns</span></span>
+<span><span class="va">meta_2grp</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">age</span></span></code></pre></div>
+<p><img src="OHMmy-statistical-analysis_files/figure-html/meta-stats-2grp-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
-<h2 id="part-3-statistical-gene-pair-correlations">Part 3: Statistical Gene-Pair Correlations<a class="anchor" aria-label="anchor" href="#part-3-statistical-gene-pair-correlations"></a>
+<h2 id="differential-abundance-with-plot_cell_abundance">2. Differential abundance with
+<code>plot_cell_abundance()</code><a class="anchor" aria-label="anchor" href="#differential-abundance-with-plot_cell_abundance"></a>
 </h2>
-<p>While blend plots can visually show co-expression, sometimes you need
-hard statistical values to prove that two genes are correlated (or
-anti-correlated) within a specific cell population.</p>
-<p><code><a href="../reference/plot_gene_pair_correlations.html">plot_gene_pair_correlations()</a></code> calculates Pearson or
-Spearman correlations for specific gene pairs across all your
-clusters.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Calculate statistical correlations for specific pairs</span></span>
-<span><span class="va">cor_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_gene_pair_correlations.html">plot_gene_pair_correlations</a></span><span class="op">(</span></span>
-<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
-<span>  cluster_col <span class="op">=</span> <span class="st">"cell_type_annotation"</span>,</span>
-<span>  </span>
-<span>  <span class="co"># List the exact pairs of genes you want to test</span></span>
-<span>  gene_pairs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD3D"</span>, <span class="st">"FCGR3A"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD8A"</span>, <span class="st">"FCGR3A"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  </span>
-<span>  cor_method <span class="op">=</span> <span class="st">"spearman"</span>, </span>
-<span>  sample_name <span class="op">=</span> <span class="st">"Cohort_A"</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"correlations/"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># You can view the raw correlation table output directly in the console</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">cor_results</span><span class="op">$</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/OHMmy-statistical-analysis/DENV_NKT_GenePairCor_except.possLo.lo.log.rpca.log_snn_res.2_2026-03-23_15-07-42.jpg" class="r-plt" alt="" width="100%"></p>
+<p><code><a href="../reference/plot_cell_abundance.html">plot_cell_abundance()</a></code> computes, for every donor, the
+fraction of its cells in each cell type. Missing combinations are filled
+with zero. It then tests each cell type across conditions:</p>
+<ul>
+<li>
+<strong>3 or more conditions:</strong> a global Kruskal-Wallis test
+(or ANOVA) per cell type, then Dunn’s (or Tukey’s) pairwise tests with
+<code>p_adjust</code> correction. With
+<code>strict_posthoc = TRUE</code>, only cell types with a significant
+global test get pairwise brackets.</li>
+<li>
+<strong>2 conditions:</strong> Mann-Whitney
+(<code>"mann_whitney"</code>), paired Wilcoxon
+(<code>"wilcoxon_paired"</code>) or t-test (<code>"t_test"</code>).</li>
+</ul>
+<p>Brackets are positioned per facet so they never overlap the data.</p>
+<div class="section level3">
+<h3 id="three-severity-groups">Three severity groups<a class="anchor" aria-label="anchor" href="#three-severity-groups"></a>
+</h3>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_abund</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_cell_abundance.html">plot_cell_abundance</a></span><span class="op">(</span></span>
+<span>  seurat_obj       <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  sample_col       <span class="op">=</span> <span class="st">"donor_id"</span>,</span>
+<span>  condition_col    <span class="op">=</span> <span class="st">"severity"</span>,</span>
+<span>  celltype_col     <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>  global_test      <span class="op">=</span> <span class="st">"kruskal.test"</span>,</span>
+<span>  strict_posthoc   <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  p_adjust         <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  facet_by_cluster <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  pairwise_label   <span class="op">=</span> <span class="st">"p.adj"</span>,</span>
+<span>  y_expand         <span class="op">=</span> <span class="fl">0.35</span>,</span>
+<span>  output_dir       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"abundance"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_abund</span></span></code></pre></div>
+<p><img src="OHMmy-statistical-analysis_files/figure-html/abundance-3-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p>As designed, only <strong>CD14 Mono</strong> passes the global test
+(Kruskal-Wallis p ≈ 0.01). Because of
+<code>strict_posthoc = TRUE</code>, it is also the only panel with
+pairwise Dunn brackets, and Severe vs Healthy is the significant
+contrast. The weaker downward trends in CD4 T, CD8 T and B cells are not
+an independent effect. Proportions are compositional, so when monocytes
+take a larger share of each Severe donor’s cells, every other
+population’s share has to shrink.</p>
+</div>
+<div class="section level3">
+<h3 id="two-conditions-all-cell-types-on-one-axis">Two conditions, all cell types on one axis<a class="anchor" aria-label="anchor" href="#two-conditions-all-cell-types-on-one-axis"></a>
+</h3>
+<p>With <code>facet_by_cluster = FALSE</code>, all cell types share one
+panel, with dodged boxes per condition:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_abund2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_cell_abundance.html">plot_cell_abundance</a></span><span class="op">(</span></span>
+<span>  seurat_obj       <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  sample_col       <span class="op">=</span> <span class="st">"donor_id"</span>,</span>
+<span>  condition_col    <span class="op">=</span> <span class="st">"infection_status"</span>,</span>
+<span>  celltype_col     <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>  pairwise_test    <span class="op">=</span> <span class="st">"mann_whitney"</span>,</span>
+<span>  facet_by_cluster <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  pairwise_label   <span class="op">=</span> <span class="st">"p.signif"</span>,</span>
+<span>  output_dir       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"abundance"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_abund2</span></span></code></pre></div>
+<p><img src="OHMmy-statistical-analysis_files/figure-html/abundance-2-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="composition-overview-with-plot_cluster_distributions">3. Composition overview with
+<code>plot_cluster_distributions()</code><a class="anchor" aria-label="anchor" href="#composition-overview-with-plot_cluster_distributions"></a>
+</h2>
+<p>For a quick descriptive view,
+<code><a href="../reference/plot_cluster_distributions.html">plot_cluster_distributions()</a></code> cross-tabulates any two
+metadata columns and saves two figures. The first shows proportions in
+both directions (cell types within each group, and groups within each
+cell type). The second shows absolute counts.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dist_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_cluster_distributions.html">plot_cluster_distributions</a></span><span class="op">(</span></span>
+<span>  seurat_obj  <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  cluster_col <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>  batch_col   <span class="op">=</span> <span class="st">"severity"</span>,</span>
+<span>  output_dir  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"distributions"</span><span class="op">)</span>,</span>
+<span>  file_prefix <span class="op">=</span> <span class="st">"pbmc3k"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dist_plots</span><span class="op">$</span><span class="va">proportions</span></span></code></pre></div>
+<p><img src="OHMmy-statistical-analysis_files/figure-html/distributions-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dist_plots</span><span class="op">$</span><span class="va">counts</span></span></code></pre></div>
+<p><img src="OHMmy-statistical-analysis_files/figure-html/distributions-counts-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level2">
+<h2 id="gene-pair-correlations-with-plot_gene_pair_correlations">4. Gene-pair correlations with
+<code>plot_gene_pair_correlations()</code><a class="anchor" aria-label="anchor" href="#gene-pair-correlations-with-plot_gene_pair_correlations"></a>
+</h2>
+<p>Blend plots show co-expression visually.
+<code><a href="../reference/plot_gene_pair_correlations.html">plot_gene_pair_correlations()</a></code> puts a number on it: for each
+pair and each cluster, it computes the Pearson, Spearman or Kendall
+correlation. Before that, it drops cells that do not express both genes
+above the <code>quantile_thresh</code> quantile, which reduces the
+effect of dropout zeros.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cor_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_gene_pair_correlations.html">plot_gene_pair_correlations</a></span><span class="op">(</span></span>
+<span>  seurat_obj      <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  cluster_col     <span class="op">=</span> <span class="st">"cell_type"</span>,</span>
+<span>  gene_pairs      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GNLY"</span>, <span class="st">"NKG7"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD79A"</span>, <span class="st">"MS4A1"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"S100A8"</span>, <span class="st">"S100A9"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  sample_name     <span class="op">=</span> <span class="st">"pbmc3k"</span>,</span>
+<span>  cor_method      <span class="op">=</span> <span class="st">"spearman"</span>,</span>
+<span>  quantile_thresh <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  fill_palette    <span class="op">=</span> <span class="st">"kelly"</span>,</span>
+<span>  output_dir      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"gene_pairs"</span><span class="op">)</span>,</span>
+<span>  dpi             <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  verbose         <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cor_res</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
+<p><img src="OHMmy-statistical-analysis_files/figure-html/gene-pairs-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p>The underlying table also reports how many cells entered each
+correlation, so estimates based on only a few cells can be
+identified:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">cor_res</span><span class="op">$</span><span class="va">data</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">cor_res</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">N_Cells</span><span class="op">)</span>, <span class="op">]</span>, <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 4</span></span></span>
+<span><span class="co">#&gt;    Cluster     Correlation N_Cells Pair            </span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> CD14 Mono        0.773      462 S100A8 vs S100A9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> B                0.074<span style="text-decoration: underline;">3</span>     275 CD79A vs MS4A1  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> NK              -<span style="color: #BB0000;">0.236</span>      149 GNLY vs NKG7    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> CD8 T            0.305       87 GNLY vs NKG7    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> FCGR3A Mono      0.222       79 S100A8 vs S100A9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> CD4 T            0.844       21 S100A8 vs S100A9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> CD4 T            0.961       17 GNLY vs NKG7    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> CD14 Mono        0.512       16 GNLY vs NKG7    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> DC               0.333       10 S100A8 vs S100A9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> FCGR3A Mono     -<span style="color: #BB0000;">0.119</span>        8 GNLY vs NKG7</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
+</h2>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
+<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
+<span><span class="co">#&gt; Running under: Ubuntu 22.04.5 LTS</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Matrix products: default</span></span>
+<span><span class="co">#&gt; BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
+<span><span class="co">#&gt; LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; locale:</span></span>
+<span><span class="co">#&gt;  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
+<span><span class="co">#&gt;  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
+<span><span class="co">#&gt;  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
+<span><span class="co">#&gt; [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; time zone: UTC</span></span>
+<span><span class="co">#&gt; tzcode source: system (glibc)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; attached base packages:</span></span>
+<span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; other attached packages:</span></span>
+<span><span class="co">#&gt; [1] patchwork_1.3.2    OHMmy_1.0.2        Seurat_5.6.0       SeuratObject_5.4.0</span></span>
+<span><span class="co">#&gt; [5] sp_2.2-3          </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
+<span><span class="co">#&gt;   [1] RColorBrewer_1.1-3     jsonlite_2.0.0         magrittr_2.0.5        </span></span>
+<span><span class="co">#&gt;   [4] spatstat.utils_3.2-5   farver_2.1.2           rmarkdown_2.32        </span></span>
+<span><span class="co">#&gt;   [7] fs_2.1.0               ragg_1.5.2             vctrs_0.7.3           </span></span>
+<span><span class="co">#&gt;  [10] ROCR_1.0-12            memoise_2.0.1          spatstat.explore_3.8-3</span></span>
+<span><span class="co">#&gt;  [13] rstatix_1.1.0          htmltools_0.5.9        broom_1.0.13          </span></span>
+<span><span class="co">#&gt;  [16] Formula_1.2-6          sass_0.4.10            sctransform_0.4.3     </span></span>
+<span><span class="co">#&gt;  [19] parallelly_1.48.0      KernSmooth_2.23-26     bslib_0.12.0          </span></span>
+<span><span class="co">#&gt;  [22] htmlwidgets_1.6.4      desc_1.4.3             ica_1.0-3             </span></span>
+<span><span class="co">#&gt;  [25] plyr_1.8.9             plotly_4.12.1          zoo_1.9-1             </span></span>
+<span><span class="co">#&gt;  [28] cachem_1.1.0           igraph_2.3.4           mime_0.13             </span></span>
+<span><span class="co">#&gt;  [31] lifecycle_1.0.5        pkgconfig_2.0.3        Matrix_1.7-5          </span></span>
+<span><span class="co">#&gt;  [34] R6_2.6.1               fastmap_1.2.0          fitdistrplus_1.2-6    </span></span>
+<span><span class="co">#&gt;  [37] future_1.76.0          shiny_1.14.0           digest_0.6.39         </span></span>
+<span><span class="co">#&gt;  [40] tensor_1.5.1           RSpectra_0.16-2        irlba_2.3.7           </span></span>
+<span><span class="co">#&gt;  [43] textshaping_1.0.5      ggpubr_1.0.0           labeling_0.4.3        </span></span>
+<span><span class="co">#&gt;  [46] progressr_1.0.0        spatstat.sparse_3.2-0  httr_1.4.9            </span></span>
+<span><span class="co">#&gt;  [49] polyclip_1.10-7        abind_1.4-8            compiler_4.6.1        </span></span>
+<span><span class="co">#&gt;  [52] withr_3.0.3            S7_0.2.2               backports_1.5.1       </span></span>
+<span><span class="co">#&gt;  [55] viridis_0.6.5          carData_3.0-6          fastDummies_1.7.6     </span></span>
+<span><span class="co">#&gt;  [58] ggforce_0.5.0          ggsignif_0.6.4         MASS_7.3-65           </span></span>
+<span><span class="co">#&gt;  [61] ggsci_5.2.0            tools_4.6.1            lmtest_0.9-40         </span></span>
+<span><span class="co">#&gt;  [64] otel_0.2.0             httpuv_1.6.17          future.apply_1.20.2   </span></span>
+<span><span class="co">#&gt;  [67] goftest_1.2-3          glue_1.8.1             nlme_3.1-169          </span></span>
+<span><span class="co">#&gt;  [70] promises_1.5.0         grid_4.6.1             Rtsne_0.17            </span></span>
+<span><span class="co">#&gt;  [73] cluster_2.1.8.2        reshape2_1.4.5         generics_0.1.4        </span></span>
+<span><span class="co">#&gt;  [76] gtable_0.3.6           spatstat.data_3.1-9    tidyr_1.3.2           </span></span>
+<span><span class="co">#&gt;  [79] data.table_1.18.6.1    utf8_1.2.6             tidygraph_1.3.1       </span></span>
+<span><span class="co">#&gt;  [82] car_3.1-5              spatstat.geom_3.8-3    RcppAnnoy_0.0.23      </span></span>
+<span><span class="co">#&gt;  [85] ggrepel_0.9.8          RANN_2.6.3             pillar_1.11.1         </span></span>
+<span><span class="co">#&gt;  [88] stringr_1.6.0          spam_2.11-4            RcppHNSW_0.7.0        </span></span>
+<span><span class="co">#&gt;  [91] later_1.4.8            splines_4.6.1          tweenr_2.0.3          </span></span>
+<span><span class="co">#&gt;  [94] dplyr_1.2.1            lattice_0.22-9         survival_3.8-6        </span></span>
+<span><span class="co">#&gt;  [97] deldir_2.0-4           tidyselect_1.2.1       miniUI_0.1.2          </span></span>
+<span><span class="co">#&gt; [100] pbapply_1.7-5          knitr_1.52             gridExtra_2.3.1       </span></span>
+<span><span class="co">#&gt; [103] SoupX_1.6.2            scattermore_1.2        xfun_0.61             </span></span>
+<span><span class="co">#&gt; [106] graphlayouts_1.2.5     matrixStats_1.5.0      leidenbase_0.1.37     </span></span>
+<span><span class="co">#&gt; [109] stringi_1.8.9          yaml_2.3.12            evaluate_1.0.5        </span></span>
+<span><span class="co">#&gt; [112] codetools_0.2-20       ggraph_2.2.2           tibble_3.3.1          </span></span>
+<span><span class="co">#&gt; [115] cli_3.6.6              uwot_0.2.5             xtable_1.8-8          </span></span>
+<span><span class="co">#&gt; [118] reticulate_1.47.0      systemfonts_1.3.2      jquerylib_0.1.4       </span></span>
+<span><span class="co">#&gt; [121] Rcpp_1.1.2             globals_0.19.1         spatstat.random_3.5-2 </span></span>
+<span><span class="co">#&gt; [124] png_0.1-9              spatstat.univar_3.2-0  parallel_4.6.1        </span></span>
+<span><span class="co">#&gt; [127] pkgdown_2.2.1          ggplot2_4.0.3          dotCall64_1.2         </span></span>
+<span><span class="co">#&gt; [130] listenv_1.1.0          viridisLite_0.4.3      scales_1.4.0          </span></span>
+<span><span class="co">#&gt; [133] ggridges_0.5.7         purrr_1.2.2            rlang_1.3.0           </span></span>
+<span><span class="co">#&gt; [136] cowplot_1.2.0</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

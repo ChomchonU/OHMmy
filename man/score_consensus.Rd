@@ -36,7 +36,7 @@ score_consensus(
 
 \item{cells_use}{Character vector; specific cell barcodes to include. Defaults to all cells in \code{obj}.}
 
-\item{method}{Character; the method to determine the CD8 vs NK decision boundary. One of \code{"fixed"}, \code{"trough"} (density valley), or \code{"gmm"} (Gaussian Mixture Model).}
+\item{method}{Character; the method to determine the CD8 vs NK decision boundary. One of \code{"fixed"}, \code{"trough"} (density valley), or \code{"gmm"} (decision boundary of a two-component Gaussian mixture; requires the \pkg{mclust} package to be installed). If a data-driven method cannot find a cutoff, \code{fixed_cut} is used and the \code{fallback} column of the returned \code{cutoffs} table is \code{TRUE}.}
 
 \item{fixed_cut}{Numeric; the threshold to use if \code{method = "fixed"}. Default: \code{0}.}
 

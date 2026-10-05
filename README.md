@@ -88,11 +88,13 @@ seurat_obj <- ProcessSeuratLOG(
   seurat_obj, 
   batch_col = "batch", 
   vars_to_regress = c("pct_counts_mt", "S.Score"),
-  integration_method = "CCAIntegration"
+  reduction_name = "pca.log",
+  integration_method = "CCAIntegration",
+  integration_reduction = "integrated.cca.log"
 )
 
 # Compute UMAP and cluster across multiple resolutions
-seurat_obj <- ClusterAndUMAP(seurat_obj, reduction = "integrated.cca.log")$seurat
+seurat_obj <- ClusterAndUMAP(seurat_obj, reduction = "integrated.cca.log", umap_name = "umap.cca")$seurat
 
 # ---------------------------------------------------------
 # 3. Analyze & Visualize
@@ -109,7 +111,8 @@ plot_cell_abundance(
 plot_blend_nebulosa(
   seurat_obj, 
   cluster_col = "seurat_clusters", 
-  gene_pairs = list(c("CD8A", "GZMB"))
+  gene_pairs = list(c("CD8A", "GZMB")),
+  reduction = "umap.cca"
 )
 ```
 
@@ -128,8 +131,14 @@ Available Guides:
 - [Comprehensive End-to-End
   Workflow](https://chomchonu.github.io/OHMmy/articles/OHMmy-comprehensive.html)
 
+- [Ambient RNA Decontamination with
+  SoupX](https://chomchonu.github.io/OHMmy/articles/OHMmy-soupx-workflow.html)
+
 - [Data Processing &
   Clustering](https://chomchonu.github.io/OHMmy/articles/OHMmy-processing-clustering.html)
+
+- [Diagnostic & Variable
+  Evaluation](https://chomchonu.github.io/OHMmy/articles/OHMmy-diagnostics-evaluation.html)
 
 - [Advanced Visualizations & Marker
   Analysis](https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.html)
@@ -154,7 +163,7 @@ Available Guides:
 ## 📄 License
 
 This project is licensed under the MIT License - see the
-[LICENSE](https://www.google.com/search?q=LICENSE) file for details.
+[LICENSE](LICENSE.md) file for details.
 
 ## 🤖 AI Acknowledgement
 

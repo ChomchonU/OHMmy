@@ -8,3 +8,13 @@ inst/doc
 /doc/
 /Meta/
 docs
+
+# R CMD check / build artifacts
+*.Rcheck/
+*.tar.gz
+Rplots.pdf
+
+# Local data and outputs (vignettes download pbmc3k on demand)
+filtered_gene_bc_matrices/
+vignettes/results/
+vignettes/*_files/

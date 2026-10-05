@@ -43,11 +43,6 @@ and negative feature loadings independently. The output is a split bar chart tha
 visually highlights which PCs are overwhelmed by technical noise, helping determine
 which components to exclude or which variables require regression (\code{vars.to.regress}).
 }
-\note{
-This function explicitly looks for a dimensionality reduction named \code{"pca.log"}.
-Ensure your Seurat object's PCA was saved under this name, or modify the function
-to accept a custom reduction name.
-}
 \examples{
 \dontrun{
 # Evaluate how much mitochondrial and ribosomal genes are driving your PCs

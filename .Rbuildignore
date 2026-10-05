@@ -10,3 +10,8 @@
 ^docs$
 ^pkgdown$
 ^\.github$
+^vignettes/results$
+^vignettes/filtered_gene_bc_matrices$
+^vignettes/pbmc3k\.tar\.gz$
+^filtered_gene_bc_matrices$
+^README\.html$

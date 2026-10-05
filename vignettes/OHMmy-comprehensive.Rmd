@@ -1,257 +1,251 @@
 ---
 title: "Comprehensive single-cell workflow with OHMmy"
 author: "Chomchon Uansiri"
-package: "OHMmy"
-output: rmarkdown::html_vignette
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{Comprehensive single-cell workflow with OHMmy}
-  %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options: 
-  markdown: 
-    wrap: 72
+  %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  warning = FALSE,
-  message = FALSE,
-  eval = FALSE # Set to FALSE for fast package building
+  collapse   = TRUE,
+  comment    = "#>",
+  message    = FALSE,
+  warning    = FALSE,
+  fig.align  = "center",
+  fig.width  = 8,
+  fig.height = 5,
+  dpi        = 96,
+  out.width  = "100%"
 )
 ```
 
 ## Introduction
 
-Welcome to `OHMmy`. This package is designed to streamline highly
-complex single-cell RNA sequencing workflows. From ambient RNA
-decontamination and technical noise regression to differential
-expression and pathway enrichment, `OHMmy` provides robust, automated
-wrappers around industry-standard tools (like Seurat, SoupX, Nebulosa,
-and DESeq2).
+**OHMmy** provides reproducible wrappers for a complete Seurat v5 scRNA-seq
+analysis: ambient-RNA removal with SoupX, normalisation and batch integration,
+diagnostics of technical noise, publication-ready visualisation, donor-aware
+statistics, and pathway enrichment. Every plotting function saves a
+timestamped, high-resolution file **and** returns the underlying ggplot or
+data, so OHMmy fits both batch scripts on an HPC cluster and interactive
+analysis.
 
-This comprehensive guide walks through a complete analysis pipeline.
+This article gives a short, runnable tour of the main steps on one dataset. The
+other articles cover each module in depth:
 
-```{r}
+| Article | Covers |
+|---------|--------|
+| [Ambient RNA Decontamination with SoupX](OHMmy-soupx-workflow.html) | Reading Cell Ranger output, estimating and removing ambient RNA |
+| [Data Processing, Integration, and Clustering](OHMmy-processing-clustering.html) | LogNormalize / SCTransform pipelines, integration, resolution sweeps |
+| [Diagnostic and Variable Evaluation](OHMmy-diagnostics-evaluation.html) | PC heatmaps and loadings, technical-gene contribution, PC-covariate correlation |
+| [Advanced Visualization and Marker Analysis](OHMmy-advanced-visualization.html) | UMAP overlays, density plots, clustered dot plots, blend plots, CD8/NK resolution |
+| [Statistical Analysis](OHMmy-statistical-analysis.html) | Confounder checks, differential abundance, compositions, gene-pair correlations |
+| [Differential Expression and Pathway Enrichment](OHMmy-differential-expression.html) | Markers, GSEA, ORA, pseudo-bulk DESeq2 visualisation |
 
+## Function index
+
+```{r function-index, echo = FALSE}
+idx <- data.frame(
+  Module = c(
+    rep("Ambient RNA (SoupX)", 10),
+    rep("Processing", 4),
+    rep("Diagnostics", 5),
+    rep("Visualization", 12),
+    rep("Lineage resolution", 1),
+    rep("Statistics", 4),
+    rep("Markers & DE", 6)
+  ),
+  Function = c(
+    "get_sample_names", "load_counts", "create_soup_channels", "create_seurat_for_clustering",
+    "estimate_contamination", "create_final_seurat", "prepare_soupx_inputs",
+    "run_soupx_post_clustering", "process_soupx_samples", "addSoupXMetaToSeurat",
+    "ProcessSeuratLOG", "ProcessSeuratSCT", "ClusterAndUMAP", "CleanSeuratReductions",
+    "generate_dimheatmaps", "plot_vizdimloadings", "plot_technical_contribution",
+    "plot_stacked_technical_contribution", "plot_pc_metadata_correlation",
+    "make_cluster_palette", "PlotDimByFactors", "plot_combined", "plot_violin_qc_single",
+    "extract_binned_expression", "plot_dot_dendro", "plot_dot_dendro_split",
+    "plot_dot_dendro_multi", "plot_blend_nebulosa", ".blend_feature_plot_v5",
+    "plot_gene_markers_with_dendro", "plot_split_dotplots_by_gene_cluster",
+    "score_consensus",
+    "plot_metadata_stats", "plot_cell_abundance", "plot_cluster_distributions",
+    "plot_gene_pair_correlations",
+    "FindTopMarkersAndHeatmap", "run_global_gsea", "run_global_ora",
+    "generate_volcano_trio", "get_top_mixed_genes", "generate_and_save_heatmap"
+  ),
+  Article = c(
+    rep("SoupX", 10), rep("Processing", 4), rep("Diagnostics", 5),
+    rep("Advanced visualization", 10), rep("Differential expression", 2),
+    "Advanced visualization", rep("Statistics", 4), rep("Differential expression", 6)
+  )
+)
+idx$Function <- paste0("`", idx$Function, "()`")
+knitr::kable(idx, row.names = FALSE)
+```
+
+## The example dataset
+
+All articles use the 10x Genomics **3k PBMC** dataset (pbmc3k). It is
+downloaded once and cached. The helper file `ohmmy-vignette-helpers.R` also
+spreads the cells across a **simulated cohort of 12 donors** (Healthy, Mild and
+Severe, in two sequencing batches), so that the cohort-level functions can be
+demonstrated. Monocyte-like cells were deliberately over-assigned to Mild and
+Severe donors. *The donor, severity, batch, age and sex columns are synthetic.*
+
+```{r libraries}
 library(Seurat)
 library(OHMmy)
+library(patchwork)
+source("ohmmy-vignette-helpers.R")
 
-# Define a global output directory for this pipeline
-out_dir <- "results/comprehensive_workflow/"
+out_dir <- file.path(tempdir(), "OHMmy-comprehensive")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 ```
 
-## 1. Ambient RNA Decontamination (SoupX)
+## 1. Load, QC and annotate the cohort
 
-Cell-free ambient RNA can severely confound downstream clustering.
-`OHMmy` provides seamless wrappers to load standard outputs (e.g., from
-CellRanger) and accurately remove this contamination before building our
-Seurat object.
+Ambient-RNA removal with SoupX would normally come first. It needs the raw
+droplet matrices, so it is demonstrated separately in the SoupX article.
 
-```{r}
-
-# 1. Process SoupX across all samples in your directories
-soup_results <- process_soupx_samples(
-  filtered_dir = "data/filtered/", 
-  raw_dir = "data/raw/", 
-  multiFac = 1 
-)
-
-# 2. Transfer the cleaned counts and metadata back to your raw Seurat object
-seurat_raw <- readRDS("data/seurat_raw.rds")
-seurat_clean <- addSoupXMetaToSeurat(
-  original_seurat = seurat_raw,
-  soupx_seurat_list = soup_results$final_seurat
-)
+```{r load}
+pbmc <- CreateSeuratObject(pbmc3k_counts(), project = "pbmc3k", min.cells = 3, min.features = 200)
+pbmc[["pct_counts_mt"]] <- PercentageFeatureSet(pbmc, pattern = "^MT-")
+pbmc[["percent.ribo"]]  <- PercentageFeatureSet(pbmc, pattern = "^RP[SL]")
+pbmc <- subset(pbmc, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & pct_counts_mt < 5)
+pbmc <- add_mock_cohort(pbmc)
+table(pbmc$severity)
 ```
 
-## 2. Processing, Integration, and Clustering
+## 2. Normalise, integrate and cluster
 
-Next, we normalize the data, regress out technical noise (like cell
-cycle or mitochondrial percentages), integrate across batches, and
-systematically determine the best clustering resolution.
-
-```{r}
-
-# 1. Log-Normalization, technical regression, and Batch Integration
-seurat_integrated <- ProcessSeuratLOG(
-  seurat_clean,
-  batch_col = "batch",
-  vars_to_regress = c("pct_counts_mt", "S.Score", "G2M.Score"),
-  tcr_bcr_patterns = "^TR[ABDG]|^IG[HKL]", # Exclude V(D)J genes from clustering
-  integration_method = "CCAIntegration",
-  reduction_name = "pca.log",
-  integration_reduction = "integrated.cca.log",
-  dims = 1:40
-) 
-
-# 2. Run UMAP and test clustering across multiple resolutions
-cluster_results <- ClusterAndUMAP(
-  seurat_obj = seurat_integrated,
-  reduction = "integrated.cca.log",
-  dims = 1:40,
-  cluster_resolutions = seq(0.1, 2, by = 0.1),
-  final_resolution = 1.0, 
-  sample_name = "Cohort_A",
-  plot_dir = paste0(out_dir, "clustree/")
+```{r process, results = "hide"}
+pbmc <- ProcessSeuratLOG(
+  pbmc,
+  batch_col             = "batch",
+  vars_to_regress       = "pct_counts_mt",
+  tcr_bcr_patterns      = "^TR[ABDG]V|^IG[HKL]V",
+  reduction_name        = "pca.log",
+  integration_method    = "HarmonyIntegration",
+  integration_reduction = "harmony.log",
+  verbose               = FALSE
 )
 
-# Extract the fully processed object
-seurat_obj <- cluster_results$seurat
+clus <- ClusterAndUMAP(
+  pbmc,
+  sample_name         = "pbmc3k",
+  reduction           = "harmony.log",
+  dims                = 1:20,
+  umap_name           = "umap.har",
+  graph_name          = "har_snn",
+  cluster_prefix      = "har_snn_res.",
+  cluster_resolutions = seq(0.2, 1.2, by = 0.2),
+  final_resolution    = 0.6,
+  plot_dir            = out_dir,
+  dpi                 = 100
+)
+pbmc <- clus$seurat
+pbmc$seurat_clusters <- pbmc$har_snn_res.0.6
+pbmc <- annotate_pbmc(pbmc, cluster_col = "seurat_clusters")
 ```
 
-## 3. Quality Control & Principal Component Diagnostics
+```{r umap, fig.width = 11, fig.height = 4.5}
+clus$clustree + DimPlot(pbmc, reduction = "umap.har", group.by = "cell_type",
+                        label = TRUE, repel = TRUE) + NoLegend()
+```
 
-Before annotating, we verify that our clusters are biologically driven
-and not artifacts of technical noise (e.g., sequencing depth or
-ribosomal genes).
+## 3. Check the principal components for technical noise
 
-```{r}
-
-# 1. Check QC distributions across your new clusters
-plot_violin_qc_single(
-  seurat_obj = seurat_obj,
-  res_col = "seurat_clusters",
-  qc_meta_features = c("nCount_RNA", "nFeature_RNA", "pct_counts_mt"),
-  sample_name = "Cohort_A",
-  output_dir = paste0(out_dir, "QC/")
-)
-
-# 2. Quantify exactly how much of each PC is driven by technical gene families
+```{r diagnostics, results = "hide"}
 plot_technical_contribution(
-  seurat_obj = seurat_obj,
-  sample_name = "Cohort_A",
-  technical_keywords = c("^MT-", "^RPL", "^RPS"),
-  max_pcs = 40,
-  cutoff = 15,
-  output_dir = paste0(out_dir, "Diagnostics/")
+  pbmc, sample_name = "pbmc3k", reduction = "pca.log",
+  max_pcs = 20, n_top_genes = 200, output_dir = out_dir
 )
 ```
 
-## 4. Advanced Visualization and Annotation
+```{r diagnostics-show, echo = FALSE}
+show_saved(out_dir, "^tech_contrib_pca_log")
+```
 
-Interpret the biological identity of your clusters using flexible UMAP
-overlays, density mapping, and gene co-expression tools.
+## 4. Visualise markers
 
-```{r}
-
-# 1. Visualize clusters and metadata overlays on the UMAP
-PlotDimByFactors(
-  seurat_obj = seurat_obj, 
-  factors = c("seurat_clusters", "predicted.celltype.l2"),
-  sample_name = "Cohort_A",
-  output_dir = paste0(out_dir, "UMAP/")
-)
-
-# 2. Advanced Dotplots (Grouped with Dendrograms)
+```{r dotplot, results = "hide"}
 feature_df <- data.frame(
-  feature = c("CD8A", "NCAM1", "GZMB", "PRF1", "CCR7", "IL7R"),
-  group = c("Lineage", "Lineage", "Effector", "Effector", "Naive", "Naive")
+  group   = paste0("PBMC_", rep(names(pbmc_marker_sets), lengths(pbmc_marker_sets))),
+  feature = unlist(pbmc_marker_sets, use.names = FALSE)
 )
-
-plot_dot_dendro_split(
-  seurat_obj = seurat_obj, 
-  meta_col = "seurat_clusters",
-  feature_df = feature_df,
-  prefix = "Marker_Panel",
-  output_dir = paste0(out_dir, "Dotplots/")
-)
-
-# 3. Density Blend Overlays (Nebulosa) for Co-Expression
-plot_blend_nebulosa(
-  seurat_obj = seurat_obj, 
-  cluster_col = "seurat_clusters",
-  gene_pairs = list(c("CX3CR1", "GZMB")),
-  reduction = "umap",
-  sample_name = "Cohort_A",
-  output_dir = paste0(out_dir, "Blends/")
-)
+p_dot <- plot_dot_dendro(pbmc, meta_col = "cell_type", feature_df = feature_df,
+                         prefix = "PBMC", pct_threshold = 10, output_dir = out_dir)
 ```
 
-## 5. Statistical Abundance & Confounder Analysis
+```{r dotplot-show, fig.width = 12, fig.height = 7.5}
+p_dot
+```
 
-Ensure your cohorts are clinically balanced, then test for significant
-shifts in cell type proportions between your conditions (e.g., Healthy
-vs. Infected).
+```{r blend, results = "hide"}
+blend <- plot_blend_nebulosa(pbmc, cluster_col = "cell_type",
+                             gene_pairs = list(c("CD14", "FCGR3A")),
+                             reduction = "umap.har", width = 24, dpi = 72,
+                             output_dir = out_dir, verbose = FALSE)
+```
 
-```{r}
+```{r blend-show, fig.width = 24, fig.height = 4.2}
+blend$plot
+```
 
-# 1. Confounder Check: Ensure patient metadata is balanced
-plot_metadata_stats(
-  seurat_obj = seurat_obj,
-  sample_col = "donor_id",       
-  condition_col = "disease_state", 
-  metadata_vars = c("age", "viral_load", "sex"), 
-  output_dir = paste0(out_dir, "Stats/")
-)
+## 5. Test for differences in cell-type abundance
 
-# 2. Cell Type Abundance: Test for expansion/contraction of clusters
-plot_cell_abundance(
-  seurat_obj = seurat_obj,
-  sample_col = "donor_id",       
-  condition_col = "disease_state", 
-  celltype_col = "seurat_clusters", 
-  facet_by_cluster = TRUE,
+```{r abundance, results = "hide"}
+p_abund <- plot_cell_abundance(
+  pbmc,
+  sample_col     = "donor_id",
+  condition_col  = "severity",
+  celltype_col   = "cell_type",
   pairwise_label = "p.adj",
-  output_dir = paste0(out_dir, "Abundance/")
+  y_expand       = 0.35,
+  output_dir     = out_dir
 )
 ```
 
-## 6. Differential Expression & Functional Enrichment
+```{r abundance-show, fig.width = 11, fig.height = 10}
+p_abund
+```
 
-Extract biological meaning by discovering defining cluster markers,
-running Gene Set Enrichment Analysis (GSEA), and visualizing
-condition-specific DESeq2 results.
+The test recovers the simulated effect: CD14 monocytes increase with severity.
 
-```{r}
+## 6. Markers and pathways
 
-library(msigdbr)
+```{r markers, results = "hide"}
+Idents(pbmc) <- "cell_type"
+mk <- FindTopMarkersAndHeatmap(pbmc, sample_name = "pbmc3k", top_n = 5, onlyPos = FALSE,
+                               output_dir_base = out_dir, height = 10, dpi = 72)
 
-# 1. Find all cluster markers and automatically generate a heatmap
-marker_results <- FindTopMarkersAndHeatmap(
-  seurat_obj = seurat_obj, 
-  sample_name = "Cohort_A",
-  output_dir_base = paste0(out_dir, "Markers/")
-)
-
-# Extract the marker dataframe for downstream GSEA/ORA
-my_markers_df <- marker_results$markers
-
-# 2. PATHWAY ENRICHMENT (GSEA)
-m_t2g_hallmark <- msigdbr(species = "Homo sapiens", category = "H")[, c("gs_name", "gene_symbol")]
-
-gsea_results <- run_global_gsea(
-  GSEA_df = my_markers_df, 
-  m_t2g = m_t2g_hallmark, 
-  title_prefix = "Hallmark",
-  output_dir = paste0(out_dir, "GSEA/")
-)
-
-# 3. PSEUDO-BULK DIFFERENTIAL EXPRESSION VISUALIZATIONS (DESeq2)
-# Note: These functions visualize pre-computed DESeq2 results objects (res_obj)
-
-# Volcano Plots
-generate_volcano_trio(
-  res_obj = deseq2_disease_vs_healthy, 
-  plot_title = "Severe Disease vs Healthy Controls", 
-  target_genes = c("IFNG", "TNF", "GZMB")
-)
-
-# DESeq2 Heatmaps across samples
-generate_and_save_heatmap(
-  res_obj = deseq2_disease_vs_healthy,
-  comp_name = "Disease_vs_Healthy",
-  comp_title = "Severe Disease vs Healthy Controls",
-  vsd_data = vsd_matrix,               
-  anno_col = annotation_dataframe, 
-  ordered_samps = sample_order_list,
-  out_dir = paste0(out_dir, "DESeq2/")
+hallmark <- msigdbr::msigdbr(species = "Homo sapiens", collection = "H")[, c("gs_name", "gene_symbol")]
+gsea <- run_global_gsea(
+  GSEA_df      = dplyr::mutate(mk$markers, cluster = as.character(cluster)),
+  m_t2g        = hallmark,
+  output_dir   = file.path(out_dir, "gsea"),
+  title_prefix = "Hallmark"
 )
 ```
 
-**End of Workflow.** By following these steps, you have successfully
-decontaminated, processed, integrated, evaluated, annotated, and
-statistically analyzed your scRNA-seq dataset!
+```{r gsea-show, echo = FALSE}
+show_saved(file.path(out_dir, "gsea"), "Hallmark_GSEA_Clustered_Dendro_Dotplot")
+```
+
+## Where to go next
+
+* Clean your raw Cell Ranger output first: see the SoupX article.
+* Validate your PC choice before clustering: see the Diagnostics article.
+* For donor-aware differential expression, pseudo-bulk DESeq2 and its
+  visualisations are covered in the Differential Expression article.
+
+## Session information
+
+```{r session-info}
+sessionInfo()
+```

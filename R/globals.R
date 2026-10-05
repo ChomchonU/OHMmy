@@ -18,5 +18,8 @@ utils::globalVariables(c(
   "PercentTechnical", "progress_bar", "core_enrichment", "setSize",
   "NES", "Description", "neg_log10_padj", "GeneRatio", "Signed_log10_padj",
   "mean_sig", "Abs_NES", ".", "n_clusters", "mean_neg_logp", "DIM1", "DIM2",
-  "g1", "g2", "Cluster"
+  "g1", "g2", "Cluster",
+  # score_consensus() plotting columns
+  "sc_Class", "Score_Type", "Score_Value", "cell_id", "Variant_1", "Variant_2",
+  "Agreement", "Confirm", "Primary", "variant", "ci_lo", "ci_hi", "observed"
 ))

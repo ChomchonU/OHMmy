@@ -8,4 +8,6 @@
 #' @importFrom stats cor quantile hclust dist as.dendrogram as.formula chisq.test fisher.test p.adjust setNames
 #' @importFrom utils head write.csv combn setTxtProgressBar txtProgressBar install.packages
 #' @importFrom grDevices jpeg pdf dev.off dev.cur rgb col2rgb colorRampPalette
+#' @importFrom ggraph guide_edge_colourbar
+#' @importFrom leidenbase leiden_find_partition
 NULL

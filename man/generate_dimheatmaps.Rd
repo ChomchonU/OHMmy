@@ -39,7 +39,7 @@ generate_dimheatmaps(
 \item{res}{Numeric. The resolution (dpi) of the saved JPEG. Default is 300.}
 }
 \value{
-Invisibly returns \code{NULL}. The primary purpose of this function is its side effect of saving JPEG plots to the specified output directory.
+Invisibly returns a character vector naming any PC windows that failed to plot (empty if all succeeded). The primary purpose of this function is its side effect of saving JPEG plots to the specified output directory.
 }
 \description{
 A robust wrapper around Seurat's \code{DimHeatmap} function designed to systematically

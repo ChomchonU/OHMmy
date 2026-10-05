@@ -25,7 +25,7 @@ run_global_ora(
 
 \item{m_t2g}{A two-column data frame mapping pathways/terms to genes (TERM2GENE format), typically sourced from MSigDB via the \code{msigdbr} package.}
 
-\item{output_dir}{Character. Directory path where all plots and CSV summaries will be saved.}
+\item{output_dir}{Character. Directory path where all plots and CSV summaries will be saved (created if missing; a trailing slash is optional).}
 
 \item{title_prefix}{Character. A prefix used for plot titles and file naming to identify the pathway database (e.g., "Hallmark", "KEGG"). Default is "Hallmark".}
 
@@ -48,7 +48,7 @@ run_global_ora(
 \item{variable_per_clus}{Logical. If \code{TRUE} and a cell type column is detected in \code{ORA_df}, it generates separate signed significance dotplots for each cell type. Default is FALSE.}
 }
 \value{
-Invisibly returns a \code{tibble} (\code{combined_df}) containing the concatenated enrichment results across all clusters and directions. Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
+A data frame (\code{combined_df}) containing the concatenated enrichment results across all clusters and directions, or \code{NULL} if no pathway was enriched. Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
 }
 \description{
 This function acts as an end-to-end pipeline for performing Over-Representation

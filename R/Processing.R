@@ -30,7 +30,7 @@ CleanSeuratReductions <- function(seurat_obj) {
   for (old_name in red_names) {
     # 1. Generate the clean camelCase name
     words <- unlist(strsplit(old_name, "[._]"))
-    if(length(words) > 1) {
+    if (length(words) > 1) {
       words[-1] <- paste0(toupper(substr(words[-1], 1, 1)), substring(words[-1], 2))
     }
     new_name <- paste(words, collapse = "")
@@ -46,13 +46,13 @@ CleanSeuratReductions <- function(seurat_obj) {
     my_loadings <- Loadings(old_reduc)
 
     # 3. Rename the columns exactly how Seurat wants them
-    colnames(my_embeddings) <- paste0(new_key, 1:ncol(my_embeddings))
+    colnames(my_embeddings) <- paste0(new_key, seq_len(ncol(my_embeddings)))
 
     if (!is.null(my_loadings) && ncol(my_loadings) > 0) {
-      colnames(my_loadings) <- paste0(new_key, 1:ncol(my_loadings))
+      colnames(my_loadings) <- paste0(new_key, seq_len(ncol(my_loadings)))
     }
 
-    # 4. Build a brand new, error-free DimReduc Object
+    # 4. Build a brand new DimReduc object
     new_reduc <- CreateDimReducObject(
       embeddings = my_embeddings,
       loadings = my_loadings,
@@ -62,14 +62,14 @@ CleanSeuratReductions <- function(seurat_obj) {
       global = old_reduc@global
     )
 
-    # 5. Insert the new one and delete the old broken one
+    # 5. Insert the new reduction and delete the old one
     seurat_obj[[new_name]] <- new_reduc
     seurat_obj[[old_name]] <- NULL
 
-    message(paste("Successfully rebuilt & renamed:", old_name, "->", new_name))
+    message("Successfully rebuilt & renamed: ", old_name, " -> ", new_name)
   }
 
-  return(seurat_obj)
+  seurat_obj
 }
 
 #------------------------------------------------------------------
@@ -83,6 +83,10 @@ CleanSeuratReductions <- function(seurat_obj) {
 #' plot to help visualize cluster stability, and computes a final UMAP embedding at a
 #' specified resolution.
 #'
+#' @details Seurat names cluster columns \code{paste0(graph_name, "_res.", resolution)}.
+#' For the \code{clustree} plot to find them, \code{cluster_prefix} should therefore be
+#' \code{paste0(graph_name, "_res.")} (the defaults follow this rule).
+#'
 #' @param seurat_obj A Seurat object containing the dimensional reduction specified in \code{reduction}.
 #' @param sample_name Character. The identifier for the sample or dataset, used for console logging, plot titles, and file naming. Default is "Sample".
 #' @param dims Numeric vector. The dimensions of the reduction to use as input for constructing the neighbor graph and UMAP (e.g., \code{1:50}). Default is \code{1:50}.
@@ -91,7 +95,7 @@ CleanSeuratReductions <- function(seurat_obj) {
 #' Options are: 1 = Original Louvain, 2 = Louvain with multilevel refinement, 3 = SLM, and 4 = Leiden. Default is 1.
 #' @param reduction Character. The name of the dimensional reduction to use (e.g., "pca", "integrated.har", "harmony"). Default is "integrated.har".
 #' @param umap_name Character. The name to assign to the generated UMAP reduction. Default is "umap.har".
-#' @param cluster_prefix Character. The prefix to use for naming the cluster metadata columns. Default is "RNA_snn_res.".
+#' @param cluster_prefix Character. The prefix of the cluster metadata columns, used to build the \code{clustree}. Default is "RNA_snn_res.".
 #' @param graph_name Character. The name to assign to the generated Shared Nearest Neighbor (SNN) graph. Default is "RNA_snn".
 #' @param cluster_resolutions Numeric vector. A sequence of resolutions to sweep through for clustering. Default is \code{seq(0.1, 2, by = 0.1)}.
 #' @param final_resolution Numeric. The specific resolution to use for the final clustering step immediately prior to calculating the UMAP. Default is 0.7.
@@ -156,21 +160,13 @@ ClusterAndUMAP <- function(seurat_obj,
                            height = 15,
                            dpi = 300) {
 
-  require(Seurat)
-  require(clustree)
-  require(ggplot2)
-  require(lubridate)
-
-  # Format and prepare metadata column names
-  fac_names <- paste0(cluster_prefix, format(cluster_resolutions, nsmall = 1))
-  fac_names <- sub("\\.0$", "", fac_names)
-  existing_clusters <- fac_names %in% colnames(seurat_obj@meta.data)
-  missing_clusters <- !existing_clusters
+  # Metadata column name Seurat uses for a given resolution (e.g. "RNA_snn_res.0.5", "RNA_snn_res.1")
+  res_col_name <- function(res) sub("\\.0$", "", paste0(cluster_prefix, format(res, nsmall = 1)))
 
   # Step 1: Find Neighbors
   run_neighbors <- force_neighbors || !(graph_name %in% names(seurat_obj@graphs))
   if (run_neighbors) {
-    message(" [", sample_name, "] Running FindNeighbors using graph: ", graph_name)
+    message("[", sample_name, "] Running FindNeighbors using graph: ", graph_name)
     seurat_obj <- FindNeighbors(
       seurat_obj,
       dims = dims,
@@ -186,42 +182,45 @@ ClusterAndUMAP <- function(seurat_obj,
     stop("SNN graph '", graph_name, "' not found after FindNeighbors.")
   }
 
-  # Step 2: Find Clusters
+  # Step 2: Find Clusters across the requested resolutions
+  missing_clusters <- !(res_col_name(cluster_resolutions) %in% colnames(seurat_obj@meta.data))
+
   if (any(missing_clusters) || force_clustering) {
-    message(" [", sample_name, "] Running FindClusters at resolutions: ", paste(cluster_resolutions, collapse = ", "))
+    message("[", sample_name, "] Running FindClusters at resolutions: ", paste(cluster_resolutions, collapse = ", "))
     pb <- txtProgressBar(min = 0, max = length(cluster_resolutions), style = 3)
 
     for (i in seq_along(cluster_resolutions)) {
       res <- cluster_resolutions[i]
-      meta_name <- paste0(cluster_prefix, format(res, nsmall = 1))
-      meta_name <- sub("\\.0$", "", meta_name)
-
-      if (force_clustering || !(meta_name %in% colnames(seurat_obj@meta.data))) {
+      if (force_clustering || !(res_col_name(res) %in% colnames(seurat_obj@meta.data))) {
         seurat_obj <- FindClusters(seurat_obj, resolution = res, graph.name = graph_name, algorithm = algorithm)
       }
-
       setTxtProgressBar(pb, i)
     }
     close(pb)
   } else {
-    message(" [", sample_name, "] All cluster resolutions already present.")
+    message("[", sample_name, "] All cluster resolutions already present.")
   }
 
-  # Step 3: Plot Clustree
-  clustree_plot <- clustree(seurat_obj, prefix = cluster_prefix) +
+  # Step 3: Plot and save the clustree. Its edge legends are ggraph guides that
+  # ggplot2 looks up by name, so ggraph must be on the search path when the plot
+  # is drawn (here and whenever the returned plot is printed later).
+  if (!"package:ggraph" %in% search()) {
+    suppressPackageStartupMessages(attachNamespace("ggraph"))
+  }
+  clustree_plot <- clustree::clustree(seurat_obj, prefix = cluster_prefix) +
     ggtitle(paste("Clustree:", sample_name))
 
   timestamp <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
-  plot_dir <- paste0(sub("/$", "", plot_dir), "/")
   dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
-  plot_file <- paste0(plot_dir, sample_name, "_clustree_", timestamp, ".", plot_format)
+  plot_file <- file.path(sub("/$", "", plot_dir),
+                         paste0(sample_name, "_clustree_", timestamp, ".", plot_format))
 
   ggsave(plot_file, clustree_plot, width = width, height = height, dpi = dpi)
-  message(" [", sample_name, "] Clustree plot saved to: ", plot_file)
+  message("[", sample_name, "] Clustree plot saved to: ", plot_file)
 
   # Step 4: Final clustering & UMAP
   if (!umap_name %in% names(seurat_obj@reductions)) {
-    message("[MAP] [", sample_name, "] Running UMAP + clustering at final resolution = ", final_resolution)
+    message("[", sample_name, "] Running UMAP + clustering at final resolution = ", final_resolution)
     seurat_obj <- seurat_obj %>%
       FindClusters(resolution = final_resolution, graph.name = graph_name) %>%
       RunUMAP(dims = dims, reduction = reduction, reduction.name = umap_name, return.model = return.model)
@@ -231,15 +230,208 @@ ClusterAndUMAP <- function(seurat_obj,
 
   # Step 5: Save Seurat object
   if (!is.null(save_path)) {
-    message(" [", sample_name, "] Saving Seurat object to: ", save_path)
+    message("[", sample_name, "] Saving Seurat object to: ", save_path)
     saveRDS(seurat_obj, file = save_path)
   }
 
-  return(list(
+  list(
     seurat = seurat_obj,
     clustree = clustree_plot,
     plot_file = plot_file
-  ))
+  )
+}
+
+# -------------------------------------------------------------
+# Internal helpers shared by ProcessSeuratLOG() and ProcessSeuratSCT()
+# -------------------------------------------------------------
+
+#' @keywords internal
+#' @noRd
+.remove_receptor_genes <- function(seurat_obj, tcr_bcr_patterns) {
+  message("Removing TCR/BCR genes from variable features...")
+  tcr_bcr_genes <- grep(tcr_bcr_patterns, rownames(seurat_obj), value = TRUE)
+  tcr_variable_genes <- intersect(tcr_bcr_genes, VariableFeatures(seurat_obj))
+  VariableFeatures(seurat_obj) <- setdiff(VariableFeatures(seurat_obj), tcr_variable_genes)
+  message("Removed ", length(tcr_variable_genes), " TCR & BCR genes.")
+  seurat_obj
+}
+
+#' Multiply the scaled expression of selected genes before PCA
+#' @keywords internal
+#' @noRd
+.boost_scaled_genes <- function(seurat_obj, assay, boost_genes, boost_multiplier) {
+  if (is.null(boost_genes) || boost_multiplier <= 1) return(seurat_obj)
+
+  message("Boosting expression variance for specified lineage markers...")
+  scale_mat <- GetAssayData(seurat_obj, assay = assay, layer = "scale.data")
+  valid_boost_genes <- intersect(boost_genes, rownames(scale_mat))
+
+  if (length(valid_boost_genes) == 0) {
+    warning("None of the specified boost_genes were found in the ", assay, " scale.data matrix.")
+    return(seurat_obj)
+  }
+
+  scale_mat[valid_boost_genes, ] <- scale_mat[valid_boost_genes, ] * boost_multiplier
+  seurat_obj <- SetAssayData(seurat_obj, assay = assay, layer = "scale.data", new.data = scale_mat)
+  message("Successfully boosted ", length(valid_boost_genes), " genes by a factor of ", boost_multiplier, ":")
+  message(paste(valid_boost_genes, collapse = ", "))
+  seurat_obj
+}
+
+#' Suggest a number of PCs: first PC where cumulative variance > 90 % and the
+#' PC itself explains < 5 %.
+#' @keywords internal
+#' @noRd
+.suggest_n_pcs <- function(seurat_obj, reduction_name, max_pca) {
+  pca_stdev <- Seurat::Stdev(seurat_obj, reduction = reduction_name)
+  prop_var  <- (pca_stdev^2) / sum(pca_stdev^2)
+  cumu_var  <- cumsum(prop_var) * 100
+  suggested <- which(cumu_var > 90 & (prop_var * 100) < 5)[1]
+  if (is.na(suggested)) suggested <- max_pca
+  min(suggested, max_pca)
+}
+
+#' @keywords internal
+#' @noRd
+.save_elbow_plot <- function(seurat_obj, reduction_name, max_pca, elbow_plot_dir,
+                             sample_name, min_batch_cells, label = NULL) {
+  if (is.null(elbow_plot_dir)) return(invisible(NULL))
+  if (!dir.exists(elbow_plot_dir)) dir.create(elbow_plot_dir, recursive = TRUE)
+
+  timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+  file_tag  <- if (is.null(label)) "elbow_plot_" else paste0("elbow_plot_", label, "_")
+  plot_path <- file.path(elbow_plot_dir, paste0(file_tag, sample_name, "_", timestamp, ".jpg"))
+
+  title_tag <- if (is.null(label)) " - Elbow Plot" else paste0(" - ", label, " Elbow Plot")
+  p <- ElbowPlot(seurat_obj, reduction = reduction_name, ndims = max_pca) +
+    ggtitle(paste0(sample_name, title_tag, " (Min Batch Cells: ", min_batch_cells, ")"))
+
+  ggsave(filename = plot_path, plot = p, width = 6, height = 4)
+  message("Elbow plot saved to: ", plot_path)
+  invisible(plot_path)
+}
+
+#' Optionally ask the user for the number of PCs, then cap dims at max_pca
+#' @keywords internal
+#' @noRd
+.choose_dims <- function(dims, interactive_mode, max_pca) {
+  if (interactive_mode && interactive()) {
+    user_input <- readline(prompt = paste0("Enter the number of PCs to use (or press Enter to use default 'dims = 1:", max(dims), "'): "))
+    if (user_input != "") {
+      selected_pc <- suppressWarnings(as.integer(user_input))
+      if (!is.na(selected_pc) && selected_pc > 0) {
+        dims <- seq_len(selected_pc)
+        message("User override: Setting dims to 1:", selected_pc)
+      } else {
+        message("Invalid input. Proceeding with manually defined dims: 1:", max(dims))
+      }
+    } else {
+      message("No input provided. Proceeding with manually defined dims: 1:", max(dims))
+    }
+  }
+
+  if (max(dims) > max_pca) {
+    warning("Requested dims (1:", max(dims), ") exceeds the maximum allowed by your smallest batch (", max_pca, "). Adjusting down to 1:", max_pca)
+    dims <- seq_len(max_pca)
+  }
+  dims
+}
+
+#' Resolve integration k parameters: manual value -> interactive prompt -> default,
+#' then shrink each to at most (smallest batch size - 1).
+#' @keywords internal
+#' @noRd
+.resolve_k_params <- function(k.weight, k.anchor, k.filter, k.score,
+                              interactive_mode, min_batch_cells) {
+  get_k_val <- function(manual_val, param_name, default_val) {
+    if (!is.null(manual_val)) return(manual_val)
+    if (interactive_mode && interactive()) {
+      ans <- readline(prompt = paste0("Enter ", param_name, " (or press Enter for Seurat default ", default_val, "): "))
+      if (ans != "") {
+        parsed <- suppressWarnings(as.integer(ans))
+        if (!is.na(parsed) && parsed > 0) return(parsed)
+        message("Invalid input. Using default: ", default_val)
+      }
+    }
+    default_val
+  }
+
+  requested <- list(
+    k.weight = get_k_val(k.weight, "k.weight", 100),
+    k.anchor = get_k_val(k.anchor, "k.anchor", 5),
+    k.filter = get_k_val(k.filter, "k.filter", 200),
+    k.score  = get_k_val(k.score,  "k.score",  30)
+  )
+
+  lapply(stats::setNames(names(requested), names(requested)), function(nm) {
+    raw  <- requested[[nm]]
+    safe <- max(1, min(raw, min_batch_cells - 1))
+    if (safe < raw) message(" ", nm, " dynamically reduced from ", raw, " to ", safe, " due to small batch size.")
+    safe
+  })
+}
+
+#' Dispatch IntegrateLayers() for the supported integration back-ends
+#' @keywords internal
+#' @noRd
+.integrate_layers <- function(seurat_obj, integration_method, reduction_name,
+                              integration_reduction, k, dims, batch_col, verbose,
+                              normalization_method = "LogNormalize") {
+  if (!is.character(integration_method) || length(integration_method) != 1) {
+    stop("`integration_method` must be a single string, e.g. \"HarmonyIntegration\".")
+  }
+
+  if (integration_method == "FastMNNIntegration") {
+    IntegrateLayers(
+      object = seurat_obj,
+      method = FastMNNIntegration,
+      orig.reduction = reduction_name,
+      new.reduction = integration_reduction,
+      batch = seurat_obj[[batch_col]][, 1],
+      verbose = verbose
+    )
+  } else if (integration_method == "RPCAIntegration") {
+    IntegrateLayers(
+      object = seurat_obj,
+      method = RPCAIntegration,
+      normalization.method = normalization_method,
+      orig.reduction = reduction_name,
+      new.reduction = integration_reduction,
+      k.weight = k$k.weight,
+      k.anchor = k$k.anchor,
+      k.filter = k$k.filter,
+      k.score = k$k.score,
+      dims = dims,
+      verbose = verbose
+    )
+  } else if (integration_method == "HarmonyIntegration") {
+    IntegrateLayers(
+      object = seurat_obj,
+      method = HarmonyIntegration,
+      normalization.method = normalization_method,
+      orig.reduction = reduction_name,
+      new.reduction = integration_reduction,
+      k.weight = k$k.weight,
+      verbose = verbose
+    )
+  } else if (integration_method == "CCAIntegration") {
+    IntegrateLayers(
+      object = seurat_obj,
+      method = CCAIntegration,
+      normalization.method = normalization_method,
+      orig.reduction = reduction_name,
+      new.reduction = integration_reduction,
+      k.weight = k$k.weight,
+      k.anchor = k$k.anchor,
+      k.filter = k$k.filter,
+      k.score = k$k.score,
+      dims = dims,
+      verbose = verbose
+    )
+  } else {
+    stop("Unknown integration method '", integration_method, "'. Please choose from: ",
+         "FastMNNIntegration, RPCAIntegration, HarmonyIntegration, or CCAIntegration.")
+  }
 }
 
 # -------------------------------------------------------------
@@ -258,26 +450,28 @@ ClusterAndUMAP <- function(seurat_obj,
 #' @param seurat_obj A Seurat object containing raw count data in the "RNA" assay.
 #' @param batch_col Character. The name of the metadata column defining the biological batches or samples to split and integrate across. Default is "batch".
 #' @param vars_to_regress Character vector. Variables to regress out during \code{SCTransform} (e.g., cell cycle scores or mitochondrial percentage). Default is "pct_counts_mt".
-#' @param tcr_bcr_patterns Character. A regular expression matching TCR and BCR gene segments (e.g., TRAV, TRBV, IGHV) to exclude them from the variable features list. Default is \code{"^TR[ABDG]|^IG[HKL]"}.
+#' @param tcr_bcr_patterns Character. A regular expression matching TCR and BCR gene segments to exclude from the variable features list. Default is \code{"^TR[ABDG]|^IG[HKL]"}. Note that this default also matches non-receptor genes such as \emph{TRAF1} or \emph{IGHMBP2}; \code{"^TR[ABDG]V|^IG[HKL]V"} restricts the filter to variable segments.
 #' @param reduction_name Character. The name to assign to the pre-integration PCA reduction. Default is "pca.SCT".
-#' @param integration_method Character. The integration algorithm to use in \code{IntegrateLayers}. Options: "HarmonyIntegration", "RPCAIntegration", "CCAIntegration", or "FastMNNIntegration". Default is "HarmonyIntegration".
+#' @param integration_method Character. The integration algorithm to use in \code{IntegrateLayers}. Options: "HarmonyIntegration", "RPCAIntegration", "CCAIntegration", or "FastMNNIntegration" (the latter requires the \pkg{SeuratWrappers} package to be attached). Default is "HarmonyIntegration".
 #' @param integration_reduction Character. The name to assign to the final integrated dimensional reduction. Default is "integrated.har.SCT".
-#' @param dims Numeric vector. The dimensions (PCs) to use for the integration step. Default is \code{1:50}.
+#' @param dims Numeric vector. The dimensions (PCs) to use for the integration step (RPCA/CCA). Default is \code{1:50}.
 #' @param interactive_mode Logical. If \code{TRUE} and running in an interactive session, pauses to prompt the user for the optimal number of PCs and k-parameters after computing the initial PCA. Default is \code{FALSE}.
 #' @param elbow_plot_dir Character. An optional directory path to save a JPG of the PCA elbow plot. Default is \code{NULL} (does not save).
 #' @param k.weight Integer. The number of neighbors to consider when weighting anchors. If \code{NULL}, defaults to 100 or the size of the smallest batch minus 1.
 #' @param k.anchor Integer. The number of neighbors to use for picking anchors (RPCA/CCA). If \code{NULL}, defaults to 5.
 #' @param k.filter Integer. The number of neighbors to use for filtering anchors (RPCA/CCA). If \code{NULL}, defaults to 200.
 #' @param k.score Integer. The number of neighbors to use for scoring anchors (RPCA/CCA). If \code{NULL}, defaults to 30.
-#' @param clustering_resolution Numeric. Included for pipeline compatibility; sets the target resolution (though actual clustering is typically handled downstream). Default is 0.8.
+#' @param clustering_resolution Numeric. Retained for pipeline compatibility; clustering itself is performed downstream (e.g., by \code{\link{ClusterAndUMAP}()}). Default is 0.8.
 #' @param verbose Logical. If \code{TRUE}, outputs progress messages and Seurat logs to the console. Default is \code{TRUE}.
 #' @param sample_name Character. A prefix used for saving the elbow plot file. Default is "seurat".
-#' @param boost_genes A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Set to \code{NULL} to disable feature boosting. Default is \code{c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")}.
-#' @param boost_multiplier A numeric value indicating the weight factor applied to the \code{boost_genes}. The scaled expression data for these genes will be multiplied by this number. Default is \code{10}. Set to \code{1} to disable.
+#' @param boost_genes A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Only used when \code{boost_multiplier > 1}; set to \code{NULL} to disable. Default is \code{c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")}.
+#' @param boost_multiplier A numeric value indicating the weight factor applied to the \code{boost_genes}. The scaled expression data for these genes will be multiplied by this number. Default is \code{1} (no boosting).
 #'
-#' @return An integrated \code{Seurat} object with the \code{DefaultAssay} set to "SCT". The split RNA and SCT layers are automatically re-joined at the end of the pipeline.
+#' @return An integrated \code{Seurat} object with the \code{DefaultAssay} set to "SCT". The split RNA layers are re-joined at the end of the pipeline.
 #' @importFrom SeuratObject JoinLayers Layers
 #' @export
+#'
+#' @seealso \code{\link{ProcessSeuratLOG}()} for the LogNormalize equivalent and \code{\link{ClusterAndUMAP}()} for the next step.
 #'
 #' @examples
 #' \dontrun{
@@ -300,12 +494,12 @@ ProcessSeuratSCT <- function(
     vars_to_regress = "pct_counts_mt",
     tcr_bcr_patterns = "^TR[ABDG]|^IG[HKL]",
     reduction_name = "pca.SCT",
-    integration_method = "HarmonyIntegration",    # Defaulted to string for if/else logic
+    integration_method = "HarmonyIntegration",
     integration_reduction = "integrated.har.SCT",
     dims = 1:50,
-    interactive_mode = FALSE,     # Covers PC and k-params
+    interactive_mode = FALSE,
     elbow_plot_dir = NULL,
-    k.weight = NULL,              # Default is NULL to trigger defaults or interactive prompts
+    k.weight = NULL,
     k.anchor = NULL,
     k.filter = NULL,
     k.score = NULL,
@@ -322,194 +516,41 @@ ProcessSeuratSCT <- function(
   message("Running SCTransform...")
   seurat_obj <- SCTransform(seurat_obj, vars.to.regress = vars_to_regress, verbose = verbose)
 
-  message("Removing TCR/BCR genes from variable features...")
-  tcr_bcr_genes <- grep(tcr_bcr_patterns, rownames(seurat_obj), value = TRUE)
-  tcr_variable_genes <- intersect(tcr_bcr_genes, VariableFeatures(seurat_obj))
-  VariableFeatures(seurat_obj) <- setdiff(VariableFeatures(seurat_obj), tcr_variable_genes)
-  message("Removed ", length(tcr_variable_genes), " TCR & BCR genes.")
+  seurat_obj <- .remove_receptor_genes(seurat_obj, tcr_bcr_patterns)
+  seurat_obj <- .boost_scaled_genes(seurat_obj, "SCT", boost_genes, boost_multiplier)
 
-  # ---> NEW: Feature Boosting Logic (Execute after SCT, before PCA) <---
-  if (!is.null(boost_genes) && boost_multiplier > 1) {
-    message("Boosting expression variance for specified lineage markers...")
-
-    # Extract scale.data safely
-    scale_mat <- GetAssayData(seurat_obj, assay = "SCT", layer = "scale.data") # Use layer="scale.data" for V5, slot="scale.data" for V4
-
-    # Ensure we only try to boost genes that actually survived the SCT filtering
-    valid_boost_genes <- intersect(boost_genes, rownames(scale_mat))
-
-    if (length(valid_boost_genes) > 0) {
-      # Multiply the scaled expression values
-      scale_mat[valid_boost_genes, ] <- scale_mat[valid_boost_genes, ] * boost_multiplier
-
-      # Put the boosted data back into the Seurat object
-      seurat_obj <- SetAssayData(seurat_obj, assay = "SCT", layer = "scale.data", new.data = scale_mat)
-
-      message("Successfully boosted ", length(valid_boost_genes), " genes by a factor of ", boost_multiplier, ":")
-      message(paste(valid_boost_genes, collapse = ", "))
-    } else {
-      warning("None of the specified boost_genes were found in the SCT scale.data matrix.")
-    }
-  }
-
-  # --- BATCH AWARENESS & PCA ---
-  batch_counts <- table(seurat_obj[[batch_col]])
-  min_batch_cells <- min(batch_counts)
+  # --- Batch awareness & PCA ---
+  min_batch_cells <- min(table(seurat_obj[[batch_col]]))
   message("Smallest batch has ", min_batch_cells, " cells.")
-
   max_pca <- min(50, min_batch_cells - 1)
 
   message("Running PCA (calculating ", max_pca, " PCs)...")
   seurat_obj <- RunPCA(seurat_obj, reduction.name = reduction_name, npcs = max_pca, verbose = verbose)
 
-  pca_stdev <- Seurat::Stdev(seurat_obj, reduction = reduction_name)
-  prop_var <- (pca_stdev^2) / sum(pca_stdev^2)
-  cumu_var <- cumsum(prop_var) * 100
-  suggested_pcs <- which(cumu_var > 90 & (prop_var * 100) < 5)[1]
+  .save_elbow_plot(seurat_obj, reduction_name, max_pca, elbow_plot_dir, sample_name,
+                   min_batch_cells, label = "SCT")
+  message("--> Suggested number of PCs: ", .suggest_n_pcs(seurat_obj, reduction_name, max_pca))
 
-  if (is.na(suggested_pcs)) suggested_pcs <- max_pca
-  suggested_pcs <- min(suggested_pcs, max_pca)
+  dims <- .choose_dims(dims, interactive_mode, max_pca)
+  k <- .resolve_k_params(k.weight, k.anchor, k.filter, k.score, interactive_mode, min_batch_cells)
 
-  # --- SAVE ELBOW PLOT ---
-  if (!is.null(elbow_plot_dir)) {
-    if (!dir.exists(elbow_plot_dir)) dir.create(elbow_plot_dir, recursive = TRUE)
-
-    timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-    file_name <- paste0("elbow_plot_SCT_", sample_name, "_", timestamp, ".jpg")
-    plot_path <- file.path(elbow_plot_dir, file_name)
-
-    p <- ElbowPlot(seurat_obj, reduction = reduction_name, ndims = max_pca) +
-      ggtitle(paste0(sample_name, " - SCT Elbow Plot (Min Batch Cells: ", min_batch_cells, ")"))
-
-    ggsave(filename = plot_path, plot = p, width = 6, height = 4)
-    message("Elbow plot saved to: ", plot_path)
-  }
-
-  # --- INTERACTIVE PC SELECTION ---
-  message("--> Suggested number of PCs: ", suggested_pcs)
-
-  if (interactive_mode && interactive()) {
-    user_input <- readline(prompt = paste0("Enter the number of PCs to use (or press Enter to use default 'dims = 1:", max(dims), "'): "))
-    if (user_input != "") {
-      selected_pc <- as.integer(user_input)
-      if (!is.na(selected_pc) && selected_pc > 0) {
-        dims <- 1:selected_pc
-        message("User override: Setting dims to 1:", selected_pc)
-      } else {
-        message("Invalid input. Proceeding with manually defined dims: 1:", max(dims))
-      }
-    } else {
-      message("No input provided. Proceeding with manually defined dims: 1:", max(dims))
-    }
-  }
-
-  if (max(dims) > max_pca) {
-    warning("Requested dims (1:", max(dims), ") exceeds the maximum allowed by your smallest batch (", max_pca, "). Adjusting down to 1:", max_pca)
-    dims <- 1:max_pca
-  }
-
-  # ====================================================================
-  # --- INTERACTIVE & DYNAMIC K-PARAMETERS SELECTION ---
-  # ====================================================================
-
-  get_k_val <- function(manual_val, param_name, default_val) {
-    if (!is.null(manual_val)) return(manual_val)
-
-    if (interactive_mode && interactive()) {
-      ans <- readline(prompt = paste0("Enter ", param_name, " (or press Enter for Seurat default ", default_val, "): "))
-      if (ans != "") {
-        parsed <- as.integer(ans)
-        if (!is.na(parsed) && parsed > 0) return(parsed)
-        message("Invalid input. Using default: ", default_val)
-      }
-    }
-    return(default_val)
-  }
-
-  raw_k_weight <- get_k_val(k.weight, "k.weight", 100)
-  raw_k_anchor <- get_k_val(k.anchor, "k.anchor", 5)
-  raw_k_filter <- get_k_val(k.filter, "k.filter", 200)
-  raw_k_score  <- get_k_val(k.score, "k.score", 30)
-
-  safe_k_weight <- max(1, min(raw_k_weight, min_batch_cells - 1))
-  safe_k_anchor <- max(1, min(raw_k_anchor, min_batch_cells - 1))
-  safe_k_filter <- max(1, min(raw_k_filter, min_batch_cells - 1))
-  safe_k_score  <- max(1, min(raw_k_score, min_batch_cells - 1))
-
-  if (safe_k_weight < raw_k_weight) message(" k.weight dynamically reduced from ", raw_k_weight, " to ", safe_k_weight, " due to small batch size.")
-  if (safe_k_anchor < raw_k_anchor) message(" k.anchor dynamically reduced from ", raw_k_anchor, " to ", safe_k_anchor, " due to small batch size.")
-  if (safe_k_filter < raw_k_filter) message(" k.filter dynamically reduced from ", raw_k_filter, " to ", safe_k_filter, " due to small batch size.")
-  if (safe_k_score < raw_k_score) message(" k.score dynamically reduced from ", raw_k_score, " to ", safe_k_score, " due to small batch size.")
-
-  # ====================================================================
-
+  # Ensure SCT layers are split by batch
   message("Splitting SCT layer by batch (if not already split)...")
-  # Ensure SCT layers are split appropriately based on batch
   if (length(Layers(seurat_obj, assay = "SCT")) == 1) {
     seurat_obj[["SCT"]] <- split(seurat_obj[["SCT"]], f = seurat_obj[[batch_col]][, 1])
   }
 
-  message(" Running integration using ", integration_method,
-          " -> new reduction: ", integration_reduction)
-
+  message("Running integration using ", integration_method, " -> new reduction: ", integration_reduction)
   DefaultAssay(seurat_obj) <- "SCT"
-
-  if (integration_method == "FastMNNIntegration") {
-    seurat_obj <- IntegrateLayers(
-      object = seurat_obj,
-      method = FastMNNIntegration,
-      orig.reduction = reduction_name,
-      new.reduction = integration_reduction,
-      batch = seurat_obj$batch,
-      verbose = verbose
-    )
-  } else if (integration_method == "RPCAIntegration") {
-    seurat_obj <- IntegrateLayers(
-      object = seurat_obj,
-      method = RPCAIntegration,
-      normalization.method = "SCT", # Essential for SCT data
-      orig.reduction = reduction_name,
-      new.reduction = integration_reduction,
-      k.weight = safe_k_weight,
-      k.anchor = safe_k_anchor,
-      k.filter = safe_k_filter,
-      k.score = safe_k_score,
-      dims = dims,
-      verbose = verbose
-    )
-  } else if (integration_method == "HarmonyIntegration") {
-    seurat_obj <- IntegrateLayers(
-      object = seurat_obj,
-      method = HarmonyIntegration,
-      normalization.method = "SCT", # Essential for SCT data
-      orig.reduction = reduction_name,
-      new.reduction = integration_reduction,
-      k.weight = safe_k_weight,
-      verbose = verbose
-    )
-  } else if (integration_method == "CCAIntegration") {
-    seurat_obj <- IntegrateLayers(
-      object = seurat_obj,
-      method = CCAIntegration,
-      normalization.method = "SCT", # Essential for SCT data
-      orig.reduction = reduction_name,
-      new.reduction = integration_reduction,
-      k.weight = safe_k_weight,
-      k.anchor = safe_k_anchor,
-      k.filter = safe_k_filter,
-      k.score = safe_k_score,
-      dims = dims,
-      verbose = verbose
-    )
-  } else {
-    stop("Unknown integration method. Please choose from: FastMNNIntegration, RPCAIntegration, HarmonyIntegration, or CCAIntegration.")
-  }
+  seurat_obj <- .integrate_layers(seurat_obj, integration_method, reduction_name,
+                                  integration_reduction, k, dims, batch_col, verbose,
+                                  normalization_method = "SCT")
 
   message("Joining layers...")
   seurat_obj[["RNA"]] <- SeuratObject::JoinLayers(seurat_obj[["RNA"]])
 
   DefaultAssay(seurat_obj) <- "SCT"
-  return(seurat_obj)
+  seurat_obj
 }
 
 # -------------------------------------------------------------
@@ -524,29 +565,18 @@ ProcessSeuratSCT <- function(
 #' Crucially, it dynamically scales integration \code{k} parameters (e.g., \code{k.weight})
 #' downwards to accommodate the smallest batch size, preventing common integration failures.
 #'
-#' @param seurat_obj A Seurat object containing raw count data in the "RNA" assay.
-#' @param batch_col Character. The name of the metadata column defining the biological batches or samples to split and integrate across. Default is "batch".
+#' @inheritParams ProcessSeuratSCT
 #' @param vars_to_regress Character vector. Variables to regress out during \code{ScaleData} (e.g., cell cycle scores or mitochondrial percentage). Default is \code{NULL}.
-#' @param tcr_bcr_patterns Character. A regular expression matching TCR and BCR gene segments (e.g., TRAV, TRBV, IGHV) to exclude them from the variable features list. Default is \code{"^TR[ABDG]|^IG[HKL]"}.
-#' @param reduction_name Character. The name to assign to the pre-integration PCA reduction. Default is "pca.SCT" (Note: you may want to rename this default to "pca" since this is the LogNormalize workflow).
-#' @param integration_method Character. The integration algorithm to use in \code{IntegrateLayers}. Options: "HarmonyIntegration", "RPCAIntegration", "CCAIntegration", or "FastMNNIntegration". Default is "HarmonyIntegration".
-#' @param integration_reduction Character. The name to assign to the final integrated dimensional reduction. Default is "integrated.har.SCT" (Note: you may want to adjust this default for standard RNA).
-#' @param dims Numeric vector. The dimensions (PCs) to use for the integration step. Default is \code{1:30}.
-#' @param interactive_mode Logical. If \code{TRUE} and running in an interactive session, pauses to prompt the user for the optimal number of PCs and k-parameters after computing the initial PCA. Default is \code{FALSE}.
-#' @param elbow_plot_dir Character. An optional directory path to save a JPG of the PCA elbow plot. Default is \code{NULL} (does not save).
-#' @param k.weight Integer. The number of neighbors to consider when weighting anchors. If \code{NULL}, defaults to 100 or the size of the smallest batch minus 1.
-#' @param k.anchor Integer. The number of neighbors to use for picking anchors (RPCA/CCA). If \code{NULL}, defaults to 5.
-#' @param k.filter Integer. The number of neighbors to use for filtering anchors (RPCA/CCA). If \code{NULL}, defaults to 200.
-#' @param k.score Integer. The number of neighbors to use for scoring anchors (RPCA/CCA). If \code{NULL}, defaults to 30.
-#' @param clustering_resolution Numeric. Included for pipeline compatibility; sets the target resolution. Default is 1.
-#' @param verbose Logical. If \code{TRUE}, outputs progress messages and Seurat logs to the console. Default is \code{TRUE}.
-#' @param sample_name Character. A prefix used for saving the elbow plot file. Default is "seurat".
-#' @param boost_genes A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Set to \code{NULL} to disable feature boosting. Default is \code{c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")}.
-#' @param boost_multiplier A numeric value indicating the weight factor applied to the \code{boost_genes}. The scaled expression data for these genes will be multiplied by this number. Default is \code{10}. Set to \code{1} to disable.
+#' @param reduction_name Character. The name to assign to the pre-integration PCA reduction. Default is "pca.SCT" (kept for backward compatibility; a name such as "pca.log" is clearer for this workflow).
+#' @param integration_reduction Character. The name to assign to the final integrated dimensional reduction. Default is "integrated.har.SCT" (kept for backward compatibility; a name such as "integrated.har.log" is clearer for this workflow).
+#' @param dims Numeric vector. The dimensions (PCs) to use for the integration step (RPCA/CCA). Default is \code{1:30}.
+#' @param clustering_resolution Numeric. Retained for pipeline compatibility; clustering itself is performed downstream (e.g., by \code{\link{ClusterAndUMAP}()}). Default is 1.
 #'
 #' @return An integrated \code{Seurat} object with the \code{DefaultAssay} set to "RNA". The split RNA layers are automatically re-joined at the end of the pipeline.
 #' @importFrom SeuratObject JoinLayers Layers
 #' @export
+#'
+#' @seealso \code{\link{ProcessSeuratSCT}()} for the SCTransform equivalent and \code{\link{ClusterAndUMAP}()} for the next step.
 #'
 #' @examples
 #' \dontrun{
@@ -572,12 +602,12 @@ ProcessSeuratLOG <- function(
     vars_to_regress = NULL,
     tcr_bcr_patterns = "^TR[ABDG]|^IG[HKL]",
     reduction_name = "pca.SCT",
-    integration_method = HarmonyIntegration,
+    integration_method = "HarmonyIntegration",
     integration_reduction = "integrated.har.SCT",
     dims = 1:30,
-    interactive_mode = FALSE,     # CHANGED: Renamed from interactive_pca to cover k-params as well
+    interactive_mode = FALSE,
     elbow_plot_dir = NULL,
-    k.weight = NULL,              # Default is NULL so it triggers either defaults or interactive prompts
+    k.weight = NULL,
     k.anchor = NULL,
     k.filter = NULL,
     k.score = NULL,
@@ -597,196 +627,37 @@ ProcessSeuratLOG <- function(
   message("Finding variable features...")
   seurat_obj <- FindVariableFeatures(seurat_obj, selection.method = "vst", nfeatures = 2000, verbose = verbose)
 
-  message("Removing TCR/BCR genes from variable features...")
-  tcr_bcr_genes <- grep(tcr_bcr_patterns, rownames(seurat_obj), value = TRUE)
-  tcr_variable_genes <- intersect(tcr_bcr_genes, VariableFeatures(seurat_obj))
-  VariableFeatures(seurat_obj) <- setdiff(VariableFeatures(seurat_obj), tcr_variable_genes)
-  message("Removed ", length(tcr_variable_genes), " TCR & BCR genes.")
+  seurat_obj <- .remove_receptor_genes(seurat_obj, tcr_bcr_patterns)
 
   message("Scaling data and regressing variables...")
-  seurat_obj <- ScaleData(seurat_obj, vars.to.regress = vars_to_regress, features = VariableFeatures(seurat_obj), verbose = verbose)
+  seurat_obj <- ScaleData(seurat_obj, vars.to.regress = vars_to_regress,
+                          features = VariableFeatures(seurat_obj), verbose = verbose)
 
-  # ---> NEW: Feature Boosting Logic (Execute after RNA, before PCA) <---
-  if (!is.null(boost_genes) && boost_multiplier > 1) {
-    message("Boosting expression variance for specified lineage markers...")
+  seurat_obj <- .boost_scaled_genes(seurat_obj, "RNA", boost_genes, boost_multiplier)
 
-    # Extract scale.data safely
-    scale_mat <- GetAssayData(seurat_obj, assay = "RNA", layer = "scale.data") # Use layer="scale.data" for V5, slot="scale.data" for V4
-
-    # Ensure we only try to boost genes that actually survived the RNA filtering
-    valid_boost_genes <- intersect(boost_genes, rownames(scale_mat))
-
-    if (length(valid_boost_genes) > 0) {
-      # Multiply the scaled expression values
-      scale_mat[valid_boost_genes, ] <- scale_mat[valid_boost_genes, ] * boost_multiplier
-
-      # Put the boosted data back into the Seurat object
-      seurat_obj <- SetAssayData(seurat_obj, assay = "RNA", layer = "scale.data", new.data = scale_mat)
-
-      message("Successfully boosted ", length(valid_boost_genes), " genes by a factor of ", boost_multiplier, ":")
-      message(paste(valid_boost_genes, collapse = ", "))
-    } else {
-      warning("None of the specified boost_genes were found in the SCT scale.data matrix.")
-    }
-  }
-
-  # --- BATCH AWARENESS & PCA ---
-  batch_counts <- table(seurat_obj[[batch_col]])
-  min_batch_cells <- min(batch_counts)
+  # --- Batch awareness & PCA ---
+  min_batch_cells <- min(table(seurat_obj[[batch_col]]))
   message("Smallest batch has ", min_batch_cells, " cells.")
-
   max_pca <- min(50, min_batch_cells - 1)
 
   message("Running PCA (calculating ", max_pca, " PCs)...")
-  seurat_obj <- RunPCA(seurat_obj, features = VariableFeatures(seurat_obj), npcs = max_pca, reduction.name = reduction_name, verbose = verbose)
+  seurat_obj <- RunPCA(seurat_obj, features = VariableFeatures(seurat_obj), npcs = max_pca,
+                       reduction.name = reduction_name, verbose = verbose)
 
-  pca_stdev <- Seurat::Stdev(seurat_obj, reduction = reduction_name)
-  prop_var <- (pca_stdev^2) / sum(pca_stdev^2)
-  cumu_var <- cumsum(prop_var) * 100
-  suggested_pcs <- which(cumu_var > 90 & (prop_var * 100) < 5)[1]
+  .save_elbow_plot(seurat_obj, reduction_name, max_pca, elbow_plot_dir, sample_name, min_batch_cells)
+  message("--> Suggested number of PCs: ", .suggest_n_pcs(seurat_obj, reduction_name, max_pca))
 
-  if (is.na(suggested_pcs)) suggested_pcs <- max_pca
-  suggested_pcs <- min(suggested_pcs, max_pca)
+  dims <- .choose_dims(dims, interactive_mode, max_pca)
+  k <- .resolve_k_params(k.weight, k.anchor, k.filter, k.score, interactive_mode, min_batch_cells)
 
-  # --- SAVE ELBOW PLOT ---
-  if (!is.null(elbow_plot_dir)) {
-    if (!dir.exists(elbow_plot_dir)) dir.create(elbow_plot_dir, recursive = TRUE)
-
-    # Generate a clean timestamp (Format: YYYYMMDD_HHMMSS)
-    timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-
-    # Construct the filename with sample name and timestamp
-    # If sample_name is "Patient1", output is: elbow_plot_Patient1_20231027_143000.jpg
-    file_name <- paste0("elbow_plot_", sample_name, "_", timestamp, ".jpg")
-    plot_path <- file.path(elbow_plot_dir, file_name)
-
-    # Create the plot (Added the sample name to the title as well)
-    p <- ElbowPlot(seurat_obj, reduction = reduction_name, ndims = max_pca) +
-      ggtitle(paste0(sample_name, " - Elbow Plot (Min Batch Cells: ", min_batch_cells, ")"))
-
-    # Save the plot
-    ggsave(filename = plot_path, plot = p, width = 6, height = 4)
-    message("Elbow plot saved to: ", plot_path)
-  }
-
-  # --- INTERACTIVE PC SELECTION ---
-  message("--> Suggested number of PCs: ", suggested_pcs)
-
-  if (interactive_mode && interactive()) {
-    user_input <- readline(prompt = paste0("Enter the number of PCs to use (or press Enter to use default 'dims = 1:", max(dims), "'): "))
-    if (user_input != "") {
-      selected_pc <- as.integer(user_input)
-      if (!is.na(selected_pc) && selected_pc > 0) {
-        dims <- 1:selected_pc
-        message("User override: Setting dims to 1:", selected_pc)
-      } else {
-        message("Invalid input. Proceeding with manually defined dims: 1:", max(dims))
-      }
-    } else {
-      message("No input provided. Proceeding with manually defined dims: 1:", max(dims))
-    }
-  }
-
-  if (max(dims) > max_pca) {
-    warning("Requested dims (1:", max(dims), ") exceeds the maximum allowed by your smallest batch (", max_pca, "). Adjusting down to 1:", max_pca)
-    dims <- 1:max_pca
-  }
-
-  # ====================================================================
-  # --- NEW: INTERACTIVE & DYNAMIC K-PARAMETERS SELECTION ---
-  # ====================================================================
-
-  # Helper function to get values (Manual -> Interactive -> Default)
-  get_k_val <- function(manual_val, param_name, default_val) {
-    if (!is.null(manual_val)) return(manual_val) # Manual input overrides everything
-
-    if (interactive_mode && interactive()) {
-      ans <- readline(prompt = paste0("Enter ", param_name, " (or press Enter for Seurat default ", default_val, "): "))
-      if (ans != "") {
-        parsed <- as.integer(ans)
-        if (!is.na(parsed) && parsed > 0) return(parsed)
-        message("Invalid input. Using default: ", default_val)
-      }
-    }
-    return(default_val)
-  }
-
-  # 1. Gather the requested parameters
-  raw_k_weight <- get_k_val(k.weight, "k.weight", 100)
-  raw_k_anchor <- get_k_val(k.anchor, "k.anchor", 5)
-  raw_k_filter <- get_k_val(k.filter, "k.filter", 200)
-  raw_k_score  <- get_k_val(k.score, "k.score", 30)
-
-  # 2. Scale them down safely if the batch size is too small
-  safe_k_weight <- max(1, min(raw_k_weight, min_batch_cells - 1))
-  safe_k_anchor <- max(1, min(raw_k_anchor, min_batch_cells - 1))
-  safe_k_filter <- max(1, min(raw_k_filter, min_batch_cells - 1))
-  safe_k_score  <- max(1, min(raw_k_score, min_batch_cells - 1))
-
-  # 3. Warn the user if scaling occurred
-  if (safe_k_weight < raw_k_weight) message(" k.weight dynamically reduced from ", raw_k_weight, " to ", safe_k_weight, " due to small batch size.")
-  if (safe_k_anchor < raw_k_anchor) message(" k.anchor dynamically reduced from ", raw_k_anchor, " to ", safe_k_anchor, " due to small batch size.")
-  if (safe_k_filter < raw_k_filter) message(" k.filter dynamically reduced from ", raw_k_filter, " to ", safe_k_filter, " due to small batch size.")
-  if (safe_k_score < raw_k_score) message(" k.score dynamically reduced from ", raw_k_score, " to ", safe_k_score, " due to small batch size.")
-  # ====================================================================
-
-  message(" Running integration using ", integration_method,
-          " -> new reduction: ", integration_reduction)
-
+  message("Running integration using ", integration_method, " -> new reduction: ", integration_reduction)
   DefaultAssay(seurat_obj) <- "RNA"
-
-  if (integration_method == "FastMNNIntegration") {
-    seurat_obj <- IntegrateLayers(
-      object = seurat_obj,
-      method = FastMNNIntegration,
-      orig.reduction = reduction_name,
-      new.reduction = integration_reduction,
-      batch = seurat_obj$batch,
-      verbose = verbose
-    )
-  } else if (integration_method == "RPCAIntegration") {
-    seurat_obj <- IntegrateLayers(
-      object = seurat_obj,
-      method = RPCAIntegration,
-      orig.reduction = reduction_name,
-      new.reduction = integration_reduction,
-      k.weight = safe_k_weight, # Using safe variables
-      k.anchor = safe_k_anchor,
-      k.filter = safe_k_filter,
-      k.score = safe_k_score,
-      dims = dims,
-      verbose = verbose
-    )
-  } else if (integration_method == "HarmonyIntegration") {
-    seurat_obj <- IntegrateLayers(
-      object = seurat_obj,
-      method = HarmonyIntegration,
-      orig.reduction = reduction_name,
-      new.reduction = integration_reduction,
-      k.weight = safe_k_weight, # Using safe variable
-      verbose = verbose
-    )
-  } else if (integration_method == "CCAIntegration") {
-    seurat_obj <- IntegrateLayers(
-      object = seurat_obj,
-      method = CCAIntegration,
-      orig.reduction = reduction_name,
-      new.reduction = integration_reduction,
-      k.weight = safe_k_weight, # Using safe variables
-      k.anchor = safe_k_anchor,
-      k.filter = safe_k_filter,
-      k.score = safe_k_score,
-      dims = dims,
-      verbose = verbose
-    )
-  } else {
-    stop("Unknown integration method. Please choose from: FastMNN, RPCA, Harmony, or CCA.")
-  }
+  seurat_obj <- .integrate_layers(seurat_obj, integration_method, reduction_name,
+                                  integration_reduction, k, dims, batch_col, verbose)
 
   message("Joining layers...")
   seurat_obj[["RNA"]] <- SeuratObject::JoinLayers(seurat_obj[["RNA"]])
 
   DefaultAssay(seurat_obj) <- "RNA"
-  return(seurat_obj)
+  seurat_obj
 }
-# -------------------------------------------------------------

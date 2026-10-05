@@ -1,196 +1,419 @@
 ---
 title: "Differential Expression and Pathway Enrichment"
 author: "Chomchon Uansiri"
-output: rmarkdown::html_vignette
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{Differential Expression and Pathway Enrichment}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  eval = FALSE # Set to FALSE so the vignette builds quickly
+  collapse   = TRUE,
+  comment    = "#>",
+  message    = FALSE,
+  warning    = FALSE,
+  fig.align  = "center",
+  fig.width  = 8,
+  fig.height = 5,
+  dpi        = 96,
+  out.width  = "100%"
 )
 ```
 
-## Introduction
+## Overview
 
-Once you have identified your cell clusters, the next step is discovering what makes them unique biologically. `OHMmy` automates the extraction of cluster markers, pathway enrichment (GSEA and ORA), and visualizes pseudo-bulk differential expression (DESeq2) between experimental conditions.
+This article goes from cluster markers to pathways and pseudo-bulk
+differential expression.
 
-```{r}
+| Step | Functions |
+|------|-----------|
+| Cluster markers | `FindTopMarkersAndHeatmap()` |
+| Marker tables across conditions | `plot_gene_markers_with_dendro()`, `plot_split_dotplots_by_gene_cluster()` |
+| Pathway enrichment | `run_global_gsea()`, `run_global_ora()` |
+| Pseudo-bulk DESeq2 visualisation | `generate_volcano_trio()`, `get_top_mixed_genes()`, `generate_and_save_heatmap()` |
 
+```{r libraries}
 library(Seurat)
 library(OHMmy)
-library(msigdbr) # Required for pathway databases
+library(dplyr)
+library(ggplot2)
+source("ohmmy-vignette-helpers.R")
 
-# Load your clustered Seurat object
-seurat_obj <- readRDS("data/seurat_clustered.rds")
-out_dir <- "results/differential_expression/"
+library(msigdbr)   # MSigDB gene sets
+library(DESeq2)    # pseudo-bulk differential expression
+
+pbmc <- load_pbmc3k_ohmmy()   # built in "Data Processing, Integration, and Clustering"
+out_dir <- file.path(tempdir(), "OHMmy-differential-expression")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 ```
 
-## Part 1: Finding Top Cluster Markers
+The classic GSEA enrichment plots and the volcano plots additionally use the
+suggested packages **enrichplot** and **EnhancedVolcano**. OHMmy calls them
+internally, so they only need to be installed.
 
-The `FindTopMarkersAndHeatmap()` function runs `FindAllMarkers()` to find the defining genes for each cluster, saves the results as a ready-to-use CSV file, and generates a heatmap of the top genes.
+## 1. Cluster markers with `FindTopMarkersAndHeatmap()`
 
-```{r}
+`FindTopMarkersAndHeatmap()` runs `FindAllMarkers()` on the active identities,
+or `FindMarkers()` for a single pairwise comparison when `compare` is given. It
+uses `logfc.threshold = 0` and `min.pct = 0`, so the complete ranked table
+needed for GSEA is kept. Markers are then ranked by a combined relevance score,
+`|log2FC| x |pct.1 - pct.2| / p_adj`, filtered by the three `marker_*`
+thresholds, and the top `top_n` per cluster are drawn in a `DoHeatmap`. Three
+CSV files are written: all markers, a GSEA/ORA-ready copy, and the filtered top
+markers.
 
-# 1. Set the active identity to your desired cluster resolution
-Idents(seurat_obj) <- "cell_type_annotation"
+```{r markers, results = "hide"}
+Idents(pbmc) <- "cell_type"
 
-# 2. Find markers and generate the heatmap
-marker_results <- FindTopMarkersAndHeatmap(
-  seurat_obj = seurat_obj,
-  sample_name = "Cohort_A",
-  output_dir_base = paste0(out_dir, "cluster_markers/"),
-  plot_format = "jpg",
-  onlyPos = FALSE # Set to FALSE to capture both up and down-regulated markers
-)
-
-# You can access the saved dataframe directly for the next step
-gsea_input_df <- marker_results$markers
-```
-
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-differential-expression/CD8_fused_label_T3_log_fastmnn_Heatmap_topMarkers_2026-05-13_12-52-50.jpg")
-```
-
-## Part 2: Pathway Enrichment (GSEA & ORA)
-
-Using the marker dataframe generated in Part 1, we can test if specific biological pathways (like the MSigDB Hallmark gene sets) are enriched in our clusters.
-
-First, we download the Human Hallmark database:
-
-```{r}
-
-m_t2g_hallmark <- msigdbr(species = "Homo sapiens", category = "H")[, c("gs_name", "gene_symbol")]
-```
-
-### 2.1 Gene Set Enrichment Analysis (GSEA)
-
-GSEA evaluates the entire ranked list of genes for a cluster (both positive and negative markers) to find coordinated pathway shifts.
-
-```{r}
-
-gsea_results <- run_global_gsea(
-  GSEA_df = gsea_input_df, 
-  m_t2g = m_t2g_hallmark, 
-  title_prefix = "Hallmark",
-  top_n_per_direction = 30, # Plot the top 30 up/down pathways per cluster
-  output_dir = paste0(out_dir, "GSEA/")
+mk <- FindTopMarkersAndHeatmap(
+  seurat_obj      = pbmc,
+  sample_name     = "pbmc3k_celltype",
+  top_n           = 6,
+  onlyPos         = TRUE,
+  output_dir_base = file.path(out_dir, "markers"),
+  height          = 11,
+  dpi             = 100
 )
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="50%", fig.show="hold", fig.align="center"}
-# Put the paths to your 3 images in a vector
-knitr::include_graphics(c(
-  "images/OHMmy-differential-expression/Hallmark_GSEA_Clustered_Dendro_Dotplot_20260731_121932.jpg", 
-  "images/OHMmy-differential-expression/Hallmark_GSEA_Signed_Significance_Dotplot_20260731_121932.jpg"
-))
+```{r markers-show, fig.width = 9, fig.height = 10}
+names(mk)
+mk$top_markers %>%
+  group_by(cluster) %>%
+  slice_head(n = 3) %>%
+  dplyr::select(cluster, gene, avg_log2FC, pct.1, pct.2, p_val_adj, score)
+mk$heatmap
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-differential-expression/Hallmark_T0_GSEA_NES_Dotplot_20260731_121932.jpg")
-```
+### Pairwise comparison
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-differential-expression/Hallmark_T0_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20260731_121932.jpg")
-```
+With `compare = c(ident.1, ident.2)`, the function runs a single
+`FindMarkers()` test. It adds the `gene` and `cluster` columns (each gene is
+assigned to the identity in which it is higher), so the output has the same
+format as the all-cluster version. With `onlyPos = FALSE`, genes enriched on
+both sides are kept.
 
-### 2.2 Over-Representation Analysis (ORA)
-
-ORA evaluates only the *significant* positive markers to see if they overlap significantly with known pathway gene lists.
-
-```{r}
-
-ora_results <- run_global_ora(
-  ORA_df = gsea_input_df, 
-  m_t2g = m_t2g_hallmark, 
-  title_prefix = "Hallmark",
-  top_n_per_cluster = 30,
-  output_dir = paste0(out_dir, "ORA/")
+```{r markers-pair, results = "hide"}
+mk_mono <- FindTopMarkersAndHeatmap(
+  seurat_obj      = subset(pbmc, subset = cell_type %in% c("CD14 Mono", "FCGR3A Mono")),
+  sample_name     = "pbmc3k_monocytes",
+  compare         = c("FCGR3A Mono", "CD14 Mono"),
+  onlyPos         = FALSE,
+  top_n           = 10,
+  output_dir_base = file.path(out_dir, "markers"),
+  height          = 7,
+  dpi             = 100
 )
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="50%", fig.show="hold", fig.align="center"}
-# Put the paths to your 3 images in a vector
-knitr::include_graphics(c(
-  "images/OHMmy-differential-expression/Hallmark_Global_Activated_Clustered_Dendro_20260731_123020.jpg", 
-  "images/OHMmy-differential-expression/Hallmark_Global_Suppressed_Dotplot_20260731_123020.jpg"
-))
+```{r markers-pair-show, fig.width = 8, fig.height = 6}
+table(mk_mono$top_markers$cluster)
+mk_mono$heatmap
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-differential-expression/Hallmark_ORA_Signed_Significance_Dotplot_20260731_123020.jpg")
+## 2. Comparing marker tables across conditions
+
+When markers are computed separately for each condition, batch or
+integration method, the question becomes how the marker profiles differ
+between those runs. Two functions take such a combined table. It needs the
+columns `gene`, `cluster`, `avg_log2FC`, `diff` (= `pct.1 - pct.2`) and an
+identifier column.
+
+Here we compute cluster markers separately for each of the six
+severity-by-batch groups of the simulated cohort.
+
+```{r markers-by-group}
+pbmc$group <- paste(pbmc$severity, pbmc$batch, sep = "_")
+
+marker_tbl <- bind_rows(lapply(sort(unique(pbmc$group)), function(g) {
+  sub <- subset(pbmc, subset = group == g)
+  Idents(sub) <- "seurat_clusters"
+  FindAllMarkers(sub, only.pos = TRUE, logfc.threshold = 0.25, min.pct = 0.1, verbose = FALSE) %>%
+    mutate(diff = pct.1 - pct.2, group = g)
+}))
+
+marker_tbl %>% dplyr::count(group)
 ```
 
-```{r, echo=FALSE, out.width="50%", fig.show="hold", fig.align="center"}
-# Put the paths to your 3 images in a vector
-knitr::include_graphics(c(
-  "images/OHMmy-differential-expression/Hallmark_T0_Barplot_20260731_123020.jpg", 
-  "images/OHMmy-differential-expression/Hallmark_T0_Dotplot_20260731_123020.jpg"
-))
+### `plot_gene_markers_with_dendro()`
+
+Averages the marker statistics per gene and group, clusters the groups (Ward.D2)
+and draws a dot plot. Dot size shows log2FC and colour shows the difference in
+detection rate. The clusters in which each gene was a marker are written above
+the dots, and the dendrogram is attached beside the plot. `genes` accepts a
+vector or a single regular expression.
+
+```{r markers-dendro, results = "hide"}
+gm <- plot_gene_markers_with_dendro(
+  df         = marker_tbl,
+  genes      = c("CD14", "LYZ", "S100A8", "S100A9", "FCGR3A", "MS4A7",
+                 "GNLY", "NKG7", "MS4A1", "CD79A", "IL7R", "CCR7", "PPBP"),
+  id_col     = "group",
+  plot_title = "Canonical markers across cohort groups",
+  output_dir = file.path(out_dir, "marker_dendro")
+)
 ```
 
-## Part 3: Pseudo-bulk Differential Expression (DESeq2)
+```{r markers-dendro-show, fig.width = 11, fig.height = 4.5}
+gm$combined
+```
 
-While `FindAllMarkers()` compares clusters against each other, **DESeq2** compares the *same* cluster across different conditions (e.g., Healthy vs. Disease). `OHMmy` provides wrappers to visualize DESeq2 results natively.
+### `plot_split_dotplots_by_gene_cluster()`
 
-*(Note: Generating the DESeq2 `res` object using pseudo-bulk aggregation is assumed to be completed prior to visualization).*
+For gene families with many members, this function plots every
+*gene x cluster* combination. It splits the x-axis into `n_splits` dot plots and
+saves a global dendrogram of the groups. Here we use a regular expression to
+select all HLA class II genes.
 
-### 3.1 Volcano Plots
+```{r split-dot, results = "hide"}
+plot_split_dotplots_by_gene_cluster(
+  df                = marker_tbl,
+  gene_regex        = "^HLA-D",
+  id_col            = "group",
+  n_splits          = 2,
+  plot_title_prefix = "HLA class II markers",
+  output_dir        = file.path(out_dir, "split_dot")
+)
+```
 
-Visualize significant gene expression fold-changes between two conditions.
+```{r split-dot-show, echo = FALSE}
+show_saved(file.path(out_dir, "split_dot"), "^DotPlot_Part1")
+show_saved(file.path(out_dir, "split_dot"), "^Dendrogram_ALL", max_px = 1200)
+```
 
-```{r}
+## 3. Pathway enrichment
 
-# Define genes you want highlighted on the volcano plot
-highlight_genes <- c("IFNG", "GZMB", "TNF", "CX3CR1", "IL7R")
+Both enrichment pipelines take a marker table with one block of genes per
+`cluster` and a two-column **TERM2GENE** table, here the MSigDB Hallmark
+collection. If the table also has a column whose name contains `cell_type`,
+results are additionally summarised per cell type. We therefore compute markers
+for the nine `seurat_clusters` (two of which are CD4 T) and attach their cell
+type.
 
-# Generate the plot for Disease vs Control
-volcano_plot <- generate_volcano_trio(
-  res_obj = res_Disease_vs_Control, # Your DESeq2 results object
-  plot_title = "Severe Disease vs Healthy Control", 
-  target_genes = highlight_genes
+```{r gsea-input, results = "hide"}
+hallmark <- msigdbr(species = "Homo sapiens", collection = "H")[, c("gs_name", "gene_symbol")]
+
+Idents(pbmc) <- "seurat_clusters"
+mk_clusters <- FindTopMarkersAndHeatmap(
+  seurat_obj      = pbmc,
+  sample_name     = "pbmc3k_clusters",
+  onlyPos         = FALSE,             # GSEA needs both tails of the ranking
+  output_dir_base = file.path(out_dir, "markers"),
+  dpi             = 72
 )
 
-# Save the plot
-ggsave(paste0(out_dir, "DESeq2/volcano_disease_vs_control.png"), 
-       plot = volcano_plot, width = 20, height = 8)
+enrich_df <- mk_clusters$markers %>%
+  mutate(cluster   = as.character(cluster),
+         cell_type = as.character(pbmc$cell_type[match(cluster, pbmc$seurat_clusters)]))
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-differential-expression/Volcano_Trio_DHF_vs_AD_20260726_105713.png")
+```{r gsea-input-show}
+dim(enrich_df)
+dplyr::as_tibble(dplyr::distinct(enrich_df, cluster, cell_type))
 ```
 
-### 3.2 Heatmaps of Differentially Expressed Genes
+### Gene Set Enrichment Analysis: `run_global_gsea()`
 
-To visualize how the top significant genes fluctuate across individual patients, we use `generate_and_save_heatmap()`.
+For every cluster, genes are ranked by `avg_log2FC` and tested with
+`clusterProfiler::GSEA()`. A first pass collects the NES range of all clusters,
+so every per-cluster dot plot shares the same x-axis and can be compared
+directly. The function saves per-cluster NES dot plots, a classic enrichment
+plot for the top pathway of each cluster, alphabetical and hierarchically
+clustered overview dot plots, signed-significance plots (global and per cell
+type), and CSV summaries.
 
-```{r}
+```{r gsea, results = "hide"}
+gsea_dir <- file.path(out_dir, "gsea")
 
-# 1. Transform the count data (Required for heatmaps)
-vsd_data <- DESeq2::vst(dds_object, blind = FALSE)
+gsea_res <- run_global_gsea(
+  GSEA_df             = enrich_df,
+  m_t2g               = hallmark,
+  output_dir          = gsea_dir,
+  title_prefix        = "Hallmark",
+  top_n_per_direction = 8,
+  top_n_overall       = 4
+)
+```
 
-# 2. Setup the annotation column (e.g., Patient Condition)
-anno_col <- as.data.frame(colData(dds_object)[, "disease_state", drop = FALSE])
-ordered_samples <- rownames(anno_col)[order(anno_col$disease_state)]
+```{r gsea-table}
+gsea_res %>%
+  group_by(cluster) %>%
+  slice_min(p.adjust, n = 2, with_ties = FALSE) %>%
+  dplyr::select(cluster, cell_type, Description, NES, p.adjust) %>%
+  arrange(as.numeric(cluster))
+```
 
-# 3. Generate the heatmap
+The clustered overview groups clusters with similar pathway activity. The two
+CD4 T clusters (0 and 1) are neighbours, while CD14 monocytes (cluster 2) and
+platelets (cluster 8) stand apart. Cluster 2 has activated inflammatory and
+TNF-alpha signalling, and cluster 8 has activated coagulation. Clusters without
+significant pathways, here the small DC cluster 7, are left out.
+
+```{r gsea-clustered, echo = FALSE}
+show_saved(gsea_dir, "Hallmark_GSEA_Clustered_Dendro_Dotplot")
+```
+
+The signed-significance view puts direction and significance on one axis:
+
+```{r gsea-signed, echo = FALSE}
+show_saved(gsea_dir, "Hallmark_GSEA_Signed_Significance_Dotplot")
+```
+
+Per-cluster outputs for cluster 2 (CD14 monocytes): the NES dot plot and the
+running enrichment score of its top pathway.
+
+```{r gsea-cluster, echo = FALSE, out.width = "49%", fig.show = "hold"}
+show_saved(gsea_dir, "^Hallmark_2_GSEA_NES_Dotplot")
+show_saved(gsea_dir, "^Hallmark_2_.*_Gseaplot")
+```
+
+### Over-Representation Analysis: `run_global_ora()`
+
+ORA splits each cluster's genes into **Activated** (`avg_log2FC > log2fc_cutoff`)
+and **Suppressed** (`avg_log2FC < -log2fc_cutoff`) sets at `p_val_adj <
+padj_cutoff`, and tests each set with `clusterProfiler::enricher()` against the
+universe of all tested genes. With `variable_per_clus = TRUE`, the function
+also draws a signed-significance plot for every cell type.
+
+```{r ora, results = "hide"}
+ora_dir <- file.path(out_dir, "ora")
+
+ora_res <- run_global_ora(
+  ORA_df            = enrich_df,
+  m_t2g             = hallmark,
+  output_dir        = ora_dir,
+  title_prefix      = "Hallmark",
+  top_n_global      = 20,
+  top_n_per_cluster = 8,
+  log2fc_cutoff     = 0.25,
+  padj_cutoff       = 0.05,
+  global_width      = 11,
+  global_height     = 8,
+  variable_per_clus = TRUE
+)
+```
+
+```{r ora-table}
+ora_res %>%
+  dplyr::count(cluster, cell_type, Direction) %>%
+  arrange(as.numeric(cluster))
+```
+
+```{r ora-show, echo = FALSE}
+show_saved(ora_dir, "Hallmark_Global_Activated_Clustered_Dendro")
+show_saved(ora_dir, "Hallmark_ORA_Signed_Significance_Dotplot")
+```
+
+Per-cluster ORA outputs (cluster 2, CD14 monocytes):
+
+```{r ora-cluster, echo = FALSE, out.width = "49%", fig.show = "hold"}
+show_saved(ora_dir, "^Hallmark_2_Dotplot")
+show_saved(ora_dir, "^Hallmark_2_Barplot")
+```
+
+## 4. Pseudo-bulk differential expression with DESeq2
+
+Cluster markers compare cells. A pseudo-bulk analysis compares **samples**: the
+counts of each donor x population are summed and analysed with DESeq2, which
+correctly models donor-to-donor variability. Here we compare FCGR3A+ with CD14+
+monocytes within the same donors, using a paired design (`~ donor + subset`).
+
+```{r pseudobulk}
+mono <- subset(pbmc, subset = cell_type %in% c("CD14 Mono", "FCGR3A Mono"))
+mono$subset <- ifelse(mono$cell_type == "CD14 Mono", "CD14", "FCGR3A")
+
+pb <- AggregateExpression(mono, assays = "RNA", group.by = c("donor_id", "subset"),
+                          return.seurat = FALSE)$RNA
+coldata <- data.frame(
+  row.names = colnames(pb),
+  donor     = sub("_.*$", "", colnames(pb)),
+  subset    = factor(sub("^.*_", "", colnames(pb)), levels = c("CD14", "FCGR3A"))
+)
+coldata$severity <- pbmc$severity[match(coldata$donor, pbmc$donor_id)]
+
+dds <- DESeqDataSetFromMatrix(round(pb), colData = coldata, design = ~ donor + subset)
+dds <- dds[rowSums(counts(dds) >= 10) >= 3, ]
+dds <- DESeq(dds, quiet = TRUE)
+
+res_df <- as.data.frame(results(dds, contrast = c("subset", "FCGR3A", "CD14")))
+head(res_df[order(res_df$padj), c("baseMean", "log2FoldChange", "padj")])
+```
+
+### Volcano trio: `generate_volcano_trio()`
+
+The function expects a data frame with gene symbols as row names and the
+DESeq2 columns `log2FoldChange` and `padj`. Seurat results can be used after
+renaming `avg_log2FC` and `p_val_adj`. It returns three volcano plots (made with
+EnhancedVolcano) that label, in turn, the top 10 up- and down-regulated genes,
+the significant genes from your own `target_genes` list, and both together.
+Genes are labelled only if they pass `padj < 0.05` and `|log2FC| >= 1`.
+
+```{r volcano, fig.width = 20, fig.height = 7.5}
+volcano <- generate_volcano_trio(
+  res          = res_df,
+  main_title   = "FCGR3A+ vs CD14+ monocytes (pseudo-bulk, paired by donor)",
+  target_genes = c("FCGR3A", "MS4A7", "CDKN1C", "LST1", "CSF1R",
+                   "CD14", "LYZ", "S100A8", "VCAN", "CCR2")
+)
+volcano
+```
+
+### Heatmap of the top genes: `get_top_mixed_genes()` and `generate_and_save_heatmap()`
+
+`get_top_mixed_genes()` returns the union of the `n_padj` most significant genes
+and the `n_lfc` genes with the largest effect, chosen among the strictly
+significant ones. This way neither highly significant small changes nor large
+effects in lowly expressed genes are missed.
+
+```{r top-mixed}
+top_genes <- get_top_mixed_genes(res_df, n_padj = 25, n_lfc = 25)
+length(top_genes)
+head(top_genes, 15)
+```
+
+`generate_and_save_heatmap()` uses these genes to draw two row-scaled heatmaps
+of the variance-stabilised counts. The left heatmap keeps your sample order
+(`ordered_samps`) and the right one clusters the samples freely.
+
+```{r heatmap, results = "hide"}
+vsd <- vst(dds, blind = FALSE)
+
+anno_col <- as.data.frame(colData(vsd)[, c("subset", "severity")])
+ordered_samples <- rownames(anno_col)[order(anno_col$subset, anno_col$severity)]
+
+heatmap_dir <- file.path(out_dir, "deseq2")
+
 generate_and_save_heatmap(
-  res_obj = res_Disease_vs_Control,
-  comp_name = "Disease_vs_Control",
-  comp_title = "Severe Disease vs Healthy Control",
-  vsd_data = vsd_data,
-  anno_col = anno_col,
+  res_obj       = res_df,
+  comp_name     = "FCGR3A_vs_CD14",
+  comp_title    = "FCGR3A+ vs CD14+ monocytes",
+  vsd_data      = vsd,
+  anno_col      = anno_col,
   ordered_samps = ordered_samples,
-  n_padj = 50, # Plot top 50 significant genes
-  out_dir = paste0(out_dir, "DESeq2/")
+  n_padj        = 25,
+  n_lfc         = 25,
+  out_dir       = heatmap_dir,
+  ts            = format(Sys.time(), "%Y%m%d_%H%M%S"),
+  clus          = "Monocytes"
 )
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-differential-expression/Heatmap_SD_vs_AD_all_topP_1000_topLFC_1000_20260726_115057.png")
+```{r heatmap-show, echo = FALSE}
+show_saved(heatmap_dir, "^Heatmap_FCGR3A_vs_CD14")
+```
+
+In the unordered (right) heatmap the samples split by monocyte subset, not by
+the simulated severity. This is expected, because severity was simulated and
+has no transcriptional effect.
+
+## Session information
+
+```{r session-info}
+sessionInfo()
 ```

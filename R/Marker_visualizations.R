@@ -58,26 +58,21 @@ plot_split_dotplots_by_gene_cluster <- function(df,
                                                 min_width = 5,
                                                 min_height = 5,
                                                 label_space = 1) {
-  library(ggplot2)
-  library(dplyr)
-  library(stringr)
-  library(tidyr)
-  library(ggdendro)
-  library(patchwork)
-  library(rlang)  # For tidy evaluation
-  library(tibble)
+  if (!(id_col %in% colnames(df))) {
+    stop("The specified id_col '", id_col, "' does not exist in the data.")
+  }
 
   # Convert id_col to symbol for tidy evaluation
-  id_sym <- sym(id_col)
+  id_sym <- rlang::sym(id_col)
 
   # 1. Filter genes by list or regex
   df_filtered <- df %>%
     mutate(gene = as.character(gene)) %>%
     filter(
       (if (!is.null(gene_list)) gene %in% gene_list else TRUE) &
-        (if (!is.null(gene_regex)) str_detect(gene, regex(gene_regex, ignore_case = TRUE)) else TRUE)
+        (if (!is.null(gene_regex)) str_detect(gene, stringr::regex(gene_regex, ignore_case = TRUE)) else TRUE)
     ) %>%
-    dplyr::select(gene, cluster, {{id_sym}}, avg_log2FC, diff) %>%
+    dplyr::select(gene, cluster, !!id_sym, avg_log2FC, diff) %>%
     mutate(
       across(c(gene), as.character),
       y_id = as.character(!!id_sym),
@@ -192,6 +187,8 @@ plot_split_dotplots_by_gene_cluster <- function(df,
     ggsave(plot_path, p, width = width, height = height, dpi = 300, limitsize = FALSE)
     message("DotPlot saved: ", plot_path)
   }
+
+  invisible(NULL)
 }
 
 # -------------------------------------------
@@ -249,19 +246,19 @@ plot_split_dotplots_by_gene_cluster <- function(df,
 #'   compare = c("CD8_Effector", "CD8_Naive"),
 #'   onlyPos = FALSE,
 #'   marker_avg_log2FC_thresh = 0.25,
-#'   save_format = "png"
+#'   plot_format = "png"
 #' )
 #' }
 FindTopMarkersAndHeatmap <- function(
     seurat_obj,
     sample_name = "Sample",
-    use_sct = FALSE,          # <-- NEW VARIABLE ADDED HERE
+    use_sct = FALSE,
     marker_diff_thresh = 0.1,
     marker_pval_adj = 0.05,
     marker_avg_log2FC_thresh = 0.5,
     top_n = 20,
     output_dir_base = "Plots_heatmap",
-    plot_format = "jpg",  # "png" or "pdf"
+    plot_format = "jpg",
     width = 10,
     height = 20,
     dpi = 300,
@@ -269,15 +266,7 @@ FindTopMarkersAndHeatmap <- function(
     add_timestamp = TRUE,
     onlyPos = TRUE
 ) {
-  require(Seurat)
-  require(dplyr)
-  require(ggplot2)
-  require(lubridate)
-
-  # Helper to sanitize filenames
-  sanitize <- function(x) gsub("[^A-Za-z0-9_.-]+", "_", x)
-
-  # --- NEW: SCT Preparation Block ---
+  # --- SCT preparation ---
   if (isTRUE(use_sct)) {
     message("[", sample_name, "] Preparing SCT models for marker discovery...")
     DefaultAssay(seurat_obj) <- "SCT"
@@ -290,10 +279,8 @@ FindTopMarkersAndHeatmap <- function(
   message("[", sample_name, "] Finding markers using ", active_assay, " assay...")
 
   if(is.null(compare)) {
-    # --- Passed active_assay here ---
     markers <- FindAllMarkers(seurat_obj, assay = active_assay, only.pos = onlyPos, logfc.threshold = 0, min.pct = 0)
   } else {
-    # --- Passed active_assay here ---
     markers <- FindMarkers(seurat_obj, assay = active_assay, ident.1 = compare[1], ident.2 = compare[2], only.pos = onlyPos, logfc.threshold = 0, min.pct = 0)
 
     # --- CRITICAL PATCH FOR PAIRWISE COMPARISON ---
@@ -325,7 +312,6 @@ FindTopMarkersAndHeatmap <- function(
 
   message(" [", sample_name, "] Plotting heatmap...")
 
-  # --- Passed active_assay here ---
   heatmap <- DoHeatmap(seurat_obj, features = top_markers$gene, assay = active_assay) +
     ggtitle(paste0("Top Markers - ", sample_name))
 
@@ -444,16 +430,16 @@ plot_gene_markers_with_dendro <- function(df, genes,
   df_igh <- if (is_regex) {
     df %>%
       filter(grepl(genes, gene, ignore.case = TRUE)) %>%
-      dplyr::select(gene, cluster, !!sym(id_col), avg_log2FC, diff)
+      dplyr::select(gene, cluster, !!rlang::sym(id_col), avg_log2FC, diff)
   } else {
     df %>%
       filter(gene %in% genes) %>%
-      dplyr::select(gene, cluster, !!sym(id_col), avg_log2FC, diff)
+      dplyr::select(gene, cluster, !!rlang::sym(id_col), avg_log2FC, diff)
   }
 
   df_igh <- df_igh %>%
-    mutate(across(c(gene, !!sym(id_col)), as.character)) %>%
-    rename(y_id = !!sym(id_col))
+    mutate(across(c(gene, !!rlang::sym(id_col)), as.character)) %>%
+    rename(y_id = !!rlang::sym(id_col))
 
   # 2. Aggregate per gene and y_id
   df_igh <- df_igh %>%
@@ -649,7 +635,7 @@ extract_binned_expression <- function(seurat_obj, gene_list, group_col = "seurat
 #' 2) A user-provided list of target functional genes (filtered to only show significant ones).
 #' 3) A combined view of both the top 20 genes and the significant target genes.
 #'
-#' @param res A data frame containing differential expression results. Must contain row names as gene symbols, and the columns \code{padj} (adjusted p-value) and \code{log2FoldChange}.
+#' @param res A data frame (or DESeq2 \code{DESeqResults} object) containing differential expression results. Must have gene symbols as row names and the columns \code{padj} (adjusted p-value) and \code{log2FoldChange}. Requires the \pkg{EnhancedVolcano} package.
 #' @param main_title Character. The overarching title displayed at the very top of the combined plot.
 #' @param target_genes Character vector. A specific list of genes of interest to highlight (e.g., functional pathway markers). Only genes in this list that meet the strict significance thresholds will be labeled.
 #'
@@ -680,6 +666,8 @@ extract_binned_expression <- function(seurat_obj, gene_list, group_col = "seurat
 #' ggsave("Volcano_Trio.png", plot = volcano_trio, width = 24, height = 8, dpi = 300)
 #' }
 generate_volcano_trio <- function(res, main_title, target_genes) {
+  .check_suggested("EnhancedVolcano", "generate_volcano_trio()")
+  res <- as.data.frame(res)
 
   # 1. STRICT FILTER: Keep only genes significant in BOTH padj AND Fold Change
   sig_strict <- res[!is.na(res$padj) &
@@ -703,7 +691,7 @@ generate_volcano_trio <- function(res, main_title, target_genes) {
   # ---------------------------------------------------------
   # PLOT 1: Top 20 Genes Only
   # ---------------------------------------------------------
-  p1 <- EnhancedVolcano(res,
+  p1 <- EnhancedVolcano::EnhancedVolcano(res,
                         lab = rownames(res),
                         x = 'log2FoldChange', y = 'padj',
                         title = 'Top 10 Up & Down',
@@ -717,7 +705,7 @@ generate_volcano_trio <- function(res, main_title, target_genes) {
   # ---------------------------------------------------------
   # PLOT 2: Functional List Only (Filtered for Significance)
   # ---------------------------------------------------------
-  p2 <- EnhancedVolcano(res,
+  p2 <- EnhancedVolcano::EnhancedVolcano(res,
                         lab = rownames(res),
                         x = 'log2FoldChange', y = 'padj',
                         title = 'Target Functional Genes',
@@ -731,7 +719,7 @@ generate_volcano_trio <- function(res, main_title, target_genes) {
   # ---------------------------------------------------------
   # PLOT 3: Combined (Top 20 + Filtered Functional)
   # ---------------------------------------------------------
-  p3 <- EnhancedVolcano(res,
+  p3 <- EnhancedVolcano::EnhancedVolcano(res,
                         lab = rownames(res),
                         x = 'log2FoldChange', y = 'padj',
                         title = 'Combined Labels',

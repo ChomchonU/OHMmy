@@ -19,13 +19,13 @@ plot_dot_dendro(
 
 \item{meta_col}{Character. The metadata column used to group cells (e.g., "seurat_clusters" or "CellType").}
 
-\item{feature_df}{A data frame mapping genes to categories. Must contain a \code{group} column (to filter by prefix) and a \code{feature} column (containing the gene names).}
+\item{feature_df}{A data frame mapping genes to categories. Must contain a \code{group} column and a \code{feature} column (containing the gene names). Only rows whose \code{group} starts with \code{paste0(prefix, "_")} are plotted, e.g. \code{"PBMC_Tcell"} for \code{prefix = "PBMC"}.}
 
 \item{scale}{Logical. Whether to scale the average expression values (z-score) across groups before plotting and clustering. Default is TRUE.}
 
 \item{pct_threshold}{Numeric. The minimum percentage of cells expressing the gene in at least one cluster required to retain the gene. Default is 15.}
 
-\item{output_dir}{Character. Directory path where the generated JPEGs and text file will be saved. Default is "Output_R".}
+\item{output_dir}{Character. Directory path where the generated JPEGs and text file will be saved (created if missing). Default is "Output_R".}
 
 \item{prefix}{Character. A string used to filter the \code{group} column in \code{feature_df}. If \code{NULL}, it automatically attempts to derive the prefix by removing "label_" from \code{meta_col}. Default is NULL.}
 }

@@ -17,7 +17,7 @@ run_soupx_post_clustering(
 
 \item{multiFac}{Numeric. A percentage to artificially add to the auto-estimated contamination fraction (\code{rho}). Default is 0.}
 
-\item{manual_contam}{Character vector. An optional list of specific sample names to selectively apply the \code{multiFac} adjustment to. Default is an empty list.}
+\item{manual_contam}{Character vector. Optional sample names to which the \code{multiFac} adjustment is restricted. When empty (the default), \code{multiFac} is applied to every sample.}
 
 \item{pCut}{Numeric. The p-value threshold used for identifying cells expressing genes above background levels when \code{methods = "soupOnly"}. Default is 0.01.}
 

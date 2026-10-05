@@ -60,11 +60,7 @@ plot_combined <- function(seurat_obj,
                           dpi = 300,
                           add_timestamp = TRUE,
                           verbose = TRUE) {
-  require(Seurat)
-  require(ggplot2)
-  require(patchwork)
-  require(lubridate)
-  require(SingleCellExperiment) # <-- ADDED: Required for the v5 bypass
+  .check_suggested(c("SingleCellExperiment", "Nebulosa"), "plot_combined()")
 
   chains <- names(genes_list)
   combined_plot_list <- list()
@@ -188,8 +184,6 @@ plot_combined <- function(seurat_obj,
   ))
 }
 
-# Helper to clean filenames
-sanitize <- function(x) gsub("[^A-Za-z0-9_.-]+", "_", x)
 
 # ----------------------------------------------------
 
@@ -209,7 +203,7 @@ sanitize <- function(x) gsub("[^A-Za-z0-9_.-]+", "_", x)
 #' @param assay Character. The assay to pull gene expression data from. Default is "RNA".
 #' @param output_dir Character. Directory path where the generated plots will be saved. Default is "Plots_violin_qc".
 #' @param save_format Character. The file format for the saved plots ("jpg", "png", or "pdf"). Default is "jpg".
-#' @param width Numeric. The base width of the saved plot. Default is 20.
+#' @param width Numeric. The width (in inches) of both saved figures; the height grows with the number of panels (three per row). Default is 20.
 #' @param dpi Numeric. The resolution of the saved plots. Default is 300.
 #' @param add_timestamp Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.
 #'
@@ -247,14 +241,6 @@ plot_violin_qc_single <- function(seurat_obj,
                                   width = 20,
                                   dpi = 300,
                                   add_timestamp = TRUE) {
-  require(Seurat)
-  require(ggplot2)
-  require(patchwork)
-  require(lubridate)
-
-  # Helper to sanitize file components
-  sanitize <- function(x) gsub("[^A-Za-z0-9_.-]+", "_", x)
-
   # Timestamp (optional)
   timestamp <- if (isTRUE(add_timestamp)) format(Sys.time(), "%Y-%m-%d_%H-%M-%S") else NULL
 
@@ -345,7 +331,7 @@ plot_violin_qc_single <- function(seurat_obj,
     }
 
     if (length(gene_plots) > 0) {
-      # Combine into 2-column layout
+      # Combine into a 3-column layout
       p_gene <- wrap_plots(gene_plots, ncol = 3)
 
       fname_parts <- c(sanitize(sample_name), "ViolinGene", sanitize(res_col))
@@ -355,23 +341,21 @@ plot_violin_qc_single <- function(seurat_obj,
 
       message("Saving combined gene plots: ", file_path)
 
-      n_gene <- length(gene_features)
+      n_gene <- length(gene_plots)
       ncol <- 3
       nrow <- ceiling(n_gene / ncol)
       row_height <- 20 / 3
       height <- nrow * row_height
 
       tryCatch({
-        ggsave(file_path, plot = p_gene,
-               width = 20,  # fixed 2 cols (2  8)
-               height = height,
+        ggsave(file_path, plot = p_gene, width = width, height = height,
                dpi = dpi, limitsize = FALSE)
         if (file.exists(file_path)) {
           message("Gene plots saved: ", file_path)
         } else {
           warning("ggsave failed. Trying fallback PDF.")
           fallback_file <- sub(paste0("\\.", save_format, "$"), ".pdf", file_path)
-          pdf(fallback_file, width = 16, height = height * ceiling(length(gene_plots) / 2))
+          pdf(fallback_file, width = width, height = height)
           print(p_gene)
           dev.off()
           message(" Fallback PDF saved: ", fallback_file)
@@ -385,6 +369,7 @@ plot_violin_qc_single <- function(seurat_obj,
   }
 
   message("Done: ", sample_name)
+  invisible(NULL)
 }
 
 # ------------------------------------------------
@@ -431,19 +416,19 @@ plot_violin_qc_single <- function(seurat_obj,
 #' }
 PlotDimByFactors <- function(
     seurat_obj,
-    factors,                        # <-- moved up: now 2nd arg
+    factors,
     sample_name = "Sample",
     reduction = "umap.har",
     raster = FALSE,
     label = TRUE,
     repel = TRUE,
     output_dir = "Plots_umap",
-    plot_format = "jpg",            # "png" or "pdf"
+    plot_format = "jpg",
     width = 10,
     height = 10,
     dpi = 300,
-    add_timestamp = TRUE,           # new: turn timestamp on/off
-    verbose = TRUE                  # new: message control
+    add_timestamp = TRUE,
+    verbose = TRUE
 ) {
   stopifnot(inherits(seurat_obj, "Seurat"))
 
@@ -472,9 +457,6 @@ PlotDimByFactors <- function(
   }
 
   timestamp <- if (isTRUE(add_timestamp)) format(Sys.time(), "%Y-%m-%d_%H-%M-%S") else NULL
-
-  # filename-sanitizing helper
-  sanitize <- function(x) gsub("[^A-Za-z0-9_.-]+", "_", x)
 
   plots <- list()
   n <- length(factors)
@@ -536,7 +518,6 @@ PlotDimByFactors <- function(
 
 # -------------------------------------------
 
-# -- Palette helper (add this alongside sanitize()) ----------------------------
 #' Generate a Discrete Color Palette for Clustering
 #'
 #' Creates a maximally distinct color palette tailored for high-dimensional single-cell
@@ -679,7 +660,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
                                         sample_name = "Sample",
                                         cor_method = "pearson",
                                         quantile_thresh = 0.01,
-                                        fill_palette = "auto",   #  was "Set2"
+                                        fill_palette = "auto",
                                         output_dir = "Plots_gene_pair_cor",
                                         save_format = "jpg",
                                         width = 14,
@@ -687,11 +668,6 @@ plot_gene_pair_correlations <- function(seurat_obj,
                                         dpi = 300,
                                         add_timestamp = TRUE,
                                         verbose = TRUE) {
-
-  require(Seurat)
-  require(ggplot2)
-  require(dplyr)
-  require(lubridate)
 
   # -- Validation ----------------------------------------------------------------
   if (!is.list(gene_pairs) || !all(lengths(gene_pairs) == 2)) {
@@ -815,18 +791,15 @@ plot_gene_pair_correlations <- function(seurat_obj,
     message("Plot saved to: ", file_out)
   }
 
-  return(list(          #  must be AFTER ggsave and the verbose message
+  list(
     plot       = p,
     data       = final_cor_df,
     output_dir = output_dir
-  ))
-}                       #  closing brace of the function
+  )
+}
 
 #------------------------------------------
 
-# -- Private helper: Seurat-v5-safe blend plot ----------------------------------
-# Returns a patchwork of 4 panels (gene1 | gene2 | blend | colour-key),
-# matching the shape that FeaturePlot(blend=TRUE, combine=TRUE) used to give.
 #' Generate a 4-Panel Blended Feature Plot (Seurat v5 Compatible)
 #'
 #' Replicates and enhances the behavior of Seurat's original \code{FeaturePlot(blend = TRUE, combine = TRUE)}
@@ -1004,7 +977,6 @@ plot_gene_pair_correlations <- function(seurat_obj,
 
 #--------------------------------------------------------------------------------------
 
-# -- Main function (only the FeaturePlot call is changed) -----------------------
 #' Generate Combined Blend and Nebulosa Density Plots
 #'
 #' Iterates over a list of gene pairs to generate a comprehensive 6-panel visualization
@@ -1074,10 +1046,7 @@ plot_blend_nebulosa <- function(seurat_obj,
                                 add_timestamp   = TRUE,
                                 verbose         = TRUE) {
 
-  require(Seurat)
-  require(ggplot2)
-  require(patchwork)
-  require(Nebulosa)
+  .check_suggested("Nebulosa", "plot_blend_nebulosa()")
 
   # -- Validation ----------------------------------------------------------------
   if (!is.list(gene_pairs) || !all(lengths(gene_pairs) == 2))
@@ -1118,7 +1087,7 @@ plot_blend_nebulosa <- function(seurat_obj,
     gene2     <- valid_pairs[[i]][2]
     pair_name <- paste(gene1, "vs", gene2)
 
-    # -- CHANGED: use v5-safe manual blend instead of FeaturePlot -------------
+    # Seurat v5-safe manual blend (replaces FeaturePlot(blend = TRUE))
     p_blend <- .blend_feature_plot_v5(
       seurat_obj      = seurat_obj,
       gene1           = gene1,
@@ -1130,7 +1099,7 @@ plot_blend_nebulosa <- function(seurat_obj,
     )
 
     # -- Nebulosa - gene 1 --------------------------------------------------------
-    p_neb1 <- plot_density(seurat_obj, features = gene1, reduction = reduction) +
+    p_neb1 <- Nebulosa::plot_density(seurat_obj, features = gene1, reduction = reduction) +
       labs(title = paste(gene1, "density")) +
       theme(
         plot.title        = element_text(hjust = 0.5, face = "bold", size = 11),
@@ -1142,7 +1111,7 @@ plot_blend_nebulosa <- function(seurat_obj,
       )
 
     # -- Nebulosa - gene 2 --------------------------------------------------------
-    p_neb2 <- plot_density(seurat_obj, features = gene2, reduction = reduction) +
+    p_neb2 <- Nebulosa::plot_density(seurat_obj, features = gene2, reduction = reduction) +
       labs(title = paste(gene2, "density")) +
       theme(
         plot.title        = element_text(hjust = 0.5, face = "bold", size = 11),
@@ -1221,9 +1190,9 @@ plot_blend_nebulosa <- function(seurat_obj,
 #' The resulting plots are automatically saved to the specified output directory.
 #'
 #' @param seurat_obj A Seurat object containing single-cell data.
-#' @param cluster_col Character. The name of the metadata column representing cell clusters or identity classes. Default is "label_T3_log_rpca".
-#' @param batch_col Character. The name of the metadata column representing batches, samples, or conditions (e.g., "exist_GTS"). Default is "exist_GTS".
-#' @param output_dir Character. The directory path where the generated JPEGs will be saved. Default is a specific local directory path.
+#' @param cluster_col Character. The name of the metadata column representing cell clusters or identity classes. Default is "seurat_clusters".
+#' @param batch_col Character. The name of the metadata column representing batches, samples, or conditions. Default is "orig.ident".
+#' @param output_dir Character. The directory path where the generated JPEGs will be saved (created if missing). Default is "Plots_cluster_distributions".
 #' @param file_prefix Character. A prefix string to append to the saved filenames to help identify the analysis run. Default is "ind_label".
 #'
 #' @return Invisibly returns a list containing two \code{patchwork} plot objects:
@@ -1251,15 +1220,15 @@ plot_blend_nebulosa <- function(seurat_obj,
 #' }
 plot_cluster_distributions <- function(
     seurat_obj,
-    cluster_col = "label_T3_log_rpca",
-    batch_col = "exist_GTS",
-    output_dir = "C:/Users/ADMIN/Desktop/Dengue_summer/Output_R/Plots_count_dis/CD8_subset/rpca",
+    cluster_col = "seurat_clusters",
+    batch_col = "orig.ident",
+    output_dir = "Plots_cluster_distributions",
     file_prefix = "ind_label"
 ) {
 
   # Ensure columns exist in metadata
   meta_data <- seurat_obj@meta.data
-  if (!(cluster_col %in% colnames(meta_data)) | !(batch_col %in% colnames(meta_data))) {
+  if (!(cluster_col %in% colnames(meta_data)) || !(batch_col %in% colnames(meta_data))) {
     stop("One or both specified columns not found in the Seurat object's metadata.")
   }
 
@@ -1343,6 +1312,5 @@ plot_cluster_distributions <- function(
   ggsave(filename_count, plot = p_count_combined, width = 20, height = 10, dpi = 300)
   message("Saved counts to: ", filename_count)
 
-  # Return plots as a list just in case you want to view them in your R session
-  return(invisible(list(proportions = p_prop_combined, counts = p_count_combined)))
+  invisible(list(proportions = p_prop_combined, counts = p_count_combined))
 }

@@ -43,7 +43,7 @@ Options are: 1 = Original Louvain, 2 = Louvain with multilevel refinement, 3 = S
 
 \item{umap_name}{Character. The name to assign to the generated UMAP reduction. Default is "umap.har".}
 
-\item{cluster_prefix}{Character. The prefix to use for naming the cluster metadata columns. Default is "RNA_snn_res.".}
+\item{cluster_prefix}{Character. The prefix of the cluster metadata columns, used to build the \code{clustree}. Default is "RNA_snn_res.".}
 
 \item{graph_name}{Character. The name to assign to the generated Shared Nearest Neighbor (SNN) graph. Default is "RNA_snn".}
 
@@ -84,6 +84,11 @@ to avoid redundant computations unless explicitly forced. The function sweeps th
 a provided sequence of clustering resolutions, generates and saves a \code{clustree}
 plot to help visualize cluster stability, and computes a final UMAP embedding at a
 specified resolution.
+}
+\details{
+Seurat names cluster columns \code{paste0(graph_name, "_res.", resolution)}.
+For the \code{clustree} plot to find them, \code{cluster_prefix} should therefore be
+\code{paste0(graph_name, "_res.")} (the defaults follow this rule).
 }
 \examples{
 \dontrun{

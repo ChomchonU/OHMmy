@@ -6,21 +6,20 @@
 \usage{
 plot_cluster_distributions(
   seurat_obj,
-  cluster_col = "label_T3_log_rpca",
-  batch_col = "exist_GTS",
-  output_dir =
-    "C:/Users/ADMIN/Desktop/Dengue_summer/Output_R/Plots_count_dis/CD8_subset/rpca",
+  cluster_col = "seurat_clusters",
+  batch_col = "orig.ident",
+  output_dir = "Plots_cluster_distributions",
   file_prefix = "ind_label"
 )
 }
 \arguments{
 \item{seurat_obj}{A Seurat object containing single-cell data.}
 
-\item{cluster_col}{Character. The name of the metadata column representing cell clusters or identity classes. Default is "label_T3_log_rpca".}
+\item{cluster_col}{Character. The name of the metadata column representing cell clusters or identity classes. Default is "seurat_clusters".}
 
-\item{batch_col}{Character. The name of the metadata column representing batches, samples, or conditions (e.g., "exist_GTS"). Default is "exist_GTS".}
+\item{batch_col}{Character. The name of the metadata column representing batches, samples, or conditions. Default is "orig.ident".}
 
-\item{output_dir}{Character. The directory path where the generated JPEGs will be saved. Default is a specific local directory path.}
+\item{output_dir}{Character. The directory path where the generated JPEGs will be saved (created if missing). Default is "Plots_cluster_distributions".}
 
 \item{file_prefix}{Character. A prefix string to append to the saved filenames to help identify the analysis run. Default is "ind_label".}
 }

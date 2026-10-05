@@ -35,6 +35,6 @@ top_mixed_markers <- get_top_mixed_genes(
 )
 
 # Use this curated list for a targeted heatmap
-pheatmap(assay(vsd)[top_mixed_markers, ])
+pheatmap::pheatmap(SummarizedExperiment::assay(vsd)[top_mixed_markers, ])
 }
 }

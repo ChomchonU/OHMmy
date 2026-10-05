@@ -9,10 +9,10 @@
 #'
 #' @param seurat_obj A Seurat object containing single-cell data.
 #' @param meta_col Character. The metadata column used to group cells (e.g., "seurat_clusters" or "CellType").
-#' @param feature_df A data frame mapping genes to categories. Must contain a \code{group} column (to filter by prefix) and a \code{feature} column (containing the gene names).
+#' @param feature_df A data frame mapping genes to categories. Must contain a \code{group} column and a \code{feature} column (containing the gene names). Only rows whose \code{group} starts with \code{paste0(prefix, "_")} are plotted, e.g. \code{"PBMC_Tcell"} for \code{prefix = "PBMC"}.
 #' @param scale Logical. Whether to scale the average expression values (z-score) across groups before plotting and clustering. Default is TRUE.
 #' @param pct_threshold Numeric. The minimum percentage of cells expressing the gene in at least one cluster required to retain the gene. Default is 15.
-#' @param output_dir Character. Directory path where the generated JPEGs and text file will be saved. Default is "Output_R".
+#' @param output_dir Character. Directory path where the generated JPEGs and text file will be saved (created if missing). Default is "Output_R".
 #' @param prefix Character. A string used to filter the \code{group} column in \code{feature_df}. If \code{NULL}, it automatically attempts to derive the prefix by removing "label_" from \code{meta_col}. Default is NULL.
 #'
 #' @return A \code{patchwork} object representing the final combined layout (dot plot + column dendrogram + row dendrogram).
@@ -54,6 +54,7 @@ plot_dot_dendro <- function(
   if (!meta_col %in% colnames(seurat_obj@meta.data)) {
     stop("Metadata column '", meta_col, "' does not exist in the Seurat object.")
   }
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
   if (is.null(prefix)) {
     prefix <- sub("label_", "", meta_col)
@@ -247,7 +248,7 @@ plot_dot_dendro <- function(
          height = 20,
          dpi = 300, limitsize = FALSE)
 
-  # ADDED: Save row dendrogram (cluster dendrogram only)
+  # Save row dendrogram (cluster dendrogram only)
   row_dend_filename <- file.path(output_dir,
                                  paste0("ClusterDendrogram_", safe_meta_col, "_", safe_prefix, "_", timestamp, ".jpg"))
   ggsave(row_dend_filename, row_dend_rot,
@@ -302,10 +303,10 @@ plot_dot_dendro <- function(
 #'
 #' @param seurat_obj A Seurat object containing single-cell data.
 #' @param meta_col Character. The metadata column used to group cells (e.g., "seurat_clusters").
-#' @param feature_df A data frame mapping genes to categories. Must contain a \code{group} column (to filter by prefix) and a \code{feature} column (containing the gene names).
+#' @param feature_df A data frame mapping genes to categories. Must contain a \code{group} column and a \code{feature} column (containing the gene names). Only rows whose \code{group} starts with \code{paste0(prefix, "_")} are plotted, e.g. \code{"PBMC_Tcell"} for \code{prefix = "PBMC"}.
 #' @param scale Logical. Whether to scale the average expression values (z-score) across groups before plotting. Default is TRUE.
 #' @param pct_threshold Numeric. The minimum percentage of cells expressing the gene in at least one cluster required to retain the gene. Default is 15.
-#' @param output_dir Character. Directory path where the generated JPEGs and text file will be saved. Default is "Output_R".
+#' @param output_dir Character. Directory path where the generated JPEGs and text file will be saved (created if missing). Default is "Output_R".
 #' @param prefix Character. A string used to filter the \code{group} column in \code{feature_df}. If \code{NULL}, it automatically derives the prefix by removing "label_" from \code{meta_col}. Default is NULL.
 #' @param max_genes_per_plot Integer. The maximum number of genes to display per plot. If the filtered gene list exceeds this number, the output is split into multiple chunked plots. Default is NULL (no splitting).
 #'
@@ -349,6 +350,7 @@ plot_dot_dendro_split <- function(
   if (!meta_col %in% colnames(seurat_obj@meta.data)) {
     stop("Metadata column '", meta_col, "' does not exist in the Seurat object.")
   }
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
   if (is.null(prefix)) {
     prefix <- sub("label_", "", meta_col)
@@ -573,14 +575,6 @@ plot_dot_dendro_multi <- function(
     range = c(0.25, 6),
     save_options = c("combined", "col_dend", "row_dend", "gene_list")
 ) {
-  # Load only necessary namespaces to avoid masking
-  require(dplyr)
-  require(tidyr)
-  require(ggplot2)
-  require(ggdendro)
-  require(patchwork)
-  require(Seurat)
-
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
   # 1. Efficient Data Gathering
@@ -628,7 +622,8 @@ plot_dot_dendro_multi <- function(
     filter(features.plot %in% keep_features) %>%
     select(cluster_var, features.plot, avg.exp.scaled) %>%
     pivot_wider(names_from = features.plot, values_from = avg.exp.scaled) %>%
-    tibble::column_to_rownames("cluster_var")
+    tibble::column_to_rownames("cluster_var") %>%
+    as.matrix()
 
   row_hc <- hclust(dist(mat_avg))
   col_hc <- hclust(dist(t(mat_avg)))
@@ -650,7 +645,7 @@ plot_dot_dendro_multi <- function(
 
   if (needs_dendro) {
     # Row Dendro (Rotated)
-    row_dd <- dendro_data(as.dendrogram(row_hc))
+    row_dd <- ggdendro::dendro_data(as.dendrogram(row_hc))
     p_row_dend <- ggplot() +
       geom_segment(data = row_dd$segments, aes(x = y, y = x, xend = yend, yend = xend)) +
       geom_label(data = row_dd$labels, aes(x = y, y = x, label = label),
@@ -659,7 +654,7 @@ plot_dot_dendro_multi <- function(
       theme_void()
 
     # Column Dendro
-    col_dd <- dendro_data(as.dendrogram(col_hc))
+    col_dd <- ggdendro::dendro_data(as.dendrogram(col_hc))
     p_col_dend <- ggplot() +
       geom_segment(data = col_dd$segments, aes(x = x, y = y, xend = xend, yend = yend)) +
       geom_text(data = col_dd$labels, aes(x = x, y = y, label = label),
@@ -672,12 +667,12 @@ plot_dot_dendro_multi <- function(
   # 5. Execute Save Operations
   if ("col_dend" %in% save_options) {
     ggsave(file.path(output_dir, paste0("GeneDendrogram_", safe_prefix, "_", timestamp, ".jpg")),
-           p_col_dend, width = min(75, max(15, 0.3 * length(keep_features))), height = 20, , limitsize = FALSE)
+           p_col_dend, width = min(75, max(15, 0.3 * length(keep_features))), height = 20, limitsize = FALSE)
   }
 
   if ("row_dend" %in% save_options) {
     ggsave(file.path(output_dir, paste0("ClusterDendrogram_", safe_prefix, "_", timestamp, ".jpg")),
-           p_row_dend, width = 10, , limitsize = FALSE, height = max(10, 0.4 * nrow(mat_avg)))
+           p_row_dend, width = 10, height = max(10, 0.4 * nrow(mat_avg)), limitsize = FALSE)
   }
 
   if ("gene_list" %in% save_options) {

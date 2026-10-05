@@ -10,7 +10,7 @@ get_sample_names(filtered_dir)
 \item{filtered_dir}{Character. The file path to the parent directory containing the individual sample output folders.}
 }
 \value{
-A character vector of cleaned sample names, derived from the sub-directory names.
+An unnamed character vector of cleaned sample names, derived from the sub-directory names.
 }
 \description{
 Scans a specified parent directory for 10x Genomics Cell Ranger output folders

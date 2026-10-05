@@ -13,7 +13,7 @@
 #'
 #' @param ORA_df A data frame containing differential expression results. Must contain columns \code{gene}, \code{cluster}, \code{avg_log2FC}, and \code{p_val_adj}. Optionally, a column containing "cell_type" or "celltype" in its name can be included for nested plotting.
 #' @param m_t2g A two-column data frame mapping pathways/terms to genes (TERM2GENE format), typically sourced from MSigDB via the \code{msigdbr} package.
-#' @param output_dir Character. Directory path where all plots and CSV summaries will be saved.
+#' @param output_dir Character. Directory path where all plots and CSV summaries will be saved (created if missing; a trailing slash is optional).
 #' @param title_prefix Character. A prefix used for plot titles and file naming to identify the pathway database (e.g., "Hallmark", "KEGG"). Default is "Hallmark".
 #' @param top_n_global Integer. The maximum number of top pathways to display on the global summary plots. Default is 40.
 #' @param top_n_per_cluster Integer. The maximum number of top pathways to display per direction on the individual cluster plots. Default is 10.
@@ -25,7 +25,7 @@
 #' @param global_height Numeric. The height (in inches) of the global summary plots. Default is 15.
 #' @param variable_per_clus Logical. If \code{TRUE} and a cell type column is detected in \code{ORA_df}, it generates separate signed significance dotplots for each cell type. Default is FALSE.
 #'
-#' @return Invisibly returns a \code{tibble} (\code{combined_df}) containing the concatenated enrichment results across all clusters and directions. Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
+#' @return A data frame (\code{combined_df}) containing the concatenated enrichment results across all clusters and directions, or \code{NULL} if no pathway was enriched. Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
 #'
 #' @export
 #'
@@ -68,6 +68,7 @@ run_global_ora <- function(ORA_df,
   # =============================================================
   # STEP 1: Setup
   # =============================================================
+  output_dir <- paste0(sub("/+$", "", output_dir), "/")
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
   ts <- format(Sys.time(), "%Y%m%d_%H%M%S")  # Global timestamp applied to ALL outputs
@@ -114,7 +115,7 @@ run_global_ora <- function(ORA_df,
     # -- ORA Upregulated --
     ora_up <- if (length(up_genes) >= 5) {
       tryCatch(
-        enricher(
+        clusterProfiler::enricher(
           gene          = up_genes,
           TERM2GENE     = m_t2g,
           universe      = universe_genes,
@@ -131,7 +132,7 @@ run_global_ora <- function(ORA_df,
     # -- ORA Downregulated --
     ora_dn <- if (length(dn_genes) >= 5) {
       tryCatch(
-        enricher(
+        clusterProfiler::enricher(
           gene          = dn_genes,
           TERM2GENE     = m_t2g,
           universe      = universe_genes,
@@ -388,7 +389,6 @@ run_global_ora <- function(ORA_df,
   # STEP 7: Clustered Global Plots + Dendrogram
   # =============================================================
   print("--- Generating Clustered Global Plots with Dendrograms ---")
-  library(patchwork)
 
   # Helper function to generate clustered plots
   generate_clustered_plot <- function(plot_df, title_label, filename_suffix) {
@@ -621,7 +621,7 @@ run_global_ora <- function(ORA_df,
 #'
 #' @param GSEA_df A data frame containing differential expression results. Must contain columns \code{gene}, \code{cluster}, and \code{avg_log2FC}. Optionally, a column containing "cell_type" or "celltype" can be included for nested plotting.
 #' @param m_t2g A two-column data frame mapping pathways/terms to genes (TERM2GENE format), typically sourced from MSigDB.
-#' @param output_dir Character. Directory path where all plots and CSV summaries will be saved.
+#' @param output_dir Character. Directory path where all plots and CSV summaries will be saved (created if missing; a trailing slash is optional).
 #' @param title_prefix Character. A prefix used for plot titles and file naming to identify the pathway database (e.g., "Hallmark", "KEGG"). Default is "Hallmark".
 #' @param top_n_per_direction Integer. The maximum number of top activated and top suppressed pathways to display on individual cluster dotplots. Default is 10.
 #' @param padj_cutoff Numeric. The adjusted p-value cutoff for statistical significance in the GSEA test. Default is 0.05.
@@ -632,7 +632,7 @@ run_global_ora <- function(ORA_df,
 #' @param top_n_overall Integer. The number of top pathways to extract from *each* cluster to build the combined global summary plots. Default is 5.
 #' @param variable_per_clus Logical. A toggle to dictate specific nested behavior (retained for pipeline compatibility with the ORA function framework). Default is FALSE.
 #'
-#' @return Invisibly returns a \code{tibble} (\code{combined_df}) containing the concatenated GSEA results across all evaluated clusters. Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
+#' @return A data frame (\code{combined_df}) containing the concatenated GSEA results across all evaluated clusters, or \code{NULL} if no pathway was significant. Outputs multiple JPEG plots (the classic enrichment plots require the \pkg{enrichplot} package) and CSV tables as side effects to the specified \code{output_dir}.
 #'
 #' @export
 #'
@@ -673,6 +673,7 @@ run_global_gsea <- function(GSEA_df,
   BiocParallel::register(BiocParallel::SerialParam())
 
   # -- 2. Setup ---------------------------------------------------
+  output_dir <- paste0(sub("/+$", "", output_dir), "/")
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
   ts <- format(Sys.time(), "%Y%m%d_%H%M%S") # Global timestamp for this run
@@ -710,7 +711,7 @@ run_global_gsea <- function(GSEA_df,
                          decreasing = TRUE)
 
     gsea_res <- tryCatch({
-      GSEA(
+      clusterProfiler::GSEA(
         geneList      = ranked_genes,
         TERM2GENE     = m_t2g,
         pvalueCutoff  = padj_cutoff,
@@ -871,7 +872,8 @@ run_global_gsea <- function(GSEA_df,
 
       top_pathway <- gsea_results$ID[1]
 
-      p_classic <- gseaplot2(
+      .check_suggested("enrichplot", "The GSEA enrichment plot")
+      p_classic <- enrichplot::gseaplot2(
         gsea_results,
         geneSetID    = top_pathway,
         title        = paste(current_cluster, "-", top_pathway),
@@ -986,7 +988,6 @@ run_global_gsea <- function(GSEA_df,
         theme_void() +
         theme(plot.margin = ggplot2::margin(t = 10, r = 10, b = 0, l = 10))
 
-      library(patchwork)
       p_combined <- p_dendro / p_main_clustered +
         plot_layout(heights = c(1, 10)) +
         plot_annotation(
@@ -1156,7 +1157,7 @@ run_global_gsea <- function(GSEA_df,
 #' )
 #'
 #' # Use this curated list for a targeted heatmap
-#' pheatmap(assay(vsd)[top_mixed_markers, ])
+#' pheatmap::pheatmap(SummarizedExperiment::assay(vsd)[top_mixed_markers, ])
 #' }
 get_top_mixed_genes <- function(res_obj, n_padj = 40, n_lfc = 40) {
   sig <- res_obj[!is.na(res_obj$padj) &
@@ -1189,16 +1190,16 @@ get_top_mixed_genes <- function(res_obj, n_padj = 40, n_lfc = 40) {
 #' @param res_obj A data frame containing differential expression results (must contain \code{padj} and \code{log2FoldChange} columns).
 #' @param comp_name Character. A filesystem-safe string representing the comparison, used for the output filename (e.g., "Infected_vs_Mock").
 #' @param comp_title Character. A human-readable title displayed at the top of the left heatmap.
-#' @param vsd_data A \code{SummarizedExperiment} object or matrix containing normalized expression data (e.g., the output of DESeq2's \code{vst()} or \code{rlog()}).
+#' @param vsd_data A \code{SummarizedExperiment}-derived object (e.g., the output of DESeq2's \code{vst()} or \code{rlog()}) or a numeric matrix of normalized expression with genes as rows and samples as columns.
 #' @param anno_col A data frame containing sample metadata for the heatmap annotations. Row names must match the column names of \code{vsd_data}.
 #' @param ordered_samps Character vector. The exact order of sample IDs (column names) to be plotted in the unclustered (left) heatmap.
 #' @param n_padj Integer. The number of top significant genes to extract based on lowest adjusted p-value.
 #' @param n_lfc Integer. The number of top significant genes to extract based on highest absolute log2 fold change.
-#' @param out_dir Character. Directory path where the generated PNG will be saved.
+#' @param out_dir Character. Directory path where the generated PNG will be saved (created if missing).
 #' @param ts Character. A timestamp string appended to the filename for version control.
 #' @param clus Character. An optional identifier (e.g., "CD8_T_Cells") used in the filename if looping across multiple subsets or clusters. Default is "all".
 #'
-#' @return Invisibly returns \code{NULL}. The function is called for its side effect of saving the combined plot to disk.
+#' @return Invisibly returns the path of the saved PNG, or \code{NULL} when fewer than two significant genes are available. The function is called for its side effect of saving the combined plot to disk.
 #'
 #' @export
 #'
@@ -1238,14 +1239,19 @@ generate_and_save_heatmap <- function(res_obj, comp_name, comp_title, vsd_data, 
   }
 
   # 2. Extract and order the normalized data
-  heatmap_data <- assay(vsd_data)[target_genes, ordered_samps, drop = FALSE]
+  expr_mat <- if (methods::is(vsd_data, "SummarizedExperiment")) {
+    SummarizedExperiment::assay(vsd_data)
+  } else {
+    as.matrix(vsd_data)
+  }
+  heatmap_data <- expr_mat[target_genes, ordered_samps, drop = FALSE]
 
   # 3. Setup Labels & Titles
   custom_row_labels <- rownames(heatmap_data)
   title_A <- paste0(comp_title, "\nTop Padj = ", n_padj, " genes | Top LFC = ", n_lfc, " genes")
 
   # 4. Generate Plots
-  p1 <- pheatmap(heatmap_data,
+  p1 <- pheatmap::pheatmap(heatmap_data,
                  cluster_rows = TRUE,
                  cluster_cols = FALSE,
                  show_rownames = TRUE,
@@ -1257,7 +1263,7 @@ generate_and_save_heatmap <- function(res_obj, comp_name, comp_title, vsd_data, 
                  main = title_A,
                  silent = TRUE)
 
-  p2 <- pheatmap(heatmap_data,
+  p2 <- pheatmap::pheatmap(heatmap_data,
                  cluster_rows = TRUE,
                  cluster_cols = TRUE,
                  show_rownames = TRUE,
@@ -1270,7 +1276,8 @@ generate_and_save_heatmap <- function(res_obj, comp_name, comp_title, vsd_data, 
                  silent = TRUE)
 
   # 5. Stitch and Save
-  combined_heatmaps <- arrangeGrob(p1$gtable, p2$gtable, ncol = 2)
+  combined_heatmaps <- gridExtra::arrangeGrob(p1$gtable, p2$gtable, ncol = 2)
+  dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
   heatmap_filename <- file.path(out_dir, paste0("Heatmap_", comp_name,"_", clus, "_topP_", n_padj, "_topLFC_", n_lfc, "_", ts, ".png"))
 
   # DYNAMIC HEIGHT: Roughly 0.15 inches per gene, min 10, max 100
@@ -1285,4 +1292,5 @@ generate_and_save_heatmap <- function(res_obj, comp_name, comp_title, vsd_data, 
          limitsize = FALSE) # Required if height exceeds standard ggplot limits
 
   message("  Saved Heatmap: ", heatmap_filename)
+  invisible(heatmap_filename)
 }

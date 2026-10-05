@@ -1,146 +1,244 @@
 ---
 title: "Diagnostic and Variable Evaluation"
 author: "Chomchon Uansiri"
-output: rmarkdown::html_vignette
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{Diagnostic and Variable Evaluation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  eval = FALSE # Set to FALSE for faster package building
+  collapse   = TRUE,
+  comment    = "#>",
+  message    = FALSE,
+  warning    = FALSE,
+  fig.align  = "center",
+  fig.width  = 8,
+  fig.height = 5,
+  dpi        = 96,
+  out.width  = "100%"
 )
 ```
 
-## Introduction
+## Overview
 
-Before clustering your single-cell data, it is critical to evaluate your Principal Components (PCs). You need to determine two things:
+Before trusting a clustering, check what the principal components actually
+capture. Two questions matter:
 
-1.  **How many PCs to use:** Where does the biological variance drop off?
+1. **How many PCs carry biological signal?**
+2. **Are any PCs driven by technical artefacts** such as mitochondrial or
+   ribosomal transcripts, nuclear lncRNAs, sequencing depth or cell cycle?
 
-2.  **What is driving the PCs:** Are your top components driven by true biological cell states, or are they being hijacked by technical artifacts (like mitochondrial genes, ribosomal genes, or cell cycle phases)?
+OHMmy provides five diagnostic functions. Each saves its figures to disk so the
+same checks can run unattended on an HPC node.
 
-`OHMmy` provides a suite of automated diagnostic tools to help you visualize and quantify technical noise within your dimensionality reduction.
+| Function | Question it answers |
+|----------|---------------------|
+| `generate_dimheatmaps()` | Which genes and cells drive each PC? |
+| `plot_vizdimloadings()` | What are the gene loadings of each PC? |
+| `plot_technical_contribution()` | What fraction of each PC's top loadings is technical? |
+| `plot_stacked_technical_contribution()` | Does that fraction change with loading depth? |
+| `plot_pc_metadata_correlation()` | Do PC scores correlate with QC covariates? |
 
-## Part 1: Visualizing Component Variance and Loadings
-
-First, we load our processed Seurat object (which has already undergone Normalization and PCA) and generate the standard visualizations to inspect the top genes driving each PC.
-
-```{r}
-
+```{r libraries}
 library(Seurat)
 library(OHMmy)
+source("ohmmy-vignette-helpers.R")
 
-seurat_obj <- readRDS("data/seurat_processed.rds")
-out_dir <- "results/pca_diagnostics/"
+pbmc <- load_pbmc3k_ohmmy()   # built in "Data Processing, Integration, and Clustering"
+out_dir <- file.path(tempdir(), "OHMmy-diagnostics")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+```
 
-# 1. Standard Elbow Plot to assess variance drop-off
-ElbowPlot(seurat_obj, reduction = "pca.log", ndims = 40)
+The diagnostics use the **pre-integration PCA** (`pca.log`), which still carries
+gene loadings.
 
-# 2. Generate Heatmaps for the top PCs
-# This saves heatmaps of the top genes driving PCs 1-20 and 21-40
+## 1. Variance and loadings
+
+### Elbow plot
+
+```{r elbow, fig.width = 6, fig.height = 4}
+ElbowPlot(pbmc, reduction = "pca.log", ndims = 40)
+```
+
+The standard deviation drops steeply over the first 7 PCs and is essentially
+flat after PC 10. The 20 PCs used downstream in the processing article are a
+conservative choice for pbmc3k.
+
+### Dimension heatmaps
+
+`generate_dimheatmaps()` splits the PCs into windows (`pc_windows`) and saves
+one balanced `DimHeatmap` per window. Each window is wrapped in error handling,
+so one failed plot does not stop a batch run.
+
+```{r dimheatmaps, results = "hide"}
 generate_dimheatmaps(
-  seurat_obj = seurat_obj,
-  sample_name = "MySample",
-  reduction = "pca.log",
-  pc_windows = list(1:20, 21:40),
-  output_dir = out_dir
+  seurat_obj  = pbmc,
+  sample_name = "pbmc3k",
+  reduction   = "pca.log",
+  pc_windows  = list(1:9, 10:18),
+  output_dir  = out_dir,
+  nfeatures   = 20,
+  cells       = 300,
+  width_in    = 10,
+  height_in   = 12,
+  res         = 100
 )
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-diagnostics-evaluation/denv_nkt_cellbender_halfLR_addmeta_processed_DimHeatmap_pca.log_PC1-20_20250731_225041.jpg")
+```{r dimheatmaps-show, echo = FALSE}
+show_saved(out_dir, "pbmc3k_DimHeatmap_pca.log_PC1-9")
 ```
 
-```{r}
+PC 1 separates myeloid genes (*LYZ*, *FCN1*, *CST3*) from lymphoid genes
+(*IL7R*, *LTB*). Note that *MALAT1* is among its top lymphoid loadings, which
+the technical-contribution checks below quantify. PC 2 captures the cytotoxic
+NK/CD8 programme against B-cell genes, PCs 3 and 4 platelets, and PC 9 a mixture
+of interferon-stimulated and S-phase genes.
 
-# 3. Generate PC Loading Plots
-# This plots the actual weight of the top genes for each PC
-plot_vizdimloadings(
-  seurat_obj = seurat_obj,
-  sample_name = "MySample",
-  reduction = "pca.log",
-  pc_windows = list(1:20, 21:40),
-  output_dir = out_dir
+### Loading plots
+
+`plot_vizdimloadings()` stitches one `VizDimLoadings` panel per PC into a grid
+and returns the names of any windows that failed. An empty vector means
+everything was plotted.
+
+```{r vizdim, results = "hide"}
+failed <- plot_vizdimloadings(
+  seurat_obj  = pbmc,
+  sample_name = "pbmc3k",
+  reduction   = "pca.log",
+  pc_windows  = list(1:6),
+  output_dir  = out_dir,
+  nfeatures   = 15,
+  width_in    = 14,
+  height_in   = 9,
+  res         = 100,
+  ncol        = 3
 )
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-diagnostics-evaluation/denv_nkt_cellbender_halfLR_addmeta_processed_VizDimLoadings_PC1-20_20250731_225110.jpg")
+```{r vizdim-show}
+failed
 ```
 
-## Part 2: Quantifying Technical Gene Contributions
+```{r vizdim-img, echo = FALSE}
+show_saved(out_dir, "pbmc3k_VizDimLoadings_PC1-6")
+```
 
-Often, PCs can be artificially driven by stress responses or ambient contamination. We can define a list of "technical keywords" (e.g., mitochondrial `MT-`, ribosomal `RPS`/`RPL`, or lncRNAs like `MALAT1`) and let `OHMmy` calculate exactly how much of each PC is driven by these gene families.
+## 2. Quantifying technical gene contributions
 
-```{r}
+`plot_technical_contribution()` takes the top `n_top_genes / 2` positive and
+negative loadings of each PC and computes the **loading-weighted percentage**
+that comes from genes matching `technical_keywords`. A dashed line marks the
+`cutoff` above which a PC deserves a closer look.
 
-# Define standard technical and stress-related gene prefixes
+```{r tech-keys}
 tech_keys <- c("^MT-", "^RPL", "^RPS", "^IG[HKL]", "MALAT1", "NEAT1", "XIST")
+```
 
-# 1. Line Plot: Technical contribution across the top 40 PCs
+```{r tech-contrib, results = "hide"}
 plot_technical_contribution(
-  seurat_obj = seurat_obj,
-  sample_name = "MySample",
+  seurat_obj         = pbmc,
+  sample_name        = "pbmc3k",
+  reduction          = "pca.log",
   technical_keywords = tech_keys,
-  max_pcs = 40,
-  n_top_genes = 500,
-  cutoff = 15,          # Highlight PCs where technical genes make up >15% of the weight
-  output_dir = out_dir
+  max_pcs            = 30,
+  n_top_genes        = 200,
+  cutoff             = 15,
+  output_dir         = out_dir
 )
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-diagnostics-evaluation/tech_contrib_posneg_split_denv_nkt_cellbender_halfLR_addmeta_processed_20250731_225138.jpg")
+```{r tech-contrib-show, echo = FALSE}
+show_saved(out_dir, "^tech_contrib_pca_log")
 ```
 
-```{r}
+In pbmc3k every PC stays well below the 15 % cutoff. The largest value is a
+few percent on the negative side of PC 1. This is expected, because PCA
+loadings only exist for the variable features, and mitochondrial and ribosomal
+genes rarely pass HVG selection after QC filtering. In noisier data, such as
+stressed tissue, low-quality droplets or nuclei, a PC far above the line is a
+strong hint to regress the corresponding covariate.
 
-# 2. Stacked Bar Chart: Deeper look at technical distribution at varying gene depths
+The percentage can change sharply with the number of genes considered.
+`plot_stacked_technical_contribution()` repeats the calculation over a sequence
+of depths (`gene_depths`) and facets the result by PC. Bars above the cutoff are
+highlighted, so a PC that is "clean" at the top but technical deeper down is
+easy to spot.
+
+```{r tech-stacked, results = "hide"}
 plot_stacked_technical_contribution(
-  seurat_obj = seurat_obj, 
-  sample_name = "MySample",
-  reduction = "pca.log", 
+  seurat_obj         = pbmc,
+  sample_name        = "pbmc3k",
+  reduction          = "pca.log",
   technical_keywords = tech_keys,
-  gene_depths = seq(0, 500, by = 20), 
-  max_pcs = 40, 
-  cutoff = 15, 
-  output_dir = out_dir
+  gene_depths        = seq(0, 300, by = 50),
+  max_pcs            = 20,
+  cutoff             = 15,
+  output_dir         = out_dir,
+  plot_width         = 16,
+  plot_height        = 10,
+  dpi                = 100
 )
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-diagnostics-evaluation/stacked_technical_contrib_posneg_denv_nkt_cellbender_halfLR_addmeta_processed_20250731_225145.jpg")
+```{r tech-stacked-show, echo = FALSE}
+show_saved(out_dir, "^stacked_technical_contrib")
 ```
 
-*Note: If these plots reveal that PC1 or PC2 is overwhelmingly driven by ribosomal or mitochondrial genes, you may need to go back to the normalization step and actively regress those variables out.*
+## 3. Correlating PCs with QC covariates
 
-## Part 3: Correlating PCs with Quality Control Metadata
+`plot_pc_metadata_correlation()` computes Spearman correlations between each
+PC's cell embeddings and the metadata columns in `vars_to_test`, then draws a
+clustered `pheatmap` with the coefficients printed in each cell. Expression of
+single nuclear transcripts, such as *MALAT1*, can be tested by first copying it
+into the metadata.
 
-Finally, we want to ensure our clustering won't be driven by sequencing depth (`nCount_RNA`) or cell cycle states (`S.Score`, `G2M.Score`). `OHMmy` can automatically correlate your metadata columns against the PC scores.
+```{r add-malat1}
+pbmc$MALAT1_expr <- FetchData(pbmc, vars = "MALAT1", layer = "data")[, 1]
+```
 
-```{r}
-
-# Define the metadata columns you want to test
-qc_metrics <- c("nCount_RNA", "pct_counts_mt", "percent.ribo", "S.Score", "G2M.Score")
-
-# Generate correlation heatmaps between QC metrics and PCs
+```{r pc-cor, results = "hide"}
 plot_pc_metadata_correlation(
-  seurat_obj = seurat_obj,
-  sample_name = "MySample",
-  reduction = "pca.log",
-  n_pcs = 40,
-  vars_to_test = qc_metrics,
-  output_dir = out_dir
+  seurat_obj     = pbmc,
+  sample_name    = "pbmc3k",
+  vars_to_test   = c("nCount_RNA", "nFeature_RNA", "pct_counts_mt", "percent.ribo",
+                     "S.Score", "G2M.Score", "MALAT1_expr"),
+  reduction      = "pca.log",
+  n_pcs          = 20,
+  output_dir     = out_dir,
+  plot_width_in  = 13,
+  plot_height_in = 5,
+  res_dpi        = 100
 )
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-diagnostics-evaluation/corr_pc_denv_nkt_cellbender_halfLR_addmeta_processed_20250731_225227.jpg")
+```{r pc-cor-show, echo = FALSE}
+show_saved(out_dir, "^corr_pc_pbmc3k")
 ```
 
-If a PC shows a correlation close to `1.0` or `-1.0` with `nCount_RNA`, it means that component is separating cells based purely on sequencing depth rather than biology, indicating that further regression or a different normalization strategy (like SCTransform) may be required.
+## Interpreting the diagnostics
+
+* A PC whose top loadings are dominated by `MT-`, `RPL`/`RPS` or lncRNA genes,
+  and whose scores correlate strongly (|rho| > 0.5) with `pct_counts_mt`,
+  `percent.ribo` or `nCount_RNA`, is technical. Regress that covariate in
+  `ProcessSeuratLOG(vars_to_regress = ...)`, switch to `ProcessSeuratSCT()`, or
+  leave the PC out of `dims`.
+* Ribosomal genes often load on lymphocyte-versus-myeloid PCs in PBMCs simply
+  because naive T cells are ribosome-rich. Before removing such a PC, check
+  whether it also separates known cell types, for example with the dimension
+  heatmaps above.
+* Correlation with `S.Score` or `G2M.Score` indicates a cycling compartment.
+  Regress the cell-cycle difference only when proliferation is not of interest.
+
+## Session information
+
+```{r session-info}
+sessionInfo()
+```

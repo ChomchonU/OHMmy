@@ -1,132 +1,311 @@
 ---
 title: "Data Processing, Integration, and Clustering"
 author: "Chomchon Uansiri"
-output: rmarkdown::html_vignette
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{Data Processing, Integration, and Clustering}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  eval = FALSE # Set to FALSE so the vignette builds quickly without requiring raw data computation
+  collapse   = TRUE,
+  comment    = "#>",
+  message    = FALSE,
+  warning    = FALSE,
+  fig.align  = "center",
+  fig.width  = 8,
+  fig.height = 5,
+  dpi        = 96,
+  out.width  = "100%"
 )
 ```
 
-## Introduction
+## Overview
 
-Once your single-cell RNA-seq data has been quality-controlled and decontaminated (e.g., via SoupX), the next major steps are Normalization, Batch Integration, and Clustering.
+This article takes the public **10x Genomics 3k PBMC** dataset from a raw count
+matrix to an integrated, clustered and annotated Seurat v5 object using the
+OHMmy processing wrappers:
 
-`OHMmy` provides highly automated wrappers built on top of **Seurat v5** to handle these complex steps seamlessly. Our pipeline automatically manages technical variable regression (like cell cycle or mitochondrial percentage), handles variable V(D)J receptor gene exclusion, integrates batches, and systematically evaluates cluster resolutions.
+| Step | OHMmy function | What it automates |
+|------|----------------|-------------------|
+| QC inspection | `plot_violin_qc_single()` | Jittered violin plots of QC metrics, saved to disk |
+| Normalisation + integration | `ProcessSeuratLOG()` / `ProcessSeuratSCT()` | Layer splitting, HVG selection, TCR/BCR exclusion, regression, PCA, `IntegrateLayers()` with batch-size-aware `k` parameters, elbow plot |
+| Clustering + UMAP | `ClusterAndUMAP()` | Neighbour graph, resolution sweep, `clustree` stability plot, final clustering and UMAP |
+| Housekeeping | `CleanSeuratReductions()` | Renames reductions such as `pca.log` to Seurat-safe camelCase keys |
 
-## Part 1: Loading and Preparing the Data
+The object produced here is the one used by all other OHMmy articles.
 
-First, we load our cleaned Seurat object. If you are re-analyzing an object that has already been processed, you can optionally clear out the old reductions and scaled data to start fresh.
+## 1. Load the data and compute QC metrics
 
-```{r}
-
+```{r libraries}
 library(Seurat)
 library(OHMmy)
+library(patchwork)
 
-# 1. Load the quality-controlled Seurat object
-seurat_obj <- readRDS("data/seurat_qc_filtered.rds")
+# Shared helpers: data download/caching, the simulated cohort and figure display
+source("ohmmy-vignette-helpers.R")
 
-# Optional: Clean old reductions if re-processing an existing object
-seurat_obj <- CleanSeuratReductions(seurat_obj)
-seurat_obj[["RNA"]]@layers[["scale.data"]] <- NULL
+# SCTransform + anchor-based integration ship large objects to future workers
+options(future.globals.maxSize = 4 * 1024^3)
+
+out_dir <- file.path(tempdir(), "OHMmy-processing-clustering")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 ```
 
-## Part 2: Normalization and Batch Integration
+`pbmc3k_counts()` reads the filtered feature-barcode matrix, downloading it once
+from 10x Genomics if it is not already available locally.
 
-We use the `ProcessSeuratLOG()` wrapper to perform standard Log-Normalization, identify highly variable features, scale the data, and run PCA.
+```{r load-data}
+pbmc <- CreateSeuratObject(pbmc3k_counts(), project = "pbmc3k", min.cells = 3, min.features = 200)
 
-Crucially, this function allows you to:
-
--   Regress out technical noise (e.g., mitochondrial/ribosomal percentages, cell cycle scores).
-
--   Exclude TCR/BCR genes from highly variable features so clustering is driven by cell phenotype, not clonotype (`tcr_bcr_patterns`).
-
--   Automatically run your preferred integration method (`CCAIntegration`, `HarmonyIntegration`, `RPCAIntegration`, or `FastMNNIntegration`) across your batches.
-
-```{r}
-
-# Process, Regress, and Integrate (e.g., using CCA)
-seurat_integrated <- ProcessSeuratLOG(
-  seurat_obj,
-  batch_col = "batch",
-  
-  # Variables to regress out during scaling
-  vars_to_regress = c(
-    "pct_counts_mt", "nCount_RNA", "percent.ribo", 
-    "S.Score", "G2M.Score", "percent.ig"
-  ),
-  
-  # Prevent TCR/BCR genes from driving clustering
-  tcr_bcr_patterns = "^TR[ABDG]|^IG[HKL]", 
-  
-  # PCA and Integration settings
-  dims = 1:40,
-  reduction_name = "pca.log",
-  integration_method = "CCAIntegration",
-  integration_reduction = "integrated.cca.log",
-  
-  interactive_mode = FALSE
-) 
-
-# Save the integrated object
-saveRDS(seurat_integrated, file = "results/seurat_integrated_cca.rds")
+pbmc[["pct_counts_mt"]] <- PercentageFeatureSet(pbmc, pattern = "^MT-")
+pbmc[["percent.ribo"]]  <- PercentageFeatureSet(pbmc, pattern = "^RP[SL]")
+pbmc
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-processing-clustering/elbow_plot_SCT_seurat_20260512_182035.jpg")
-```
+### Inspect QC distributions
 
-## Part 3: Dimensionality Reduction and Clustering
+`plot_violin_qc_single()` overlays faded single-cell points on Seurat violins so
+that outliers stay visible. Any metadata column can be used for grouping; before
+clustering we simply group by `orig.ident`.
 
-Finding the optimal clustering resolution can be tedious. `OHMmy`'s `ClusterAndUMAP()` function automates the creation of nearest-neighbor graphs, runs clustering across a wide sequence of resolutions, generates a `clustree` plot to help you track cluster stability, and calculates the UMAP coordinates.
-
-```{r}
-
-# Run UMAP and test clustering across multiple resolutions
-cluster_results <- ClusterAndUMAP(
-  seurat_obj = seurat_integrated,
-  
-  # Use the integrated reduction from the previous step
-  reduction = "integrated.cca.log",
-  dims = 1:40,
-  
-  # Naming conventions
-  umap_name = "umap.cca",
-  graph_name = "log.cca_snn",
-  cluster_prefix = "log.cca_snn_res.",
-  
-  # Sequence of resolutions to test (0.1 to 2.0)
-  cluster_resolutions = seq(0.1, 2, by = 0.1),
-  final_resolution = 1.0, # The default resolution to set as active identity
-  
-  # Advanced parameters
-  k.param = 600,
-  force_neighbors = TRUE,
-  force_clustering = TRUE,
-  
-  # Output settings for the Clustree plot and automated saving
-  sample_name = "Sample_Cohort", 
-  plot_dir = "results/plots/",
-  save_path = "results/seurat_final_clustered.rds"
+```{r qc-violin, results = "hide"}
+plot_violin_qc_single(
+  seurat_obj       = pbmc,
+  sample_name      = "pbmc3k_preQC",
+  qc_meta_features = c("nCount_RNA", "nFeature_RNA", "pct_counts_mt", "percent.ribo"),
+  res_col          = "orig.ident",
+  output_dir       = out_dir,
+  dpi              = 100
 )
-
-# Extract the fully processed Seurat object
-seurat_final <- cluster_results$seurat
-
-# View the final object with new UMAP and Cluster metadata
-seurat_final
 ```
 
-```{r, eval=TRUE, echo=FALSE, out.width="100%"}
-knitr::include_graphics("images/OHMmy-processing-clustering/cellbender_halfLR_addmeta_regress_0_clustree_2025-08-01_14-04-45.jpg")
+```{r qc-violin-show, echo = FALSE}
+show_saved(out_dir, "pbmc3k_preQC_ViolinQC")
 ```
 
-After this step, your `results/plots/` directory will contain a helpful `clustree` visualization showing how clusters split and evolve as the resolution increases. Your Seurat object is now fully prepared for Differential Expression testing and functional enrichment!
+Based on these distributions we apply the standard pbmc3k thresholds.
+
+```{r qc-filter}
+pbmc <- subset(pbmc, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & pct_counts_mt < 5)
+ncol(pbmc)
+```
+
+### A simulated cohort
+
+pbmc3k comes from one donor. So that the batch-integration, abundance and
+pseudo-bulk functions have something to work with, `add_mock_cohort()` spreads
+the cells across **12 simulated donors** (Healthy / Mild / Severe, 4 each) that
+were sequenced in **two batches**. Monocyte-like cells are deliberately
+over-assigned to Mild and Severe donors, which gives the statistics articles a
+known effect to recover. *All cohort columns are synthetic.*
+
+```{r mock-cohort}
+pbmc <- add_mock_cohort(pbmc)
+
+table(pbmc$severity, pbmc$batch)
+head(pbmc@meta.data[, c("donor_id", "severity", "batch", "age", "sex", "infection_status")])
+```
+
+## 2. Normalisation and batch integration
+
+`ProcessSeuratLOG()` runs the complete Seurat v5 LogNormalize workflow. It:
+
+1. splits the RNA assay into one layer per batch (`batch_col`);
+2. log-normalises the data and selects 2,000 variable features;
+3. removes TCR/BCR V(D)J genes (`tcr_bcr_patterns`) from the variable features,
+   so clustering reflects cell phenotype rather than clonotype;
+4. scales the data while regressing `vars_to_regress`;
+5. optionally boosts the variance of lineage markers (`boost_genes`,
+   `boost_multiplier`), which helps separate look-alike populations such as CD8 T
+   and NK cells;
+6. runs PCA, saves an elbow plot and suggests a number of PCs;
+7. integrates the layers with Harmony, RPCA, CCA or FastMNN, shrinking `k.weight`,
+   `k.anchor`, `k.filter` and `k.score` automatically when a batch is small;
+8. re-joins the layers.
+
+```{r process-log, results = "hide"}
+pbmc <- ProcessSeuratLOG(
+  pbmc,
+  batch_col             = "batch",
+  vars_to_regress       = "pct_counts_mt",
+  tcr_bcr_patterns      = "^TR[ABDG]V|^IG[HKL]V",
+  reduction_name        = "pca.log",
+  integration_method    = "HarmonyIntegration",
+  integration_reduction = "harmony.log",
+  dims                  = 1:30,
+  elbow_plot_dir        = out_dir,
+  sample_name           = "pbmc3k",
+  verbose               = FALSE
+)
+```
+
+```{r elbow-show, echo = FALSE, out.width = "70%"}
+show_saved(out_dir, "^elbow_plot_pbmc3k")
+```
+
+```{r process-log-result}
+pbmc
+Reductions(pbmc)
+```
+
+> **Interactive use.** With `interactive_mode = TRUE` in an interactive R
+> session, the function pauses after the PCA step so you can choose the number of
+> PCs and the integration `k` parameters from the elbow plot.
+
+### Cell-cycle scores
+
+Cell-cycle scores are useful covariates for the PC diagnostics in the
+*Diagnostic and Variable Evaluation* article.
+
+```{r cell-cycle}
+pbmc <- CellCycleScoring(
+  pbmc,
+  s.features   = cc.genes.updated.2019$s.genes,
+  g2m.features = cc.genes.updated.2019$g2m.genes
+)
+table(pbmc$Phase)
+```
+
+### Alternative: SCTransform workflow
+
+`ProcessSeuratSCT()` has the same interface but normalises with `SCTransform`.
+Here it is combined with reciprocal-PCA integration to show a second
+integration back-end. It runs on a copy, so the LogNormalize object is
+unchanged.
+
+```{r process-sct, results = "hide"}
+pbmc_sct <- ProcessSeuratSCT(
+  pbmc,
+  batch_col             = "batch",
+  vars_to_regress       = "pct_counts_mt",
+  reduction_name        = "pca.sct",
+  integration_method    = "RPCAIntegration",
+  integration_reduction = "rpca.sct",
+  dims                  = 1:30,
+  verbose               = FALSE
+)
+pbmc_sct <- RunUMAP(pbmc_sct, reduction = "rpca.sct", dims = 1:20,
+                    reduction.name = "umap.rpca.sct", verbose = FALSE)
+```
+
+```{r sct-compare, fig.width = 11, fig.height = 4.5}
+pbmc_tmp <- RunUMAP(pbmc, reduction = "pca.log", dims = 1:20,
+                    reduction.name = "umap.unintegrated", verbose = FALSE)
+
+DimPlot(pbmc_tmp, reduction = "umap.unintegrated", group.by = "batch") +
+  ggplot2::ggtitle("LogNormalize, no integration") +
+  DimPlot(pbmc_sct, reduction = "umap.rpca.sct", group.by = "batch") +
+  ggplot2::ggtitle("SCTransform + RPCA") +
+  plot_layout(guides = "collect")
+```
+
+Because the batches in this example are simulated, both embeddings mix the
+batches. In real data the integrated embedding should mix batches while keeping
+cell types separate.
+
+```{r cleanup-sct, include = FALSE}
+rm(pbmc_sct, pbmc_tmp); invisible(gc())
+```
+
+## 3. Clustering across resolutions
+
+`ClusterAndUMAP()` builds the shared-nearest-neighbour graph, clusters across a
+range of resolutions, draws a `clustree` plot to show how clusters split as the
+resolution increases, then runs the final clustering and UMAP. Graphs and
+resolutions that already exist are reused unless `force_neighbors` or
+`force_clustering` is `TRUE`.
+
+```{r cluster-umap, results = "hide"}
+clus <- ClusterAndUMAP(
+  seurat_obj          = pbmc,
+  sample_name         = "pbmc3k",
+  reduction           = "harmony.log",
+  dims                = 1:20,
+  k.param             = 20,
+  umap_name           = "umap.har",
+  graph_name          = "har_snn",
+  cluster_prefix      = "har_snn_res.",
+  cluster_resolutions = seq(0.2, 1.2, by = 0.2),
+  final_resolution    = 0.6,
+  plot_dir            = out_dir,
+  dpi                 = 100
+)
+pbmc <- clus$seurat
+```
+
+The function returns the updated object, the `clustree` ggplot and the path of
+the saved figure:
+
+```{r clustree, fig.width = 8, fig.height = 8}
+names(clus)
+clus$clustree
+```
+
+Between resolutions 0.6 and 1.0 almost every cluster has a single parent,
+so the partition is stable. Further splits appear only at 1.2. We use 0.6,
+where the major PBMC lineages are already resolved, as the working resolution.
+
+```{r final-clusters}
+pbmc$seurat_clusters <- pbmc$har_snn_res.0.6
+table(pbmc$seurat_clusters)
+```
+
+## 4. Annotation
+
+For a self-contained tutorial, clusters are labelled from canonical PBMC
+markers: each cluster receives the cell type whose module score
+(`Seurat::AddModuleScore()`) is highest. The helper `annotate_pbmc()` is defined
+in `ohmmy-vignette-helpers.R`. In your own data, replace this step with your
+preferred annotation strategy, such as reference mapping or manual curation.
+
+```{r annotate}
+str(pbmc_marker_sets)
+pbmc <- annotate_pbmc(pbmc, cluster_col = "seurat_clusters")
+table(pbmc$seurat_clusters, pbmc$cell_type)
+```
+
+```{r umap-annotated, fig.width = 11, fig.height = 4.5}
+DimPlot(pbmc, reduction = "umap.har", group.by = "seurat_clusters", label = TRUE) + NoLegend() +
+  DimPlot(pbmc, reduction = "umap.har", group.by = "cell_type", label = TRUE, repel = TRUE) + NoLegend()
+```
+
+## 5. Standardising reduction names
+
+Reductions named with dots or underscores (such as `pca.log`) are valid in Seurat
+v5, but some tools expect keys that match the reduction name exactly.
+`CleanSeuratReductions()` rebuilds every reduction under a camelCase name with
+a matching key. It is shown on a copy, because the remaining articles use the
+original names.
+
+```{r clean-reductions}
+pbmc_clean <- CleanSeuratReductions(pbmc)
+data.frame(
+  before = Reductions(pbmc),
+  after  = Reductions(pbmc_clean)[match(c("pcaLog", "harmonyLog", "umapHar"), Reductions(pbmc_clean))]
+)
+Key(pbmc_clean[["umapHar"]])
+```
+
+## 6. Saving the object
+
+Every other OHMmy article reuses this object. `load_pbmc3k_ohmmy()` (in
+`ohmmy-vignette-helpers.R`) runs exactly the steps above and caches the result,
+so later articles start immediately. To save your own object, use `saveRDS()` or
+the `save_path` argument of `ClusterAndUMAP()`.
+
+```{r save, eval = FALSE}
+saveRDS(pbmc, "pbmc3k_processed.rds")
+```
+
+## Session information
+
+```{r session-info}
+sessionInfo()
+```

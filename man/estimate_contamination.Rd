@@ -25,11 +25,11 @@ estimate_contamination(
 
 \item{sample_names}{Character vector. A list of sample identifiers corresponding to the names in the input lists.}
 
-\item{mulFac}{Numeric. A percentage to artificially add to the auto-estimated contamination fraction (e.g., \code{mulFac = 5} adds \code{0.05} to the \code{rho} value). Default is 0.}
+\item{mulFac}{Numeric. Percentage points to add to the auto-estimated contamination fraction (e.g., \code{mulFac = 5} adds \code{0.05} to \code{rho}). Default is 0.}
 
-\item{manual_contam}{Character vector. A list of specific sample names to apply the \code{mulFac} adjustment to. Only evaluated if \code{manual = TRUE}. Default is an empty list.}
+\item{manual_contam}{Character vector. Sample names to which the \code{mulFac} adjustment is applied. Only evaluated if \code{manual = TRUE}. Default is an empty list.}
 
-\item{manual}{Logical. Controls the application of \code{mulFac}. If \code{FALSE}, \code{mulFac} is applied globally to ALL samples. If \code{TRUE}, \code{mulFac} is applied ONLY to the specific samples listed in \code{manual_contam}. Default is FALSE.}
+\item{manual}{Logical. Controls where \code{mulFac} is applied. If \code{FALSE} (default), it is added to every sample. If \code{TRUE}, it is added only to the samples listed in \code{manual_contam}; all other samples keep their auto-estimated \code{rho}.}
 
 \item{methods}{Character. The method to use for count adjustment passed to \code{SoupX::adjustCounts()}. Options include "subtraction", "soupOnly", or "multinomial". Default is "subtraction".}
 

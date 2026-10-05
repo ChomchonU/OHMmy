@@ -25,7 +25,7 @@ generate_and_save_heatmap(
 
 \item{comp_title}{Character. A human-readable title displayed at the top of the left heatmap.}
 
-\item{vsd_data}{A \code{SummarizedExperiment} object or matrix containing normalized expression data (e.g., the output of DESeq2's \code{vst()} or \code{rlog()}).}
+\item{vsd_data}{A \code{SummarizedExperiment}-derived object (e.g., the output of DESeq2's \code{vst()} or \code{rlog()}) or a numeric matrix of normalized expression with genes as rows and samples as columns.}
 
 \item{anno_col}{A data frame containing sample metadata for the heatmap annotations. Row names must match the column names of \code{vsd_data}.}
 
@@ -35,14 +35,14 @@ generate_and_save_heatmap(
 
 \item{n_lfc}{Integer. The number of top significant genes to extract based on highest absolute log2 fold change.}
 
-\item{out_dir}{Character. Directory path where the generated PNG will be saved.}
+\item{out_dir}{Character. Directory path where the generated PNG will be saved (created if missing).}
 
 \item{ts}{Character. A timestamp string appended to the filename for version control.}
 
 \item{clus}{Character. An optional identifier (e.g., "CD8_T_Cells") used in the filename if looping across multiple subsets or clusters. Default is "all".}
 }
 \value{
-Invisibly returns \code{NULL}. The function is called for its side effect of saving the combined plot to disk.
+Invisibly returns the path of the saved PNG, or \code{NULL} when fewer than two significant genes are available. The function is called for its side effect of saving the combined plot to disk.
 }
 \description{
 Automatically extracts the most biologically and statistically relevant genes for a

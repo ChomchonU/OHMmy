@@ -18,7 +18,7 @@
 #' @param height_in Numeric. The height of the saved JPEG in inches. Default is 45.
 #' @param res Numeric. The resolution (dpi) of the saved JPEG. Default is 300.
 #'
-#' @return Invisibly returns \code{NULL}. The primary purpose of this function is its side effect of saving JPEG plots to the specified output directory.
+#' @return Invisibly returns a character vector naming any PC windows that failed to plot (empty if all succeeded). The primary purpose of this function is its side effect of saving JPEG plots to the specified output directory.
 #'
 #' @export
 #'
@@ -47,12 +47,6 @@ generate_dimheatmaps <- function(seurat_obj,
                                  width_in = 15,
                                  height_in = 45,
                                  res = 300) {
-  # Load progress bar package
-  if (!requireNamespace("progress", quietly = TRUE)) {
-    install.packages("progress")
-  }
-  library(progress)
-
   # Create output directory if missing
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
@@ -63,7 +57,7 @@ generate_dimheatmaps <- function(seurat_obj,
   # Check if reduction exists
   if (!(reduction %in% names(seurat_obj@reductions))) {
     message("  Reduction '", reduction, "' not found in ", sample_name)
-    return(invisible(NULL))
+    return(invisible(sample_name))
   }
 
   # Initialize progress bar
@@ -90,7 +84,7 @@ generate_dimheatmaps <- function(seurat_obj,
       dev.off()
       message("\nSaved heatmap: ", file_path)
     }, error = function(e) {
-      dev.off()  # In case jpeg device is open
+      if (dev.cur() != 1) dev.off()  # close the jpeg device if it is still open
       message("\nFailed for ", sample_name, " (PC ", range_label, ") - ", e$message)
       failed_heatmap <<- c(failed_heatmap, paste0(sample_name, "_PC", range_label))
     })
@@ -103,6 +97,7 @@ generate_dimheatmaps <- function(seurat_obj,
   } else {
     message("\nAll DimHeatmaps generated successfully.")
   }
+  invisible(failed_heatmap)
 }
 
 # ---------------------------------------------------
@@ -163,12 +158,6 @@ plot_vizdimloadings <- function(seurat_obj,
                                 height_in = 45,
                                 res = 300,
                                 ncol = 5) {
-  # Load progress bar
-  if (!requireNamespace("progress", quietly = TRUE)) {
-    install.packages("progress")
-  }
-  library(progress)
-
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
   failed_samples <- character(0)
 
@@ -181,7 +170,7 @@ plot_vizdimloadings <- function(seurat_obj,
   }
 
   # Initialize progress bar
-  pb <- progress_bar$new(
+  pb <- progress::progress_bar$new(
     total = length(pc_windows),
     format = "  [:bar] :percent - Window :current/:total"
   )
@@ -231,10 +220,6 @@ plot_vizdimloadings <- function(seurat_obj,
 #' visually highlights which PCs are overwhelmed by technical noise, helping determine
 #' which components to exclude or which variables require regression (\code{vars.to.regress}).
 #'
-#' @note This function explicitly looks for a dimensionality reduction named \code{"pca.log"}.
-#' Ensure your Seurat object's PCA was saved under this name, or modify the function
-#' to accept a custom reduction name.
-#'
 #' @param seurat_obj A Seurat object containing single-cell data.
 #' @param sample_name Character. The identifier for the biological sample, used for plot titles and file naming.
 #' @param reduction Character. The dimensional reduction to extract feature loadings from. Default is "pca.log".
@@ -266,7 +251,7 @@ plot_vizdimloadings <- function(seurat_obj,
 #' }
 plot_technical_contribution <- function(seurat_obj,
                                         sample_name,
-                                        reduction = "pca.log", # <-- NEW ARGUMENT
+                                        reduction = "pca.log",
                                         output_dir = "Output_R/Find_vartoregress",
                                         technical_keywords = c("^MT-", "^RPL", "^RPS", "^IG[HKL]", "MALAT1", "NEAT1", "XIST"),
                                         max_pcs = 40,
@@ -486,15 +471,13 @@ plot_stacked_technical_contribution <- function(
     "Above", "Below"
   )
 
-  if (!requireNamespace("ggplot2", quietly = TRUE)) {
-    stop("Please install ggplot2 to use this function.")
-  }
-  library(ggplot2)
+  # Keep facets in numeric PC order (PC_1, PC_2, ..., not PC_1, PC_10, ...)
+  tech_pc_split_df$PC <- factor(tech_pc_split_df$PC, levels = colnames(pca_loadings)[seq_len(num_pcs)])
 
   p <- ggplot(tech_pc_split_df, aes(x = factor(NTopGenes), y = WeightedPercentTechnical, fill = interaction(Direction, color_flag))) +
     geom_bar(stat = "identity", position = "stack") +
     facet_wrap(~ PC, scales = "fixed", ncol = 5) +
-    geom_hline(yintercept = cutoff, linetype = "dashed", color = "black", size = 0.5) +
+    geom_hline(yintercept = cutoff, linetype = "dashed", color = "black", linewidth = 0.5) +
     scale_fill_manual(
       values = c(
         "Positive.Above" = "red2",
@@ -549,7 +532,7 @@ plot_stacked_technical_contribution <- function(
 #'
 #' @param seurat_obj A Seurat object containing single-cell data.
 #' @param sample_name Character. The identifier for the biological sample, used for the plot title and file naming.
-#' @param vars_to_test Character vector. The names of the metadata columns (or specific features in the active assay) to correlate against the PCs. Default includes common technical and cell-cycle covariates: \code{c("pct_counts_mt", "nCount_RNA", "percent.ribo", "percent.ig", "nuclear_rna", "S.Score", "G2M.Score", "MALAT1", "NEAT1", "XIST")}.
+#' @param vars_to_test Character vector. The names of numeric metadata columns to correlate against the PCs. Columns that are not present are skipped with a warning; to test a gene, first copy its expression into the metadata. Default includes common technical and cell-cycle covariates: \code{c("pct_counts_mt", "nCount_RNA", "percent.ribo", "percent.ig", "nuclear_rna", "S.Score", "G2M.Score", "MALAT1", "NEAT1", "XIST")}.
 #' @param reduction Character. The dimensional reduction to extract cell embeddings from. Default is "pca.log".
 #' @param n_pcs Integer. The number of principal components to evaluate, starting from PC 1. Default is 40.
 #' @param output_dir Character. Directory path where the generated JPEG heatmap will be saved. Default is "Output_R/Find_vartoregress".
@@ -589,8 +572,20 @@ plot_pc_metadata_correlation <- function(
 ) {
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
+  missing_vars <- setdiff(vars_to_test, colnames(seurat_obj@meta.data))
+  if (length(missing_vars) > 0) {
+    warning("Skipping vars_to_test that are not metadata columns: ", paste(missing_vars, collapse = ", "),
+            ". To test a gene, copy it into the metadata first, e.g. ",
+            "seurat_obj$MALAT1_expr <- FetchData(seurat_obj, \"MALAT1\")[, 1].")
+    vars_to_test <- setdiff(vars_to_test, missing_vars)
+  }
+  if (length(vars_to_test) < 2) {
+    stop("At least two metadata columns are needed for the clustered correlation heatmap.")
+  }
+
   # Extract embeddings for PCs
-  pc_embeddings <- Embeddings(seurat_obj, reduction)[, 1:n_pcs]
+  pc_embeddings <- Embeddings(seurat_obj, reduction)
+  pc_embeddings <- pc_embeddings[, seq_len(min(n_pcs, ncol(pc_embeddings))), drop = FALSE]
 
   # Compute correlation matrix (Spearman)
   cor_matrix <- sapply(vars_to_test, function(varname) {
@@ -610,15 +605,22 @@ plot_pc_metadata_correlation <- function(
   }
 
   tryCatch({
-    jpeg(filename, width = width_px, height = height_px, res = res_dpi)
-    pheatmap::pheatmap(
+    # Build the heatmap first (silent = TRUE) and only then open the jpeg device.
+    # pheatmap opens and closes a temporary device internally; drawing inside an
+    # already-open jpeg device would send the plot to whichever device became
+    # current (e.g. the knitr or RStudio device) and leave the file empty.
+    ph <- pheatmap::pheatmap(
       cor_matrix,
       cluster_rows = TRUE,
       cluster_cols = TRUE,
       display_numbers = TRUE,
       number_format = "%.2f",
-      main = paste0("Spearman correlation between PCs and technical covariates - ", sample_name)
+      main = paste0("Spearman correlation between PCs and technical covariates - ", sample_name),
+      silent = TRUE
     )
+    jpeg(filename, width = width_px, height = height_px, res = res_dpi)
+    grid::grid.newpage()
+    grid::grid.draw(ph$gtable)
     dev.off()
     message("Correlation heatmap saved to: ", filename)
   }, error = function(e) {

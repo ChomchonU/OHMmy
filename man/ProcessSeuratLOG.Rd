@@ -10,7 +10,7 @@ ProcessSeuratLOG(
   vars_to_regress = NULL,
   tcr_bcr_patterns = "^TR[ABDG]|^IG[HKL]",
   reduction_name = "pca.SCT",
-  integration_method = HarmonyIntegration,
+  integration_method = "HarmonyIntegration",
   integration_reduction = "integrated.har.SCT",
   dims = 1:30,
   interactive_mode = FALSE,
@@ -33,15 +33,15 @@ ProcessSeuratLOG(
 
 \item{vars_to_regress}{Character vector. Variables to regress out during \code{ScaleData} (e.g., cell cycle scores or mitochondrial percentage). Default is \code{NULL}.}
 
-\item{tcr_bcr_patterns}{Character. A regular expression matching TCR and BCR gene segments (e.g., TRAV, TRBV, IGHV) to exclude them from the variable features list. Default is \code{"^TR[ABDG]|^IG[HKL]"}.}
+\item{tcr_bcr_patterns}{Character. A regular expression matching TCR and BCR gene segments to exclude from the variable features list. Default is \code{"^TR[ABDG]|^IG[HKL]"}. Note that this default also matches non-receptor genes such as \emph{TRAF1} or \emph{IGHMBP2}; \code{"^TR[ABDG]V|^IG[HKL]V"} restricts the filter to variable segments.}
 
-\item{reduction_name}{Character. The name to assign to the pre-integration PCA reduction. Default is "pca.SCT" (Note: you may want to rename this default to "pca" since this is the LogNormalize workflow).}
+\item{reduction_name}{Character. The name to assign to the pre-integration PCA reduction. Default is "pca.SCT" (kept for backward compatibility; a name such as "pca.log" is clearer for this workflow).}
 
-\item{integration_method}{Character. The integration algorithm to use in \code{IntegrateLayers}. Options: "HarmonyIntegration", "RPCAIntegration", "CCAIntegration", or "FastMNNIntegration". Default is "HarmonyIntegration".}
+\item{integration_method}{Character. The integration algorithm to use in \code{IntegrateLayers}. Options: "HarmonyIntegration", "RPCAIntegration", "CCAIntegration", or "FastMNNIntegration" (the latter requires the \pkg{SeuratWrappers} package to be attached). Default is "HarmonyIntegration".}
 
-\item{integration_reduction}{Character. The name to assign to the final integrated dimensional reduction. Default is "integrated.har.SCT" (Note: you may want to adjust this default for standard RNA).}
+\item{integration_reduction}{Character. The name to assign to the final integrated dimensional reduction. Default is "integrated.har.SCT" (kept for backward compatibility; a name such as "integrated.har.log" is clearer for this workflow).}
 
-\item{dims}{Numeric vector. The dimensions (PCs) to use for the integration step. Default is \code{1:30}.}
+\item{dims}{Numeric vector. The dimensions (PCs) to use for the integration step (RPCA/CCA). Default is \code{1:30}.}
 
 \item{interactive_mode}{Logical. If \code{TRUE} and running in an interactive session, pauses to prompt the user for the optimal number of PCs and k-parameters after computing the initial PCA. Default is \code{FALSE}.}
 
@@ -55,15 +55,15 @@ ProcessSeuratLOG(
 
 \item{k.score}{Integer. The number of neighbors to use for scoring anchors (RPCA/CCA). If \code{NULL}, defaults to 30.}
 
-\item{clustering_resolution}{Numeric. Included for pipeline compatibility; sets the target resolution. Default is 1.}
+\item{clustering_resolution}{Numeric. Retained for pipeline compatibility; clustering itself is performed downstream (e.g., by \code{\link{ClusterAndUMAP}()}). Default is 1.}
 
 \item{verbose}{Logical. If \code{TRUE}, outputs progress messages and Seurat logs to the console. Default is \code{TRUE}.}
 
 \item{sample_name}{Character. A prefix used for saving the elbow plot file. Default is "seurat".}
 
-\item{boost_genes}{A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Set to \code{NULL} to disable feature boosting. Default is \code{c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")}.}
+\item{boost_genes}{A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Only used when \code{boost_multiplier > 1}; set to \code{NULL} to disable. Default is \code{c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")}.}
 
-\item{boost_multiplier}{A numeric value indicating the weight factor applied to the \code{boost_genes}. The scaled expression data for these genes will be multiplied by this number. Default is \code{10}. Set to \code{1} to disable.}
+\item{boost_multiplier}{A numeric value indicating the weight factor applied to the \code{boost_genes}. The scaled expression data for these genes will be multiplied by this number. Default is \code{1} (no boosting).}
 }
 \value{
 An integrated \code{Seurat} object with the \code{DefaultAssay} set to "RNA". The split RNA layers are automatically re-joined at the end of the pipeline.
@@ -95,4 +95,7 @@ integrated_seurat <- ProcessSeuratLOG(
 # The returned object is ready for downstream UMAP and Clustering:
 integrated_seurat <- RunUMAP(integrated_seurat, dims = 1:30, reduction = "integrated.har")
 }
+}
+\seealso{
+\code{\link{ProcessSeuratSCT}()} for the SCTransform equivalent and \code{\link{ClusterAndUMAP}()} for the next step.
 }

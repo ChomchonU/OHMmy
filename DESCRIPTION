@@ -1,6 +1,6 @@
 Package: OHMmy
 Title: Streamlined Single-Cell RNA-Seq Analysis and Visualization for Seurat v5
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: 
     person("Chomchon", "Uansiri", , "chomchom1910travel@gmail.com", role = c("aut", "cre"))
 Description: A comprehensive toolkit engineered for high-resolution single-cell RNA 
@@ -20,12 +20,14 @@ Imports:
     clustree,
     dplyr,
     ggdendro,
+    ggraph,
     ggplot2,
     ggpubr,
     ggsci,
+    grid,
     gridExtra,
     leidenbase,
-    lubridate,
+    methods,
     patchwork,
     pheatmap,
     progress,
@@ -42,9 +44,22 @@ Imports:
 URL: https://github.com/PicooO12/OHMmy, https://chomchonu.github.io/OHMmy/
 BugReports: https://github.com/PicooO12/OHMmy/issues
 Suggests: 
+    DESeq2,
+    enrichplot,
+    EnhancedVolcano,
+    harmony,
+    jpeg,
     knitr,
+    mclust,
+    msigdbr,
+    Nebulosa,
+    png,
+    R.utils,
     rmarkdown,
+    SingleCellExperiment,
+    SummarizedExperiment,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.0
 VignetteBuilder: knitr
+RoxygenNote: 7.3.2

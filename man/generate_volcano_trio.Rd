@@ -7,7 +7,7 @@
 generate_volcano_trio(res, main_title, target_genes)
 }
 \arguments{
-\item{res}{A data frame containing differential expression results. Must contain row names as gene symbols, and the columns \code{padj} (adjusted p-value) and \code{log2FoldChange}.}
+\item{res}{A data frame (or DESeq2 \code{DESeqResults} object) containing differential expression results. Must have gene symbols as row names and the columns \code{padj} (adjusted p-value) and \code{log2FoldChange}. Requires the \pkg{EnhancedVolcano} package.}
 
 \item{main_title}{Character. The overarching title displayed at the very top of the combined plot.}
 

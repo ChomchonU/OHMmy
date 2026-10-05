@@ -88,7 +88,7 @@ pairwise_res <- FindTopMarkersAndHeatmap(
   compare = c("CD8_Effector", "CD8_Naive"),
   onlyPos = FALSE,
   marker_avg_log2FC_thresh = 0.25,
-  save_format = "png"
+  plot_format = "png"
 )
 }
 }

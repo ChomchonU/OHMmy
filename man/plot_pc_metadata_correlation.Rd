@@ -22,7 +22,7 @@ plot_pc_metadata_correlation(
 
 \item{sample_name}{Character. The identifier for the biological sample, used for the plot title and file naming.}
 
-\item{vars_to_test}{Character vector. The names of the metadata columns (or specific features in the active assay) to correlate against the PCs. Default includes common technical and cell-cycle covariates: \code{c("pct_counts_mt", "nCount_RNA", "percent.ribo", "percent.ig", "nuclear_rna", "S.Score", "G2M.Score", "MALAT1", "NEAT1", "XIST")}.}
+\item{vars_to_test}{Character vector. The names of numeric metadata columns to correlate against the PCs. Columns that are not present are skipped with a warning; to test a gene, first copy its expression into the metadata. Default includes common technical and cell-cycle covariates: \code{c("pct_counts_mt", "nCount_RNA", "percent.ribo", "percent.ig", "nuclear_rna", "S.Score", "G2M.Score", "MALAT1", "NEAT1", "XIST")}.}
 
 \item{reduction}{Character. The dimensional reduction to extract cell embeddings from. Default is "pca.log".}
 

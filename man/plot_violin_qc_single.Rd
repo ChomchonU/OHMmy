@@ -35,7 +35,7 @@ plot_violin_qc_single(
 
 \item{save_format}{Character. The file format for the saved plots ("jpg", "png", or "pdf"). Default is "jpg".}
 
-\item{width}{Numeric. The base width of the saved plot. Default is 20.}
+\item{width}{Numeric. The width (in inches) of both saved figures; the height grows with the number of panels (three per row). Default is 20.}
 
 \item{dpi}{Numeric. The resolution of the saved plots. Default is 300.}
 

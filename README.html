@@ -667,29 +667,71 @@ visualization workflow:</p>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">library</span>(OHMmy)</span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
 <span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co"># ---------------------------------------------------------</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co"># 1. Initialize &amp; Clean Ambient RNA (SoupX Wrappers)</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co"># 1. Ambient RNA Decontamination (SoupX)</span></span>
 <span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co"># ---------------------------------------------------------</span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>soup_channels <span class="ot">&lt;-</span> <span class="fu">create_soup_channels</span>(raw_counts_list, filtered_counts_list)</span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>soup_channels <span class="ot">&lt;-</span> <span class="fu">estimate_contamination</span>(soup_channels, initial_clusters)</span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>clean_seurat <span class="ot">&lt;-</span> <span class="fu">adjustCounts</span>(soup_channels[[<span class="dv">1</span>]])</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co"># Automatically process raw/filtered matrices and transfer cleaned data</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>soup_results <span class="ot">&lt;-</span> <span class="fu">process_soupx_samples</span>(<span class="at">filtered_dir =</span> <span class="st">&quot;data/filtered/&quot;</span>, <span class="at">raw_dir =</span> <span class="st">&quot;data/raw/&quot;</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>seurat_obj <span class="ot">&lt;-</span> <span class="fu">addSoupXMetaToSeurat</span>(seurat_raw, soup_results<span class="sc">$</span>final_seurat)</span>
 <span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a></span>
 <span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co"># ---------------------------------------------------------</span></span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co"># 2. Process &amp; Cluster (Seurat v5 Wrappers)</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co"># 2. Process, Integrate, &amp; Cluster (Seurat v5)</span></span>
 <span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co"># ---------------------------------------------------------</span></span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co"># Run automated SCTransform workflow</span></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>seurat_obj <span class="ot">&lt;-</span> <span class="fu">ProcessSeuratSCT</span>(clean_seurat)</span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a></span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co"># Compute PCA, UMAP, and find clusters</span></span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>seurat_obj <span class="ot">&lt;-</span> <span class="fu">ClusterAndUMAP</span>(seurat_obj, <span class="at">resolution =</span> <span class="fl">0.5</span>)</span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a></span>
-<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co"># ---------------------------------------------------------</span></span>
-<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co"># 3. Analyze &amp; Visualize</span></span>
-<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="co"># ---------------------------------------------------------</span></span>
-<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="co"># Statistically compare cell type abundance across infection groups</span></span>
-<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="fu">plot_cell_abundance</span>(seurat_obj, <span class="at">group.by =</span> <span class="st">&quot;Condition&quot;</span>, <span class="at">test =</span> <span class="st">&quot;wilcox&quot;</span>)</span>
-<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a></span>
-<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a><span class="co"># Generate advanced feature blend plots for subset markers (e.g., CD8A / XCL1)</span></span>
-<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="fu">plot_blend_nebulosa</span>(seurat_obj, <span class="at">features =</span> <span class="fu">c</span>(<span class="st">&quot;CD8A&quot;</span>, <span class="st">&quot;XCL1&quot;</span>))</span></code></pre></div>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co"># Regress technical noise and integrate batches (e.g., CCA)</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>seurat_obj <span class="ot">&lt;-</span> <span class="fu">ProcessSeuratLOG</span>(</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  seurat_obj, </span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>  <span class="at">batch_col =</span> <span class="st">&quot;batch&quot;</span>, </span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>  <span class="at">vars_to_regress =</span> <span class="fu">c</span>(<span class="st">&quot;pct_counts_mt&quot;</span>, <span class="st">&quot;S.Score&quot;</span>),</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>  <span class="at">reduction_name =</span> <span class="st">&quot;pca.log&quot;</span>,</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>  <span class="at">integration_method =</span> <span class="st">&quot;CCAIntegration&quot;</span>,</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>  <span class="at">integration_reduction =</span> <span class="st">&quot;integrated.cca.log&quot;</span></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>)</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co"># Compute UMAP and cluster across multiple resolutions</span></span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>seurat_obj <span class="ot">&lt;-</span> <span class="fu">ClusterAndUMAP</span>(seurat_obj, <span class="at">reduction =</span> <span class="st">&quot;integrated.cca.log&quot;</span>, <span class="at">umap_name =</span> <span class="st">&quot;umap.cca&quot;</span>)<span class="sc">$</span>seurat</span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="co"># ---------------------------------------------------------</span></span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="co"># 3. Analyze &amp; Visualize</span></span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a><span class="co"># ---------------------------------------------------------</span></span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a><span class="co"># Statistically compare cell type abundance across disease states</span></span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a><span class="fu">plot_cell_abundance</span>(</span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a>  seurat_obj, </span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a>  <span class="at">sample_col =</span> <span class="st">&quot;donor_id&quot;</span>, </span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a>  <span class="at">condition_col =</span> <span class="st">&quot;disease_state&quot;</span>, </span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a>  <span class="at">celltype_col =</span> <span class="st">&quot;seurat_clusters&quot;</span></span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a>)</span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a><span class="co"># Generate advanced feature density blend plots for co-expressing subsets</span></span>
+<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a><span class="fu">plot_blend_nebulosa</span>(</span>
+<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a>  seurat_obj, </span>
+<span id="cb2-42"><a href="#cb2-42" tabindex="-1"></a>  <span class="at">cluster_col =</span> <span class="st">&quot;seurat_clusters&quot;</span>, </span>
+<span id="cb2-43"><a href="#cb2-43" tabindex="-1"></a>  <span class="at">gene_pairs =</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="st">&quot;CD8A&quot;</span>, <span class="st">&quot;GZMB&quot;</span>)),</span>
+<span id="cb2-44"><a href="#cb2-44" tabindex="-1"></a>  <span class="at">reduction =</span> <span class="st">&quot;umap.cca&quot;</span></span>
+<span id="cb2-45"><a href="#cb2-45" tabindex="-1"></a>)</span></code></pre></div>
+<h2 id="books-documentation--tutorials">📚 Documentation &amp;
+Tutorials</h2>
+<p>This is just a fraction of what <code>OHMmy</code> can do! To see the
+complete, end-to-end tutorials covering all functions—including complex
+hierarchical dot plots, PCA diagnostics, and functional enrichment—visit
+our official package website:</p>
+<p>🔗 <a href="https://chomchonu.github.io/OHMmy/"><strong>OHMmy
+Official Documentation Website</strong></a></p>
+<p>Available Guides:</p>
+<ul>
+<li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-comprehensive.html">Comprehensive
+End-to-End Workflow</a></p></li>
+<li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-soupx-workflow.html">Ambient
+RNA Decontamination with SoupX</a></p></li>
+<li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-processing-clustering.html">Data
+Processing &amp; Clustering</a></p></li>
+<li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-diagnostics-evaluation.html">Diagnostic
+&amp; Variable Evaluation</a></p></li>
+<li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.html">Advanced
+Visualizations &amp; Marker Analysis</a></p></li>
+<li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-statistical-analysis.html">Statistical
+Abundance &amp; Correlations</a></p></li>
+<li><p><a href="https://chomchonu.github.io/OHMmy/articles/OHMmy-differential-expression.html">Differential
+Expression &amp; Pathway Enrichment</a></p></li>
+</ul>
 <h2 id="package-package-structure">📦 Package Structure</h2>
 <ul>
 <li><p><code>R/</code>: Core functional scripts categorized by module
@@ -702,8 +744,14 @@ functions.</p></li>
 ensuring pipeline reproducibility and matrix integrity.</p></li>
 </ul>
 <h2 id="page_facing_up-license">📄 License</h2>
-<p>This project is licensed under the MIT License - see the <a href="https://www.google.com/search?q=LICENSE">LICENSE</a> file for
-details.</p>
+<p>This project is licensed under the MIT License - see the <a href="LICENSE.md">LICENSE</a> file for details.</p>
+<h2 id="robot-ai-acknowledgement">🤖 AI Acknowledgement</h2>
+<p>During the development of <code>OHMmy</code>, Artificial Intelligence
+(AI) tools—including Large Language Models (LLMs)—were utilized to
+assist with code optimization, continuous integration (CI/CD) debugging,
+and documentation generation. All AI-assisted code and workflows were
+rigorously reviewed, modified, and validated by the author to ensure
+biological accuracy and functional stability within the package.</p>
 
 </body>
 </html>

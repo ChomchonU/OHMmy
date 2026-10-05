@@ -14,10 +14,10 @@ process_soupx_samples(filtered_dir, raw_dir, multiFac = 0)
 \item{multiFac}{Numeric. A percentage to artificially add to the auto-estimated contamination fraction (\code{rho}) across all samples (e.g., passing 5 adds 0.05 to the estimated rho). Default is 0.}
 }
 \value{
-A structured, named list containing three top-level elements:
+The same structure as \code{\link{run_soupx_post_clustering}()}: a named list with
 \itemize{
 \item \code{final_seurat}: A list of the final, initialized \code{Seurat} objects containing the background-corrected counts and baseline metadata.
-\item \code{soup_objects}: The output list from the contamination estimation step, containing the updated \code{SoupChannel} objects and corrected matrices.
+\item \code{soup_objects}: A list of the updated \code{SoupChannel} objects with their final \code{rho} values.
 \item \code{seurat_clustering}: A list of the preliminary \code{Seurat} objects used to generate the high-resolution clusters for ambient RNA estimation.
 }
 }
@@ -41,4 +41,7 @@ final_pipeline_output <- process_soupx_samples(
 # Extract your final cleaned Seurat objects for downstream integration
 my_clean_seurats <- final_pipeline_output$final_seurat
 }
+}
+\seealso{
+\code{\link{prepare_soupx_inputs}()} and \code{\link{run_soupx_post_clustering}()}, which this function chains. Use them directly to test several \code{multiFac} values without reloading the data, or to restrict the adjustment to selected samples.
 }

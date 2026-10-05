@@ -49,21 +49,16 @@
 #' }
 plot_cell_abundance <- function(seurat_obj, sample_col, condition_col, celltype_col,
                                 global_test = "kruskal.test",
-                                strict_posthoc = TRUE, # NEW: Only calculate post-hoc if global is sig (p < 0.05)
-                                pairwise_test = "mann_whitney", # Only used if n_conditions == 2
+                                strict_posthoc = TRUE,
+                                pairwise_test = "mann_whitney",
                                 p_adjust = "BH",
                                 facet_by_cluster = TRUE,
                                 facet_scales = "free_y",
-                                pairwise_label = "p.signif", # Changed default to 'p.signif' for cleaner bracket labels
-                                y_expand = 0.2, # Slightly increased to make room for brackets
+                                pairwise_label = "p.signif",
+                                y_expand = 0.2,
                                 output_dir = ".",
                                 base_size = 3.5,
                                 dpi = 300) {
-
-  require(dplyr)
-  require(tidyr)
-  require(rstatix)
-  require(ggpubr)
 
   # =======================================================================
   # AVAILABLE STATISTICAL PARAMETERS:
@@ -160,7 +155,7 @@ plot_cell_abundance <- function(seurat_obj, sample_col, condition_col, celltype_
   # Calculate proper Y-positions for the post-hoc brackets
   if (nrow(posthoc_res) > 0) {
 
-    # --- ADDED FIX: Force rstatix to generate significance stars ---
+    # Make sure significance-star columns exist for the bracket labels
     if ("p.adj" %in% colnames(posthoc_res) && !("p.adj.signif" %in% colnames(posthoc_res))) {
       posthoc_res <- posthoc_res %>% add_significance(p.col = "p.adj", output.col = "p.adj.signif")
     }
@@ -169,7 +164,7 @@ plot_cell_abundance <- function(seurat_obj, sample_col, condition_col, celltype_
     }
     # ---------------------------------------------------------------
 
-    # --- ADDED FIX: Format numeric p-values to exactly 3 decimal places ---
+    # Format numeric p-values to 3 decimal places for display
     format_p <- function(pval) {
       ifelse(pval < 0.001, "< 0.001", sprintf("%.3f", pval))
     }
@@ -241,13 +236,13 @@ plot_cell_abundance <- function(seurat_obj, sample_col, condition_col, celltype_
     if (facet_by_cluster) {
       stat_layers[["global"]] <- stat_compare_means(
         method   = global_test,
-        aes(label = ifelse(..p.. < 0.001, "p < 0.001", sprintf("p = %.3f", ..p..))), # Removed duplicate label = "p.format"
+        aes(label = ifelse(..p.. < 0.001, "p < 0.001", sprintf("p = %.3f", ..p..))),
         vjust    = -2.5,
         hide.ns  = FALSE
       )
     } else {
       stat_layers[["global"]] <- stat_compare_means(
-        aes(group = Condition, label = ifelse(..p.. < 0.001, "p < 0.001", sprintf("p = %.3f", ..p..))), # Removed duplicate label = "p.format"
+        aes(group = Condition, label = ifelse(..p.. < 0.001, "p < 0.001", sprintf("p = %.3f", ..p..))),
         method   = global_test,
         vjust    = -2.5,
         hide.ns  = FALSE
@@ -398,19 +393,13 @@ plot_metadata_stats <- function(seurat_obj,
                                 continuous_test_n2 = "mann_whitney",
                                 continuous_test_n3 = "kruskal.test",
                                 categorical_test = "chisq",
-                                strict_posthoc = TRUE, # Only run pairwise if global test p < 0.05
-                                p_adjust = "BH",       # Multiple testing correction method
+                                strict_posthoc = TRUE,
+                                p_adjust = "BH",
                                 add_facet = NULL,
                                 output_dir = "metadata_plots",
                                 plot_width = 6,
                                 plot_height = 5,
                                 dpi = 300) {
-
-  require(dplyr)
-  require(rstatix)
-  require(ggpubr)
-  require(scales)
-  require(ggsci)
 
   # =======================================================================
   # AVAILABLE STATISTICAL PARAMETERS:
@@ -542,7 +531,7 @@ plot_metadata_stats <- function(seurat_obj,
         theme(legend.position = "none") +
         scale_y_continuous(expand = expansion(mult = c(0.05, 0.15))) # Extra headroom for brackets
 
-      # --- FIX: Force the correct test name on the plot ---
+      # Show the name of the test that was actually run
       display_method <- if (global_method == "wilcox.test") {
         "Mann-Whitney U"
       } else if (global_method == "kruskal.test") {
@@ -636,8 +625,8 @@ plot_metadata_stats <- function(seurat_obj,
           fill = var,
           subtitle = sub_title
         ) +
-        scale_y_continuous(labels = percent_format()) +
-        scale_fill_npg()
+        scale_y_continuous(labels = scales::percent_format()) +
+        ggsci::scale_fill_npg()
 
       if (!is.null(add_facet)) {
         p <- p + facet_wrap(as.formula(paste("~", add_facet)))

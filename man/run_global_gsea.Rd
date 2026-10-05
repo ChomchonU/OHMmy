@@ -24,7 +24,7 @@ run_global_gsea(
 
 \item{m_t2g}{A two-column data frame mapping pathways/terms to genes (TERM2GENE format), typically sourced from MSigDB.}
 
-\item{output_dir}{Character. Directory path where all plots and CSV summaries will be saved.}
+\item{output_dir}{Character. Directory path where all plots and CSV summaries will be saved (created if missing; a trailing slash is optional).}
 
 \item{title_prefix}{Character. A prefix used for plot titles and file naming to identify the pathway database (e.g., "Hallmark", "KEGG"). Default is "Hallmark".}
 
@@ -45,7 +45,7 @@ run_global_gsea(
 \item{variable_per_clus}{Logical. A toggle to dictate specific nested behavior (retained for pipeline compatibility with the ORA function framework). Default is FALSE.}
 }
 \value{
-Invisibly returns a \code{tibble} (\code{combined_df}) containing the concatenated GSEA results across all evaluated clusters. Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
+A data frame (\code{combined_df}) containing the concatenated GSEA results across all evaluated clusters, or \code{NULL} if no pathway was significant. Outputs multiple JPEG plots (the classic enrichment plots require the \pkg{enrichplot} package) and CSV tables as side effects to the specified \code{output_dir}.
 }
 \description{
 An end-to-end pipeline for performing Gene Set Enrichment Analysis (GSEA) on

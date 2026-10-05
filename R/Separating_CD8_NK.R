@@ -25,7 +25,13 @@
   if (!requireNamespace("mclust", quietly = TRUE)) return(fail)
   x <- x[is.finite(x)]
   if (length(x) < min_n) return(fail)
-  fit <- try(mclust::Mclust(x, G = 2, verbose = FALSE), silent = TRUE)
+  # Mclust() evaluates an unqualified mclustBIC() call in its caller's frame, which
+  # only resolves when mclust is attached. Call it from an environment that
+  # provides mclustBIC so that attaching mclust is not required.
+  gmm_env <- new.env(parent = environment())
+  gmm_env$mclustBIC <- mclust::mclustBIC
+  fit <- try(eval(quote(mclust::Mclust(x, G = 2, verbose = FALSE)), envir = gmm_env),
+             silent = TRUE)
   if (inherits(fit, "try-error") || is.null(fit)) return(fail)
   if (is.null(fit$G) || fit$G != 2L)              return(fail)
   mu <- fit$parameters$mean
@@ -62,7 +68,7 @@
 #' @param cd8_cols Character vector; names of the columns in `obj@meta.data` containing the CD8 scores to test.
 #' @param nk_col Character string; name of the column containing the baseline NK score. Default: `"NK_Score"`.
 #' @param cells_use Character vector; specific cell barcodes to include. Defaults to all cells in `obj`.
-#' @param method Character; the method to determine the CD8 vs NK decision boundary. One of `"fixed"`, `"trough"` (density valley), or `"gmm"` (Gaussian Mixture Model).
+#' @param method Character; the method to determine the CD8 vs NK decision boundary. One of `"fixed"`, `"trough"` (density valley), or `"gmm"` (decision boundary of a two-component Gaussian mixture; requires the \pkg{mclust} package to be installed). If a data-driven method cannot find a cutoff, `fixed_cut` is used and the `fallback` column of the returned `cutoffs` table is `TRUE`.
 #' @param fixed_cut Numeric; the threshold to use if `method = "fixed"`. Default: `0`.
 #' @param zscore Logical; whether to standardize (Z-score) the CD8 and NK columns independently before subtracting them. Default: `TRUE`.
 #' @param primary Character string; the CD8 variant to act as the primary label for the consensus calculation. Defaults to `cd8_cols[1]`.
@@ -362,7 +368,7 @@ score_consensus <- function(obj,
           ggplot2::labs(
             title = paste("CD8 vs NK Scaled Scores:", cc),
             subtitle = sprintf("Assigned by %s | up to %d cells/class | Method: %s", plot_group_by, plot_n, toupper(method)),
-            x = "Module", y = "Scaled UCell Score", color = "Assigned Class", fill = "Assigned Class"
+            x = "Module", y = "Scaled score", color = "Assigned Class", fill = "Assigned Class"
           ) +
           ggplot2::facet_wrap(~ sc_Class) +
           ggplot2::theme(axis.text.x = ggplot2::element_text(face = "bold"), panel.grid.minor = ggplot2::element_blank())

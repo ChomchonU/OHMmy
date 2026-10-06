@@ -50,6 +50,7 @@ Suggests:
     harmony,
     jpeg,
     knitr,
+    Matrix,
     mclust,
     msigdbr,
     Nebulosa,

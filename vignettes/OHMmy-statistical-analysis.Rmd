@@ -28,14 +28,10 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-Cohort-level questions, such as whether a population expands in disease, must be
-tested with the **donor** as the unit of replication, not the cell. Treating
-thousands of cells from a few donors as independent observations
-(pseudoreplication) produces very small p-values with no biological meaning.
-The OHMmy statistics functions aggregate to the donor level before testing:
+Cohort-level questions, such as whether a population expands in disease, must be tested with the **donor** as the unit of replication, not the cell. Treating thousands of cells from a few donors as independent observations (pseudoreplication) produces very small p-values with no biological meaning. The OHMmy statistics functions aggregate to the donor level before testing:
 
 | Function | Purpose |
-|----------|---------|
+|----|----|
 | `plot_metadata_stats()` | Check that donor-level covariates (age, sex, batch, ...) are balanced across conditions |
 | `plot_cell_abundance()` | Test per-donor cell-type proportions across conditions, with automatic test selection and brackets |
 | `plot_cluster_distributions()` | Stacked bar charts of counts and proportions for any two metadata columns |
@@ -54,11 +50,7 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
 ### The simulated cohort
 
-The pbmc3k cells are spread across 12 simulated donors in three severity groups.
-By construction, monocyte-like cells were over-assigned to Mild and Severe
-donors (see `add_mock_cohort()` in `ohmmy-vignette-helpers.R`), so a correct
-analysis should find **more CD14 monocytes with increasing severity** and no
-other systematic difference.
+The pbmc3k cells are spread across 12 simulated donors in three severity groups. By construction, monocyte-like cells were over-assigned to Mild and Severe donors (see `add_mock_cohort()` in `ohmmy-vignette-helpers.R`), so a correct analysis should find **more CD14 monocytes with increasing severity** and no other systematic difference.
 
 ```{r cohort}
 donors <- unique(pbmc@meta.data[, c("donor_id", "severity", "infection_status", "batch", "age", "sex")])
@@ -68,17 +60,11 @@ donors[order(donors$donor_id), ]
 
 ## 1. Confounder checks with `plot_metadata_stats()`
 
-Before comparing conditions, confirm that the groups do not differ in
-covariates that could explain the result. `plot_metadata_stats()` reduces the
-metadata to one row per `sample_col`, detects whether each variable is
-continuous or categorical, and chooses the test:
+Before comparing conditions, confirm that the groups do not differ in covariates that could explain the result. `plot_metadata_stats()` reduces the metadata to one row per `sample_col`, detects whether each variable is continuous or categorical, and chooses the test:
 
-* **continuous, 2 groups:** Mann-Whitney U (`"mann_whitney"`) or t-test (`"t_test"`)
-* **continuous, 3 or more groups:** Kruskal-Wallis (`"kruskal.test"`) or ANOVA (`"anova"`),
-  followed by Dunn's or Tukey post-hoc tests. With `strict_posthoc = TRUE`, the
-  post-hoc tests run only when the global test is significant.
-* **categorical:** Chi-square (`"chisq"`) or Fisher's exact test (`"fisher"`,
-  recommended for small cohorts)
+-   **continuous, 2 groups:** Mann-Whitney U (`"mann_whitney"`) or t-test (`"t_test"`)
+-   **continuous, 3 or more groups:** Kruskal-Wallis (`"kruskal.test"`) or ANOVA (`"anova"`), followed by Dunn's or Tukey post-hoc tests. With `strict_posthoc = TRUE`, the post-hoc tests run only when the global test is significant.
+-   **categorical:** Chi-square (`"chisq"`) or Fisher's exact test (`"fisher"`, recommended for small cohorts)
 
 ```{r meta-stats, results = "hide"}
 meta_res <- plot_metadata_stats(
@@ -105,10 +91,7 @@ meta_res$stats$sex$Global
 meta_res$stats$batch$Global
 ```
 
-None of the covariates differ between severity groups, so they are unlikely to
-confound the abundance analysis below. The same function handles two-group
-designs. Here age is compared between healthy and infected donors with a
-t-test:
+None of the covariates differ between severity groups, so they are unlikely to confound the abundance analysis below. The same function handles two-group designs. Here age is compared between healthy and infected donors with a t-test:
 
 ```{r meta-stats-2grp, results = "hide"}
 meta_2grp <- plot_metadata_stats(
@@ -129,16 +112,10 @@ meta_2grp$plots$age
 
 ## 2. Differential abundance with `plot_cell_abundance()`
 
-`plot_cell_abundance()` computes, for every donor, the fraction of its cells in
-each cell type. Missing combinations are filled with zero. It then tests each
-cell type across conditions:
+`plot_cell_abundance()` computes, for every donor, the fraction of its cells in each cell type. Missing combinations are filled with zero. It then tests each cell type across conditions:
 
-* **3 or more conditions:** a global Kruskal-Wallis test (or ANOVA) per cell type,
-  then Dunn's (or Tukey's) pairwise tests with `p_adjust` correction. With
-  `strict_posthoc = TRUE`, only cell types with a significant global test get
-  pairwise brackets.
-* **2 conditions:** Mann-Whitney (`"mann_whitney"`), paired Wilcoxon
-  (`"wilcoxon_paired"`) or t-test (`"t_test"`).
+-   **3 or more conditions:** a global Kruskal-Wallis test (or ANOVA) per cell type, then Dunn's (or Tukey's) pairwise tests with `p_adjust` correction. With `strict_posthoc = TRUE`, only cell types with a significant global test get pairwise brackets.
+-   **2 conditions:** Mann-Whitney (`"mann_whitney"`), paired Wilcoxon (`"wilcoxon_paired"`) or t-test (`"t_test"`).
 
 Brackets are positioned per facet so they never overlap the data.
 
@@ -164,17 +141,11 @@ p_abund <- plot_cell_abundance(
 p_abund
 ```
 
-As designed, only **CD14 Mono** passes the global test (Kruskal-Wallis
-p ≈ 0.01). Because of `strict_posthoc = TRUE`, it is also the only panel with
-pairwise Dunn brackets, and Severe vs Healthy is the significant contrast.
-The weaker downward trends in CD4 T, CD8 T and B cells are not an independent
-effect. Proportions are compositional, so when monocytes take a larger share of
-each Severe donor's cells, every other population's share has to shrink.
+As designed, only **CD14 Mono** passes the global test (Kruskal-Wallis p ≈ 0.01). Because of `strict_posthoc = TRUE`, it is also the only panel with pairwise Dunn brackets, and Severe vs Healthy is the significant contrast. The weaker downward trends in CD4 T, CD8 T and B cells are not an independent effect. Proportions are compositional, so when monocytes take a larger share of each Severe donor's cells, every other population's share has to shrink.
 
 ### Two conditions, all cell types on one axis
 
-With `facet_by_cluster = FALSE`, all cell types share one panel, with dodged
-boxes per condition:
+With `facet_by_cluster = FALSE`, all cell types share one panel, with dodged boxes per condition:
 
 ```{r abundance-2, results = "hide"}
 p_abund2 <- plot_cell_abundance(
@@ -195,10 +166,7 @@ p_abund2
 
 ## 3. Composition overview with `plot_cluster_distributions()`
 
-For a quick descriptive view, `plot_cluster_distributions()` cross-tabulates
-any two metadata columns and saves two figures. The first shows proportions in
-both directions (cell types within each group, and groups within each cell
-type). The second shows absolute counts.
+For a quick descriptive view, `plot_cluster_distributions()` cross-tabulates any two metadata columns and saves two figures. The first shows proportions in both directions (cell types within each group, and groups within each cell type). The second shows absolute counts.
 
 ```{r distributions, results = "hide"}
 dist_plots <- plot_cluster_distributions(
@@ -220,11 +188,7 @@ dist_plots$counts
 
 ## 4. Gene-pair correlations with `plot_gene_pair_correlations()`
 
-Blend plots show co-expression visually. `plot_gene_pair_correlations()` puts a
-number on it: for each pair and each cluster, it computes the Pearson,
-Spearman or Kendall correlation. Before that, it drops cells that do not
-express both genes above the `quantile_thresh` quantile, which reduces the
-effect of dropout zeros.
+Blend plots show co-expression visually. `plot_gene_pair_correlations()` puts a number on it: for each pair and each cluster, it computes the Pearson, Spearman or Kendall correlation. Before that, it drops cells that do not express both genes above the `quantile_thresh` quantile, which reduces the effect of dropout zeros.
 
 ```{r gene-pairs, results = "hide"}
 cor_res <- plot_gene_pair_correlations(
@@ -245,8 +209,7 @@ cor_res <- plot_gene_pair_correlations(
 cor_res$plot
 ```
 
-The underlying table also reports how many cells entered each correlation, so
-estimates based on only a few cells can be identified:
+The underlying table also reports how many cells entered each correlation, so estimates based on only a few cells can be identified:
 
 ```{r gene-pairs-table}
 head(cor_res$data[order(-cor_res$data$N_Cells), ], 10)

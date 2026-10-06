@@ -371,15 +371,28 @@ ClusterAndUMAP <- function(seurat_obj,
   })
 }
 
+#' Fail fast on an unsupported integration_method (before any heavy computation)
+#' @keywords internal
+#' @noRd
+.validate_integration_method <- function(integration_method) {
+  if (!is.character(integration_method) || length(integration_method) != 1) {
+    stop("`integration_method` must be a single string, e.g. \"HarmonyIntegration\".", call. = FALSE)
+  }
+  valid <- c("HarmonyIntegration", "RPCAIntegration", "CCAIntegration", "FastMNNIntegration")
+  if (!integration_method %in% valid) {
+    stop("Unknown integration method '", integration_method, "'. Please choose from: ",
+         paste(valid, collapse = ", "), ".", call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
 #' Dispatch IntegrateLayers() for the supported integration back-ends
 #' @keywords internal
 #' @noRd
 .integrate_layers <- function(seurat_obj, integration_method, reduction_name,
                               integration_reduction, k, dims, batch_col, verbose,
                               normalization_method = "LogNormalize") {
-  if (!is.character(integration_method) || length(integration_method) != 1) {
-    stop("`integration_method` must be a single string, e.g. \"HarmonyIntegration\".")
-  }
+  .validate_integration_method(integration_method)
 
   if (integration_method == "FastMNNIntegration") {
     IntegrateLayers(
@@ -509,6 +522,8 @@ ProcessSeuratSCT <- function(
     boost_genes = c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1"),
     boost_multiplier = 1
 ) {
+  .validate_integration_method(integration_method)
+
   message("Splitting RNA layer by batch...")
   DefaultAssay(seurat_obj) <- "RNA"
   seurat_obj[["RNA"]] <- split(seurat_obj[["RNA"]], f = seurat_obj[[batch_col]][, 1])
@@ -617,6 +632,8 @@ ProcessSeuratLOG <- function(
     boost_genes = c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1"),
     boost_multiplier = 1
 ) {
+  .validate_integration_method(integration_method)
+
   message("Splitting RNA layer by batch...")
   DefaultAssay(seurat_obj) <- "RNA"
   seurat_obj[["RNA"]] <- split(seurat_obj[["RNA"]], f = seurat_obj[[batch_col]][, 1])

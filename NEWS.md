@@ -24,6 +24,12 @@
   attached by the user. Missing optional packages give an informative error.
 * `run_global_gsea()` and `run_global_ora()` accept `output_dir` with or without
   a trailing slash.
+* `plot_cell_abundance(global_test = "anova")` and `plot_metadata_stats()` with
+  `continuous_test_n3 = "anova"` no longer fail when filtering the ANOVA results.
+* `plot_metadata_stats()` skips `metadata_vars` that are not in the metadata
+  (previously it errored before reaching its skip check).
+* `ProcessSeuratLOG()` and `ProcessSeuratSCT()` check `integration_method` before
+  any computation and give a clear error for unsupported values.
 
 ## Improvements
 

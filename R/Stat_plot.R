@@ -121,7 +121,9 @@ plot_cell_abundance <- function(seurat_obj, sample_col, condition_col, celltype_
       posthoc_res <- abundance_df %>% group_by(CellType) %>% dunn_test(Proportion ~ Condition, p.adjust.method = effective_adjust)
     } else {
       # ANOVA -> Tukey's HSD (Tukey inherently adjusts for multiple comparisons)
-      global_res <- abundance_df %>% group_by(CellType) %>% anova_test(Proportion ~ Condition)
+      # rstatix's anova object cannot be sliced by dplyr; convert it to a plain data frame
+      global_res <- abundance_df %>% group_by(CellType) %>% anova_test(Proportion ~ Condition) %>%
+        as.data.frame()
       posthoc_res <- abundance_df %>% group_by(CellType) %>% tukey_hsd(Proportion ~ Condition)
     }
 
@@ -423,6 +425,12 @@ plot_metadata_stats <- function(seurat_obj,
   }
 
   # 1. Extract and deduplicate metadata
+  missing_vars <- setdiff(metadata_vars, colnames(seurat_obj@meta.data))
+  if (length(missing_vars) > 0) {
+    message("Skipping ", paste(missing_vars, collapse = ", "), ": not found in metadata")
+    metadata_vars <- setdiff(metadata_vars, missing_vars)
+  }
+
   cols_to_keep <- c(sample_col, condition_col, metadata_vars)
   if (!is.null(add_facet)) cols_to_keep <- c(cols_to_keep, add_facet)
 
@@ -483,7 +491,7 @@ plot_metadata_stats <- function(seurat_obj,
           posthoc_res <- stat_md %>% dunn_test(test_formula, p.adjust.method = p_adjust)
         } else {
           global_method <- "anova"
-          global_res <- stat_md %>% anova_test(test_formula)
+          global_res <- stat_md %>% anova_test(test_formula) %>% as.data.frame()
           posthoc_res <- stat_md %>% tukey_hsd(test_formula)
         }
       }

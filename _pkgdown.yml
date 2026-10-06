@@ -1,8 +1,12 @@
 url: https://chomchonu.github.io/OHMmy/
 title: OHMmy
-description: An R package providing advanced, robust wrappers for single-cell transcriptomics and Seurat workflows.
+description: OHMmy - an R package for single-cell RNA-seq (scRNA-seq) analysis and visualization in Seurat v5, with SoupX ambient RNA removal, batch integration, clustering, marker and pathway (GSEA/ORA) analysis.
 template:
   bootstrap: 5
+  # Google Search Console verification: replace YOUR_CODE_HERE with the code
+  # Google gives you (Add property -> URL prefix -> HTML tag), then uncomment.
+  # includes:
+  #   in_header: <meta name="google-site-verification" content="YOUR_CODE_HERE" />
 
 articles:
 - title: "Pipelines & Workflows"

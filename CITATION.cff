@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use OHMmy in your research, please cite it as below."
+type: software
+title: "OHMmy: Streamlined Single-Cell RNA-Seq Analysis and Visualization for Seurat v5"
+abstract: >-
+  An R toolkit for single-cell RNA sequencing (scRNA-seq) analysis built for
+  Seurat v5. It provides reproducible wrappers for ambient RNA decontamination
+  with SoupX, normalisation and batch integration, clustering, technical-noise
+  diagnostics, publication-ready visualisation, donor-aware statistics, and
+  functional enrichment (ORA and GSEA).
+authors:
+  - family-names: Uansiri
+    given-names: Chomchon
+    email: chomchom1910travel@gmail.com
+version: 1.0.2
+date-released: 2026-10-06
+license: MIT
+repository-code: "https://github.com/ChomchonU/OHMmy"
+url: "https://chomchonu.github.io/OHMmy/"
+keywords:
+  - R
+  - single-cell
+  - scRNA-seq
+  - Seurat
+  - SoupX
+  - bioinformatics
+  - transcriptomics
+  - GSEA

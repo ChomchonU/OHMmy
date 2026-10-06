@@ -41,8 +41,8 @@ Imports:
     stringr,
     tibble,
     tidyr
-URL: https://github.com/PicooO12/OHMmy, https://chomchonu.github.io/OHMmy/
-BugReports: https://github.com/PicooO12/OHMmy/issues
+URL: https://github.com/ChomchonU/OHMmy, https://chomchonu.github.io/OHMmy/
+BugReports: https://github.com/ChomchonU/OHMmy/issues
 Suggests: 
     DESeq2,
     enrichplot,

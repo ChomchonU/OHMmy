@@ -293,16 +293,16 @@ head(cor_res$data[order(-cor_res$data$N_Cells), ], 10)
 #> # A tibble: 10 × 4
 #>    Cluster     Correlation N_Cells Pair            
 #>    <fct>             <dbl>   <int> <chr>           
-#>  1 CD14 Mono        0.773      462 S100A8 vs S100A9
+#>  1 CD14 Mono        0.773      463 S100A8 vs S100A9
 #>  2 B                0.0743     275 CD79A vs MS4A1  
-#>  3 NK              -0.236      149 GNLY vs NKG7    
-#>  4 CD8 T            0.305       87 GNLY vs NKG7    
-#>  5 FCGR3A Mono      0.222       79 S100A8 vs S100A9
+#>  3 NK              -0.110      134 GNLY vs NKG7    
+#>  4 CD8 T            0.248      101 GNLY vs NKG7    
+#>  5 FCGR3A Mono      0.200       80 S100A8 vs S100A9
 #>  6 CD4 T            0.844       21 S100A8 vs S100A9
-#>  7 CD4 T            0.961       17 GNLY vs NKG7    
+#>  7 CD4 T            0.967       18 GNLY vs NKG7    
 #>  8 CD14 Mono        0.512       16 GNLY vs NKG7    
-#>  9 DC               0.333       10 S100A8 vs S100A9
-#> 10 FCGR3A Mono     -0.119        8 GNLY vs NKG7
+#>  9 FCGR3A Mono      0.261       10 GNLY vs NKG7    
+#> 10 DC               0.333       10 S100A8 vs S100A9
 ```
 
 ## Session information
@@ -348,7 +348,7 @@ sessionInfo()
 #>  [31] lifecycle_1.0.5        pkgconfig_2.0.3        Matrix_1.7-5          
 #>  [34] R6_2.6.1               fastmap_1.2.0          fitdistrplus_1.2-6    
 #>  [37] future_1.76.0          shiny_1.14.0           digest_0.6.39         
-#>  [40] tensor_1.5.1           RSpectra_0.16-2        irlba_2.3.7           
+#>  [40] tensor_1.5.1           RSpectra_0.16-2        irlba_2.4.1           
 #>  [43] textshaping_1.0.5      ggpubr_1.0.0           labeling_0.4.3        
 #>  [46] progressr_1.0.0        spatstat.sparse_3.2-0  httr_1.4.9            
 #>  [49] polyclip_1.10-7        abind_1.4-8            compiler_4.6.1        

@@ -109,7 +109,7 @@ seurat_list <- create_seurat_for_clustering(counts$filtered, samples)
 soup_list$PBMC_A
 sapply(seurat_list, function(x) nlevels(x$seurat_clusters))
 #> PBMC_A PBMC_B 
-#>      8      7
+#>      7      9
 ```
 
 ### Estimate and remove contamination
@@ -144,8 +144,8 @@ est_manual <- estimate_contamination(
 get_rho <- function(soup_objs) sapply(soup_objs, function(sc) unique(sc$metaData$rho))
 rbind(auto = get_rho(est_auto$soup_list_all), selective = get_rho(est_manual$soup_list_all))
 #>           PBMC_A PBMC_B
-#> auto       0.058  0.063
-#> selective  0.058  0.113
+#> auto       0.061  0.055
+#> selective  0.061  0.105
 ```
 
 `autoEstCont()` estimates about 6 % contamination. The selective
@@ -183,14 +183,14 @@ clean_list <- create_final_seurat(est_auto$soup_list_all, samples)
 clean_list
 #> $PBMC_A
 #> An object of class Seurat 
-#> 12337 features across 1326 samples within 1 assay 
-#> Active assay: RNA (12337 features, 0 variable features)
+#> 12326 features across 1326 samples within 1 assay 
+#> Active assay: RNA (12326 features, 0 variable features)
 #>  1 layer present: counts
 #> 
 #> $PBMC_B
 #> An object of class Seurat 
-#> 12305 features across 1374 samples within 1 assay 
-#> Active assay: RNA (12305 features, 0 variable features)
+#> 12317 features across 1373 samples within 1 assay 
+#> Active assay: RNA (12317 features, 0 variable features)
 #>  1 layer present: counts
 ```
 
@@ -238,14 +238,14 @@ raw_umis <- sapply(counts$filtered, sum)
 sweep$pct_removed <- 100 * (1 - sweep$umis / raw_umis[sweep$sample])
 sweep
 #>         multiFac sample   rho    umis pct_removed
-#> PBMC_A         0 PBMC_A 0.058 3007505    5.942251
-#> PBMC_B         0 PBMC_B 0.063 2987837    6.428975
-#> PBMC_A1        5 PBMC_A 0.108 2847866   10.934856
-#> PBMC_B1        5 PBMC_B 0.113 2828206   11.428188
-#> PBMC_A2       10 PBMC_A 0.158 2688106   15.931245
-#> PBMC_B2       10 PBMC_B 0.163 2668570   16.427559
-#> PBMC_A3       20 PBMC_A 0.258 2367362   25.962304
-#> PBMC_B3       20 PBMC_B 0.263 2347818   26.472650
+#> PBMC_A         0 PBMC_A 0.061 2998411    6.226660
+#> PBMC_B         0 PBMC_B 0.055 3013068    5.638807
+#> PBMC_A1        5 PBMC_A 0.111 2838180   11.237779
+#> PBMC_B1        5 PBMC_B 0.105 2853238   10.644253
+#> PBMC_A2       10 PBMC_A 0.161 2678340   16.236670
+#> PBMC_B2       10 PBMC_B 0.155 2693719   15.639960
+#> PBMC_A3       20 PBMC_A 0.261 2358124   26.251216
+#> PBMC_B3       20 PBMC_B 0.255 2372919   25.686554
 
 ggplot(sweep, aes(rho, pct_removed, colour = sample)) +
   geom_line() + geom_point(size = 2.5) +
@@ -269,7 +269,7 @@ override <- run_soupx_post_clustering(prep, multiFac = 10, manual_contam = "PBMC
 
 get_rho(override$soup_objects)
 #> PBMC_A PBMC_B 
-#>  0.058  0.163
+#>  0.061  0.155
 ```
 
 ### One-step wrapper
@@ -290,7 +290,7 @@ names(one_step)
 #> [1] "final_seurat"      "soup_objects"      "seurat_clustering"
 get_rho(one_step$soup_objects)
 #> PBMC_A PBMC_B 
-#>  0.058  0.063
+#>  0.061  0.055
 ```
 
 ## 4. Transferring the cleaned counts to an existing object
@@ -344,8 +344,8 @@ corrected <- addSoupXMetaToSeurat(
 
 corrected
 #> An object of class Seurat 
-#> 13007 features across 2700 samples within 1 assay 
-#> Active assay: RNA (13007 features, 0 variable features)
+#> 12997 features across 2699 samples within 1 assay 
+#> Active assay: RNA (12997 features, 0 variable features)
 #>  1 layer present: counts
 ```
 
@@ -373,10 +373,10 @@ data.frame(gene = ambient_genes,
            pct_nonmono_before = round(detect(before), 1),
            pct_nonmono_after  = round(detect(after), 1))
 #>          gene pct_nonmono_before pct_nonmono_after
-#> LYZ       LYZ               43.4               3.2
+#> LYZ       LYZ               43.4               4.6
 #> S100A8 S100A8                9.4               0.6
-#> S100A9 S100A9               16.3               1.0
-#> FTL       FTL               98.3              90.2
+#> S100A9 S100A9               16.4               1.1
+#> FTL       FTL               98.3              90.7
 
 plot_df <- data.frame(
   nCount = c(original$nCount_RNA[cells], corrected$nCount_RNA),
@@ -444,7 +444,7 @@ sessionInfo()
 #>  [34] R6_2.6.1               fastmap_1.2.0          fitdistrplus_1.2-6    
 #>  [37] future_1.76.0          shiny_1.14.0           digest_0.6.39         
 #>  [40] patchwork_1.3.2        tensor_1.5.1           RSpectra_0.16-2       
-#>  [43] irlba_2.3.7            textshaping_1.0.5      ggpubr_1.0.0          
+#>  [43] irlba_2.4.1            textshaping_1.0.5      ggpubr_1.0.0          
 #>  [46] labeling_0.4.3         progressr_1.0.0        spatstat.sparse_3.2-0 
 #>  [49] httr_1.4.9             polyclip_1.10-7        abind_1.4-8           
 #>  [52] compiler_4.6.1         withr_3.0.3            S7_0.2.2              

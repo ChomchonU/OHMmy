@@ -73,7 +73,7 @@ generate_dimheatmaps(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_DimHeatmap_pca.log_PC1-9_20261005_153953.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_DimHeatmap_pca.log_PC1-9_20261006_101041.jpg)
 
 PC 1 separates myeloid genes (*LYZ*, *FCN1*, *CST3*) from lymphoid genes
 (*IL7R*, *LTB*). Note that *MALAT1* is among its top lymphoid loadings,
@@ -111,7 +111,7 @@ failed
 #> character(0)
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_VizDimLoadings_PC1-6_20261005_153954.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_VizDimLoadings_PC1-6_20261006_101042.jpg)
 
 ## 2. Quantifying technical gene contributions
 
@@ -140,7 +140,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261005_153955.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261006_101043.jpg)
 
 In pbmc3k every PC stays well below the 15 % cutoff. The largest value
 is a few percent on the negative side of PC 1. This is expected, because
@@ -172,7 +172,7 @@ plot_stacked_technical_contribution(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-stacked_technical_contrib_posneg_pbmc3k_20261005_153958.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-stacked_technical_contrib_posneg_pbmc3k_20261006_101046.jpg)
 
 ## 3. Correlating PCs with QC covariates
 
@@ -204,7 +204,7 @@ plot_pc_metadata_correlation(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-corr_pc_pbmc3k_20261005_154000.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-corr_pc_pbmc3k_20261006_101047.jpg)
 
 ## Interpreting the diagnostics
 
@@ -265,7 +265,7 @@ sessionInfo()
 #>  [34] Matrix_1.7-5           R6_2.6.1               fastmap_1.2.0         
 #>  [37] fitdistrplus_1.2-6     future_1.76.0          shiny_1.14.0          
 #>  [40] digest_0.6.39          patchwork_1.3.2        tensor_1.5.1          
-#>  [43] RSpectra_0.16-2        irlba_2.3.7            textshaping_1.0.5     
+#>  [43] RSpectra_0.16-2        irlba_2.4.1            textshaping_1.0.5     
 #>  [46] ggpubr_1.0.0           labeling_0.4.3         progressr_1.0.0       
 #>  [49] spatstat.sparse_3.2-0  httr_1.4.9             polyclip_1.10-7       
 #>  [52] abind_1.4-8            compiler_4.6.1         withr_3.0.3           

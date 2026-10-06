@@ -160,7 +160,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261005_152914.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261006_100345.jpg)
 
 ## 4. Visualise markers
 
@@ -238,7 +238,7 @@ gsea <- run_global_gsea(
 )
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261005_153933.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261006_101027.jpg)
 
 ## Where to go next
 
@@ -330,7 +330,7 @@ sessionInfo()
 #>  [99] ROCR_1.0-12                 nlme_3.1-169               
 #> [101] ggtree_4.2.0                fontquiver_0.2.1           
 #> [103] bit64_4.8.6                 RcppAnnoy_0.0.23           
-#> [105] bslib_0.12.0                irlba_2.3.7                
+#> [105] bslib_0.12.0                irlba_2.4.1                
 #> [107] vipor_0.4.7                 KernSmooth_2.23-26         
 #> [109] otel_0.2.0                  BiocGenerics_0.58.1        
 #> [111] DBI_1.3.0                   processx_3.9.0             

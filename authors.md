@@ -7,7 +7,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/PicooO12/OHMmy/blob/master/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/PicooO12/OHMmy/blob/v1.0.2/DESCRIPTION)
 
 Uansiri C (2026). *OHMmy: Streamlined Single-Cell RNA-Seq Analysis and
 Visualization for Seurat v5*. R package version 1.0.2,

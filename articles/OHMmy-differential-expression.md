@@ -202,7 +202,7 @@ plot_split_dotplots_by_gene_cluster(
 )
 ```
 
-![](OHMmy-differential-expression_files/figure-html/saved-DotPlot_Part1_2026-10-06_16-28-06.png)![](OHMmy-differential-expression_files/figure-html/saved-Dendrogram_ALL_2026-10-06_16-28-06.png)
+![](OHMmy-differential-expression_files/figure-html/saved-DotPlot_Part1_2026-10-06_16-59-11.png)![](OHMmy-differential-expression_files/figure-html/saved-Dendrogram_ALL_2026-10-06_16-59-11.png)
 
 ## 3. Pathway enrichment
 
@@ -307,17 +307,17 @@ activated inflammatory and TNF-alpha signalling, and cluster 8 has
 activated coagulation. Clusters without significant pathways, here the
 small DC cluster 7, are left out.
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261006_163651.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261006_170654.jpg)
 
 The signed-significance view puts direction and significance on one
 axis:
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Signed_Significance_Dotplot_20261006_163651.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Signed_Significance_Dotplot_20261006_170654.jpg)
 
 Per-cluster outputs for cluster 2 (CD14 monocytes): the NES dot plot and
 the running enrichment score of its top pathway.
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_GSEA_NES_Dotplot_20261006_163651.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20261006_163651.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_GSEA_NES_Dotplot_20261006_170654.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20261006_170654.jpg)
 
 ### Over-Representation Analysis: `run_global_ora()`
 
@@ -372,11 +372,11 @@ ora_res %>%
 #> 15       7          DC Suppressed 1
 ```
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_Global_Activated_Clustered_Dendro_20261006_163709.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_ORA_Signed_Significance_Dotplot_20261006_163709.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_Global_Activated_Clustered_Dendro_20261006_170715.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_ORA_Signed_Significance_Dotplot_20261006_170715.jpg)
 
 Per-cluster ORA outputs (cluster 2, CD14 monocytes):
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Dotplot_20261006_163709.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Barplot_20261006_163709.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Dotplot_20261006_170715.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Barplot_20261006_170715.jpg)
 
 ## 4. Pseudo-bulk differential expression with DESeq2
 
@@ -485,7 +485,7 @@ generate_and_save_heatmap(
 )
 ```
 
-![](OHMmy-differential-expression_files/figure-html/saved-Heatmap_FCGR3A_vs_CD14_Monocytes_topP_25_topLFC_25_20261006_163731.png)
+![](OHMmy-differential-expression_files/figure-html/saved-Heatmap_FCGR3A_vs_CD14_Monocytes_topP_25_topLFC_25_20261006_170737.png)
 
 In the unordered (right) heatmap the samples split by monocyte subset,
 not by the simulated severity. This is expected, because severity was

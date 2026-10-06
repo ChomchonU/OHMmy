@@ -5,8 +5,8 @@ template:
   bootstrap: 5
   # Google Search Console verification: replace YOUR_CODE_HERE with the code
   # Google gives you (Add property -> URL prefix -> HTML tag), then uncomment.
-  # includes:
-  #   in_header: <meta name="google-site-verification" content="YOUR_CODE_HERE" />
+  includes:
+    in_header: <meta name="google-site-verification" content="cFzfD0BtC5SaN0M-9VVC8PO6mREhyoycIufVFjsST_Q" />
 
 articles:
 - title: "Pipelines & Workflows"

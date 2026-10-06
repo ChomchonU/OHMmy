@@ -37,7 +37,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/PicooO12/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ChomchonU/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -57,7 +57,7 @@ Uansiri</h4>
             
             <h4 data-toc-skip class="date">2026-10-06</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/PicooO12/OHMmy/blob/master/vignettes/OHMmy-statistical-analysis.Rmd" class="external-link"><code>vignettes/OHMmy-statistical-analysis.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/vignettes/OHMmy-statistical-analysis.Rmd" class="external-link"><code>vignettes/OHMmy-statistical-analysis.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-statistical-analysis.Rmd</code></div>
     </div>
 
@@ -105,7 +105,7 @@ columns</td>
 </table>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PicooO12/OHMmy" class="external-link">OHMmy</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ChomchonU/OHMmy" class="external-link">OHMmy</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"ohmmy-vignette-helpers.R"</span><span class="op">)</span></span>
 <span></span>
@@ -341,16 +341,16 @@ identified:</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 4</span></span></span>
 <span><span class="co">#&gt;    Cluster     Correlation N_Cells Pair            </span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> CD14 Mono        0.773      463 S100A8 vs S100A9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> CD14 Mono        0.773      462 S100A8 vs S100A9</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> B                0.074<span style="text-decoration: underline;">3</span>     275 CD79A vs MS4A1  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> NK              -<span style="color: #BB0000;">0.110</span>      134 GNLY vs NKG7    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> CD8 T            0.248      101 GNLY vs NKG7    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> FCGR3A Mono      0.200       80 S100A8 vs S100A9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> NK              -<span style="color: #BB0000;">0.236</span>      149 GNLY vs NKG7    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> CD8 T            0.305       87 GNLY vs NKG7    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> FCGR3A Mono      0.222       79 S100A8 vs S100A9</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> CD4 T            0.844       21 S100A8 vs S100A9</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> CD4 T            0.967       18 GNLY vs NKG7    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> CD4 T            0.961       17 GNLY vs NKG7    </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> CD14 Mono        0.512       16 GNLY vs NKG7    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> FCGR3A Mono      0.261       10 GNLY vs NKG7    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> DC               0.333       10 S100A8 vs S100A9</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> DC               0.333       10 S100A8 vs S100A9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> FCGR3A Mono     -<span style="color: #BB0000;">0.119</span>        8 GNLY vs NKG7</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>

@@ -31,9 +31,9 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 table(pbmc$cell_type)
 #> 
 #>       CD4 T       CD8 T          NK           B   CD14 Mono FCGR3A Mono 
-#>        1168         298         141         341         478         178 
-#>          DC 
-#>          34
+#>        1165         285         157         341         477         163 
+#>          DC    Platelet 
+#>          34          16
 ```
 
 ## 1. Colour palettes for many clusters
@@ -157,7 +157,7 @@ plot_violin_qc_single(
 )
 ```
 
-![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-06_11-12-52.jpg)![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-06_11-12-52.jpg)
+![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-06_15-00-34.jpg)![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-06_15-00-34.jpg)
 
 ### Discretising expression into Low / Int / High
 
@@ -180,12 +180,12 @@ head(binned)
 #> # A tibble: 6 × 5
 #>   Cluster Gene   AvgExpression PctExpress Expression_Level
 #>   <fct>   <fct>          <dbl>      <dbl> <fct>           
-#> 1 CD4 T   CD3E          7.55        77.0  High            
-#> 2 CD4 T   CD8A          0.731       11.1  High            
-#> 3 CD4 T   GNLY          0.571       10.4  Int             
-#> 4 CD4 T   MS4A1         0.203        4.97 Low             
-#> 5 CD4 T   CD14          0.0838       1.80 Int             
-#> 6 CD4 T   FCGR3A        0.207        4.54 Low
+#> 1 CD4 T   CD3E          7.54        76.8  High            
+#> 2 CD4 T   CD8A          0.728       11.0  High            
+#> 3 CD4 T   GNLY          0.563       10.3  Low             
+#> 4 CD4 T   MS4A1         0.196        4.89 Low             
+#> 5 CD4 T   CD14          0.0840       1.80 Int             
+#> 6 CD4 T   FCGR3A        0.204        4.46 Low
 ```
 
 ``` r
@@ -322,18 +322,18 @@ multi_df <- plot_dot_dendro_multi(
 )
 ```
 
-![](OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261006_111301.jpg)
+![](OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261006_150042.jpg)
 
 ``` r
 
 head(multi_df[, c("cluster_var", "feature", "avg.exp.scaled", "pct.exp")])
 #>              cluster_var feature avg.exp.scaled  pct.exp
-#> IL7R...1 CD4 T_cell_type    IL7R      1.6004838 66.43836
-#> CCR7...2 CD4 T_cell_type    CCR7      1.9228209 36.38699
-#> LDHB...3 CD4 T_cell_type    LDHB      1.7808176 92.72260
-#> CD3E...4 CD4 T_cell_type    CD3E      1.3155181 76.96918
-#> MAL...5  CD4 T_cell_type     MAL      2.2501354 27.31164
-#> CD8A...6 CD4 T_cell_type    CD8A      0.2059775 11.13014
+#> IL7R...1 CD4 T_cell_type    IL7R      1.6552981 66.18026
+#> CCR7...2 CD4 T_cell_type    CCR7      2.0153829 36.30901
+#> LDHB...3 CD4 T_cell_type    LDHB      1.9231096 92.53219
+#> CD3E...4 CD4 T_cell_type    CD3E      1.3666726 76.82403
+#> MAL...5  CD4 T_cell_type     MAL      2.4402184 27.29614
+#> CD8A...6 CD4 T_cell_type    CD8A      0.2086779 10.98712
 ```
 
 ## 5. Co-expression: blend and density plots
@@ -446,17 +446,17 @@ cons <- score_consensus(
 )
 
 cons$cutoffs
-#>    variant     cutoff fallback   med_diff q05_diff q95_diff  frac_cd8
-#> 1  CD8_TCR -0.8432246    FALSE 0.60889522 -2.88979 2.367464 0.6514806
-#> 2 CD8_core -1.2859800    FALSE 0.07507069 -2.44122 2.751788 0.6924829
+#>    variant     cutoff fallback   med_diff  q05_diff q95_diff  frac_cd8
+#> 1  CD8_TCR -0.8463179    FALSE 0.62392346 -2.948398 2.340278 0.6515837
+#> 2 CD8_core -1.3141486    FALSE 0.02909187 -2.412048 2.700774 0.6945701
 cons$agreement
 #>            CD8_TCR  CD8_core
-#> CD8_TCR  1.0000000 0.9453303
-#> CD8_core 0.9453303 1.0000000
+#> CD8_TCR  1.0000000 0.9434389
+#> CD8_core 0.9434389 1.0000000
 cons$bootstrap$summary
-#>    variant target   observed       mean        sd     ci_lo      ci_hi fb_rate
-#> 1  CD8_TCR cutoff -0.8432246 -0.7863805 0.1892429 -1.111310 -0.4723863       0
-#> 2 CD8_core cutoff -1.2859800 -1.2765134 0.1086915 -1.497219 -1.0857047       0
+#>    variant target   observed      mean        sd     ci_lo      ci_hi fb_rate
+#> 1  CD8_TCR cutoff -0.8463179 -0.794449 0.1717250 -1.030044 -0.5128929       0
+#> 2 CD8_core cutoff -1.3141486 -1.294615 0.1148437 -1.530047 -1.0904355       0
 ```
 
 Both variants get a data-driven cutoff (`fallback = FALSE`), and the
@@ -470,11 +470,11 @@ cells are good candidates for closer inspection:
 
 table(consensus = cons$consensus, annotation = cyto$cell_type)
 #>                        annotation
-#> consensus               CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC
-#>   Ambiguous_CD8_confirm     0     7  14   0         0           0   0
-#>   Ambiguous_CD8_primary     0     2   1   0         0           0   0
-#>   CD8                       0   274   9   0         0           0   0
-#>   NK                        0    15 117   0         0           0   0
+#> consensus               CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC Platelet
+#>   Ambiguous_CD8_confirm     0     8  14   0         0           0   0        0
+#>   Ambiguous_CD8_primary     0     2   1   0         0           0   0        0
+#>   CD8                       0   273  12   0         0           0   0        0
+#>   NK                        0     2 130   0         0           0   0        0
 ```
 
 ``` r

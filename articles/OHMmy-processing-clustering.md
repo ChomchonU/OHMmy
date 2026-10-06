@@ -68,7 +68,7 @@ plot_violin_qc_single(
 )
 ```
 
-![](OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-06_11-37-13.jpg)
+![](OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-06_15-24-58.jpg)
 
 Based on these distributions we apply the standard pbmc3k thresholds.
 
@@ -146,7 +146,7 @@ pbmc <- ProcessSeuratLOG(
 )
 ```
 
-![](OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261006_113725.jpg)
+![](OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261006_152509.jpg)
 
 ``` r
 
@@ -274,8 +274,8 @@ working resolution.
 pbmc$seurat_clusters <- pbmc$har_snn_res.0.6
 table(pbmc$seurat_clusters)
 #> 
-#>   0   1   2   3   4   5   6   7 
-#> 614 554 478 341 298 178 141  34
+#>   0   1   2   3   4   5   6   7   8 
+#> 627 538 477 341 285 163 157  34  16
 ```
 
 ## 4. Annotation
@@ -303,15 +303,16 @@ str(pbmc_marker_sets)
 pbmc <- annotate_pbmc(pbmc, cluster_col = "seurat_clusters")
 table(pbmc$seurat_clusters, pbmc$cell_type)
 #>    
-#>     CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC
-#>   0   614     0   0   0         0           0   0
-#>   1   554     0   0   0         0           0   0
-#>   2     0     0   0   0       478           0   0
-#>   3     0     0   0 341         0           0   0
-#>   4     0   298   0   0         0           0   0
-#>   5     0     0   0   0         0         178   0
-#>   6     0     0 141   0         0           0   0
-#>   7     0     0   0   0         0           0  34
+#>     CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC Platelet
+#>   0   627     0   0   0         0           0   0        0
+#>   1   538     0   0   0         0           0   0        0
+#>   2     0     0   0   0       477           0   0        0
+#>   3     0     0   0 341         0           0   0        0
+#>   4     0   285   0   0         0           0   0        0
+#>   5     0     0   0   0         0         163   0        0
+#>   6     0     0 157   0         0           0   0        0
+#>   7     0     0   0   0         0           0  34        0
+#>   8     0     0   0   0         0           0   0       16
 ```
 
 ``` r

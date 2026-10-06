@@ -157,7 +157,7 @@ plot_violin_qc_single(
 )
 ```
 
-![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-06_10-02-51.jpg)![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-06_10-02-51.jpg)
+![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-06_11-12-52.jpg)![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-06_11-12-52.jpg)
 
 ### Discretising expression into Low / Int / High
 
@@ -322,7 +322,7 @@ multi_df <- plot_dot_dendro_multi(
 )
 ```
 
-![](OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261006_100259.jpg)
+![](OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261006_111301.jpg)
 
 ``` r
 

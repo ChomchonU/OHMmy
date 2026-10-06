@@ -30,7 +30,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/PicooO12/OHMmy/blob/v1.0.2/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/PicooO12/OHMmy/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
@@ -53,6 +53,12 @@
 <code><a href="../reference/generate_volcano_trio.html">generate_volcano_trio()</a></code>, <code><a href="../reference/generate_and_save_heatmap.html">generate_and_save_heatmap()</a></code>, <code><a href="../reference/run_global_gsea.html">run_global_gsea()</a></code>, <code><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa()</a></code> and <code><a href="../reference/plot_combined.html">plot_combined()</a></code> no longer depend on packages being attached by the user. Missing optional packages give an informative error.</li>
 <li>
 <code><a href="../reference/run_global_gsea.html">run_global_gsea()</a></code> and <code><a href="../reference/run_global_ora.html">run_global_ora()</a></code> accept <code>output_dir</code> with or without a trailing slash.</li>
+<li>
+<code>plot_cell_abundance(global_test = "anova")</code> and <code><a href="../reference/plot_metadata_stats.html">plot_metadata_stats()</a></code> with <code>continuous_test_n3 = "anova"</code> no longer fail when filtering the ANOVA results.</li>
+<li>
+<code><a href="../reference/plot_metadata_stats.html">plot_metadata_stats()</a></code> skips <code>metadata_vars</code> that are not in the metadata (previously it errored before reaching its skip check).</li>
+<li>
+<code><a href="../reference/ProcessSeuratLOG.html">ProcessSeuratLOG()</a></code> and <code><a href="../reference/ProcessSeuratSCT.html">ProcessSeuratSCT()</a></code> check <code>integration_method</code> before any computation and give a clear error for unsupported values.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="improvements-1-0-2">Improvements<a class="anchor" aria-label="anchor" href="#improvements-1-0-2"></a></h3>

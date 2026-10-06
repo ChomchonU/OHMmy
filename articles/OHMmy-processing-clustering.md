@@ -68,7 +68,7 @@ plot_violin_qc_single(
 )
 ```
 
-![](OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-06_10-22-21.jpg)
+![](OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-06_11-37-13.jpg)
 
 Based on these distributions we apply the standard pbmc3k thresholds.
 
@@ -146,7 +146,7 @@ pbmc <- ProcessSeuratLOG(
 )
 ```
 
-![](OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261006_102231.jpg)
+![](OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261006_113725.jpg)
 
 ``` r
 

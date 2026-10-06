@@ -160,7 +160,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261006_100345.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261006_111354.jpg)
 
 ## 4. Visualise markers
 
@@ -238,7 +238,7 @@ gsea <- run_global_gsea(
 )
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261006_101027.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261006_112218.jpg)
 
 ## Where to go next
 

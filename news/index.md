@@ -43,6 +43,18 @@
   and
   [`run_global_ora()`](https://chomchonu.github.io/OHMmy/reference/run_global_ora.md)
   accept `output_dir` with or without a trailing slash.
+- `plot_cell_abundance(global_test = "anova")` and
+  [`plot_metadata_stats()`](https://chomchonu.github.io/OHMmy/reference/plot_metadata_stats.md)
+  with `continuous_test_n3 = "anova"` no longer fail when filtering the
+  ANOVA results.
+- [`plot_metadata_stats()`](https://chomchonu.github.io/OHMmy/reference/plot_metadata_stats.md)
+  skips `metadata_vars` that are not in the metadata (previously it
+  errored before reaching its skip check).
+- [`ProcessSeuratLOG()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratLOG.md)
+  and
+  [`ProcessSeuratSCT()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratSCT.md)
+  check `integration_method` before any computation and give a clear
+  error for unsupported values.
 
 ### Improvements
 

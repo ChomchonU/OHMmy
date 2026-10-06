@@ -1,57 +1,76 @@
-test_that("plot_cell_abundance works correctly", {
-  library(Seurat)
-  library(ggplot2)
+# Donor-level statistics ------------------------------------------------------------
 
-  dummy <- pbmc_small
-  # Inject mock metadata
-  set.seed(42)
-  dummy$Sample <- sample(paste0("Patient_", 1:6), ncol(dummy), replace = TRUE)
-  dummy$Condition <- ifelse(dummy$Sample %in% c("Patient_1", "Patient_2", "Patient_3"), "Control", "Treated")
-  dummy$CellType <- sample(c("T_cell", "B_cell", "Monocyte"), ncol(dummy), replace = TRUE)
+test_that("plot_cell_abundance tests two conditions with Mann-Whitney", {
+  obj <- small_seurat()
+  out <- test_out_dir("abundance_2")
 
-  # Suppress warnings about small sample sizes during testing
-  suppressWarnings({
-    p <- plot_cell_abundance(
-      seurat_obj = dummy,
-      sample_col = "Sample",
-      condition_col = "Condition",
-      celltype_col = "CellType",
-      global_test = "kruskal.test",
-      output_dir = tempdir() # Save to temporary directory so we don't clutter your project
-    )
-  })
+  p <- quietly(plot_cell_abundance(obj, sample_col = "donor", condition_col = "condition",
+                                   celltype_col = "cell_type", output_dir = out, base_size = 2,
+                                   dpi = 30))
 
   expect_s3_class(p, "ggplot")
+  # proportions are computed per donor and sum to 1
+  props <- tapply(p$data$Proportion, p$data$Sample, sum)
+  expect_equal(as.numeric(props), rep(1, 8))
+  expect_length(written_files(out, "^cell_abundance_facet_by_cluster_condition_"), 1)
 })
 
-test_that("plot_metadata_stats executes both continuous and categorical tests", {
-  library(Seurat)
+test_that("plot_cell_abundance handles three conditions and the unfaceted layout", {
+  obj <- small_seurat()
+  out <- test_out_dir("abundance_3")
 
-  dummy <- pbmc_small
-  set.seed(42)
-  dummy$Sample <- sample(paste0("Patient_", 1:10), ncol(dummy), replace = TRUE)
-  dummy$Condition <- ifelse(dummy$Sample %in% paste0("Patient_", 1:5), "WT", "KO")
-  dummy$Age <- sample(20:60, ncol(dummy), replace = TRUE) # Continuous
-  dummy$Sex <- sample(c("M", "F"), ncol(dummy), replace = TRUE) # Categorical
+  p_kw <- quietly(plot_cell_abundance(obj, "donor", "severity", "cell_type",
+                                      global_test = "kruskal.test", output_dir = out,
+                                      base_size = 2, dpi = 30))
+  p_anova <- quietly(plot_cell_abundance(obj, "donor", "severity", "cell_type",
+                                         global_test = "anova", facet_by_cluster = FALSE,
+                                         output_dir = out, base_size = 2, dpi = 30))
 
-  suppressWarnings({
-    res <- plot_metadata_stats(
-      seurat_obj = dummy,
-      sample_col = "Sample",
-      condition_col = "Condition",
-      metadata_vars = c("Age", "Sex"),
-      output_dir = tempdir()
-    )
-  })
+  expect_s3_class(p_kw, "ggplot")
+  expect_s3_class(p_anova, "ggplot")
+  expect_setequal(unique(as.character(p_kw$data$Condition)), c("Healthy", "Mild", "Severe"))
+  expect_length(written_files(out, "facet_by_celltype"), 1)
+})
 
-  # Check structure
-  expect_type(res, "list")
+test_that("plot_metadata_stats routes continuous and categorical variables", {
+  obj <- small_seurat()
+  out <- test_out_dir("metadata_2")
+
+  res <- quietly(plot_metadata_stats(obj, sample_col = "donor", condition_col = "condition",
+                                     metadata_vars = c("age", "sex"), output_dir = out, dpi = 30))
+
   expect_named(res, c("plots", "stats"))
+  expect_s3_class(res$plots$age, "ggplot")
+  expect_s3_class(res$plots$sex, "ggplot")
+  expect_s3_class(res$stats$age$Global, "data.frame")
+  # deduplicated to one row per donor, not per cell
+  expect_equal(res$stats$age$Global$n1 + res$stats$age$Global$n2, 8)
+  expect_length(written_files(out, "^metadata_"), 2)
+})
 
-  # Check continuous routing
-  expect_s3_class(res$plots[["Age"]], "ggplot")
-  expect_s3_class(res$stats[["Age"]]$Global, "data.frame")
+test_that("plot_metadata_stats supports 3+ groups, Fisher tests and skips bad columns", {
+  obj <- small_seurat()
 
-  # Check categorical routing
-  expect_s3_class(res$plots[["Sex"]], "ggplot")
+  res <- quietly(plot_metadata_stats(obj, sample_col = "donor", condition_col = "severity",
+                                     metadata_vars = c("age", "sex", "not_a_column"),
+                                     continuous_test_n3 = "anova", categorical_test = "fisher",
+                                     output_dir = test_out_dir("metadata_3"), dpi = 30))
+
+  expect_named(res$plots, c("age", "sex"))
+  expect_equal(res$stats$sex$Global$Method, "fisher")
+  expect_true(res$stats$sex$Global$p >= 0 && res$stats$sex$Global$p <= 1)
+})
+
+test_that("plot_cluster_distributions returns count and proportion plots", {
+  obj <- small_seurat()
+  out <- test_out_dir("distributions")
+
+  res <- quietly(plot_cluster_distributions(obj, cluster_col = "cell_type", batch_col = "severity",
+                                            output_dir = out, file_prefix = "small"))
+
+  expect_named(res, c("proportions", "counts"))
+  expect_s3_class(res$proportions, "patchwork")
+  expect_length(written_files(out, "^cell_prop_plot_severity_small_"), 1)
+  expect_length(written_files(out, "^cell_count_plot_severity_small_"), 1)
+  expect_error(plot_cluster_distributions(obj, cluster_col = "nope", output_dir = out), "not found")
 })

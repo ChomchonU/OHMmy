@@ -27,7 +27,7 @@ FindTopMarkersAndHeatmap(
 
 \item{sample_name}{Character. The name of the biological sample, used for plot titles, filenames, and sub-directory routing. Default is "Sample".}
 
-\item{use_sct}{Logical. If \code{TRUE}, sets the default assay to \code{"SCT"}, runs \code{\link[Seurat]{PrepSCTFindMarkers}} to ensure model comparability across samples/batches, and performs marker identification on the SCT assay. Defaults to \code{FALSE}.}
+\item{use_sct}{Logical. If \code{TRUE}, sets the default assay to \code{"SCT"}, runs \code{\link[Seurat]{PrepSCTFindMarkers}} to ensure model comparability across samples/batches, and performs marker identification on the SCT assay. If the SCT models still have unequal library sizes afterwards (which happens when an SCT object has been subset), the already-corrected counts are used (\code{recorrect_umi = FALSE}) instead of failing. Defaults to \code{FALSE}.}
 
 \item{marker_diff_thresh}{Numeric. The minimum required absolute difference in the percentage of expressing cells between groups (\code{abs(pct.1 - pct.2)}). Default is 0.1.}
 
@@ -54,7 +54,7 @@ FindTopMarkersAndHeatmap(
 \item{onlyPos}{Logical. If TRUE, only identifies positive markers (upregulated genes). Passed to the \code{only.pos} argument in Seurat. Default is TRUE.}
 }
 \value{
-A list containing four elements:
+A list containing four elements (returned invisibly, with \code{heatmap} and \code{output_dir} set to \code{NULL} and a warning, when Seurat finds no markers at all):
 \itemize{
 \item \code{top_markers}: A \code{tibble} of the highly filtered, top-scoring marker genes used for the heatmap.
 \item \code{heatmap}: The \code{ggplot} object of the generated \code{DoHeatmap}.

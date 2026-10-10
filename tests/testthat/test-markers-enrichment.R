@@ -167,3 +167,39 @@ test_that("generate_and_save_heatmap skips comparisons without enough genes", {
                                                 n_padj = 5, n_lfc = 5,
                                                 out_dir = test_out_dir("heatmap_skip"), ts = "x")))
 })
+
+test_that("FindTopMarkersAndHeatmap(use_sct = TRUE) works on a subset SCT object", {
+  skip_if_not_installed("harmony")
+  sct <- quietly(ProcessSeuratSCT(small_seurat(), batch_col = "batch", vars_to_regress = NULL,
+                                  reduction_name = "pca.sct", integration_method = "HarmonyIntegration",
+                                  integration_reduction = "harmony.sct", dims = 1:10, verbose = FALSE))
+  sct <- quietly(Seurat::PrepSCTFindMarkers(sct))
+  # Removing the deepest cells lowers every model's observed median UMI, the case in
+  # which PrepSCTFindMarkers() skips re-correction and FindMarkers() would refuse to run
+  sub <- subset(sct, cells = colnames(sct)[sct$nCount_RNA < stats::quantile(sct$nCount_RNA, 0.6)])
+  SeuratObject::Idents(sub) <- "cell_type"
+  expect_false(OHMmy:::.sct_models_consistent(quietly(Seurat::PrepSCTFindMarkers(sub))))
+
+  expect_message(
+    res <- suppressWarnings(FindTopMarkersAndHeatmap(sub, sample_name = "sct_subset", use_sct = TRUE,
+                                                     output_dir_base = test_out_dir("markers_sct"),
+                                                     width = 4, height = 4, dpi = 30)),
+    "recorrect_umi = FALSE"
+  )
+  expect_gt(nrow(res$markers), 0)
+  expect_s3_class(res$heatmap, "ggplot")
+})
+
+test_that("FindTopMarkersAndHeatmap warns instead of failing when no markers are found", {
+  local_mocked_bindings(FindAllMarkers = function(...) data.frame())
+  obj <- small_seurat()
+  SeuratObject::Idents(obj) <- "cell_type"
+  out <- test_out_dir("markers_empty")
+
+  expect_warning(res <- quietly_messages(FindTopMarkersAndHeatmap(obj, sample_name = "empty",
+                                                                  output_dir_base = out)),
+                 "No markers were returned")
+  expect_null(res$heatmap)
+  expect_equal(nrow(res$markers), 0)
+  expect_length(written_files(out, recursive = TRUE), 0)
+})

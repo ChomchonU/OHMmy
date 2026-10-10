@@ -1,3 +1,16 @@
+# OHMmy (development version)
+
+## Bug fixes
+
+* `FindTopMarkersAndHeatmap(use_sct = TRUE)` now works on SCT objects that were
+  subset after `SCTransform()`/`PrepSCTFindMarkers()`. In that situation
+  `PrepSCTFindMarkers()` skips re-correction and every `FindMarkers()` test failed
+  with "Object contains multiple models with unequal library sizes", followed by
+  "object 'pct.1' not found". The function now detects this and uses the existing
+  corrected counts (`recorrect_umi = FALSE`), as Seurat recommends for subsets.
+* `FindTopMarkersAndHeatmap()` warns and returns without writing files when Seurat
+  finds no markers at all, instead of failing with "object 'pct.1' not found".
+
 # OHMmy 1.0.2
 
 ## Bug fixes

@@ -204,7 +204,7 @@ plot_split_dotplots_by_gene_cluster <- function(df,
 #'
 #' @param seurat_obj A Seurat object containing single-cell data with active identities (\code{Idents}) set.
 #' @param sample_name Character. The name of the biological sample, used for plot titles, filenames, and sub-directory routing. Default is "Sample".
-#' @param use_sct Logical. If \code{TRUE}, sets the default assay to \code{"SCT"}, runs \code{\link[Seurat]{PrepSCTFindMarkers}} to ensure model comparability across samples/batches, and performs marker identification on the SCT assay. Defaults to \code{FALSE}.
+#' @param use_sct Logical. If \code{TRUE}, sets the default assay to \code{"SCT"}, runs \code{\link[Seurat]{PrepSCTFindMarkers}} to ensure model comparability across samples/batches, and performs marker identification on the SCT assay. If the SCT models still have unequal library sizes afterwards (which happens when an SCT object has been subset), the already-corrected counts are used (\code{recorrect_umi = FALSE}) instead of failing. Defaults to \code{FALSE}.
 #' @param marker_diff_thresh Numeric. The minimum required absolute difference in the percentage of expressing cells between groups (\code{abs(pct.1 - pct.2)}). Default is 0.1.
 #' @param marker_pval_adj Numeric. The maximum adjusted p-value allowed for a gene to be considered a significant marker. Default is 0.05.
 #' @param marker_avg_log2FC_thresh Numeric. The minimum absolute log2 fold change required. Default is 0.5.
@@ -218,7 +218,7 @@ plot_split_dotplots_by_gene_cluster <- function(df,
 #' @param add_timestamp Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.
 #' @param onlyPos Logical. If TRUE, only identifies positive markers (upregulated genes). Passed to the \code{only.pos} argument in Seurat. Default is TRUE.
 #'
-#' @return A list containing four elements:
+#' @return A list containing four elements (returned invisibly, with \code{heatmap} and \code{output_dir} set to \code{NULL} and a warning, when Seurat finds no markers at all):
 #' \itemize{
 #'   \item \code{top_markers}: A \code{tibble} of the highly filtered, top-scoring marker genes used for the heatmap.
 #'   \item \code{heatmap}: The \code{ggplot} object of the generated \code{DoHeatmap}.
@@ -267,21 +267,45 @@ FindTopMarkersAndHeatmap <- function(
     onlyPos = TRUE
 ) {
   # --- SCT preparation ---
+  recorrect_umi <- TRUE
   if (isTRUE(use_sct)) {
     message("[", sample_name, "] Preparing SCT models for marker discovery...")
     DefaultAssay(seurat_obj) <- "SCT"
     seurat_obj <- PrepSCTFindMarkers(seurat_obj)
     active_assay <- "SCT"
+
+    # PrepSCTFindMarkers() skips re-correction whenever every stored median UMI is
+    # above the smallest observed one, which is typical after subsetting an SCT
+    # object. FindMarkers() would then refuse every comparison, so fall back to the
+    # already-corrected counts, as Seurat recommends for subset objects.
+    if (!.sct_models_consistent(seurat_obj, "SCT")) {
+      message("[", sample_name, "] SCT models still have unequal library sizes (common after ",
+              "subsetting an SCT object). Using the existing corrected counts (recorrect_umi = FALSE).")
+      recorrect_umi <- FALSE
+    }
   } else {
     active_assay <- DefaultAssay(seurat_obj) # Will fallback to RNA or the current default
   }
 
   message("[", sample_name, "] Finding markers using ", active_assay, " assay...")
 
-  if(is.null(compare)) {
-    markers <- FindAllMarkers(seurat_obj, assay = active_assay, only.pos = onlyPos, logfc.threshold = 0, min.pct = 0)
+  # recorrect_umi is only understood by the SCT method of FindMarkers()
+  if (is.null(compare)) {
+    markers <- if (active_assay == "SCT") {
+      FindAllMarkers(seurat_obj, assay = active_assay, only.pos = onlyPos, logfc.threshold = 0,
+                     min.pct = 0, recorrect_umi = recorrect_umi)
+    } else {
+      FindAllMarkers(seurat_obj, assay = active_assay, only.pos = onlyPos, logfc.threshold = 0,
+                     min.pct = 0)
+    }
   } else {
-    markers <- FindMarkers(seurat_obj, assay = active_assay, ident.1 = compare[1], ident.2 = compare[2], only.pos = onlyPos, logfc.threshold = 0, min.pct = 0)
+    markers <- if (active_assay == "SCT") {
+      FindMarkers(seurat_obj, assay = active_assay, ident.1 = compare[1], ident.2 = compare[2],
+                  only.pos = onlyPos, logfc.threshold = 0, min.pct = 0, recorrect_umi = recorrect_umi)
+    } else {
+      FindMarkers(seurat_obj, assay = active_assay, ident.1 = compare[1], ident.2 = compare[2],
+                  only.pos = onlyPos, logfc.threshold = 0, min.pct = 0)
+    }
 
     # --- CRITICAL PATCH FOR PAIRWISE COMPARISON ---
     # FindMarkers lacks 'gene' and 'cluster' columns. We must create them.
@@ -291,6 +315,14 @@ FindTopMarkersAndHeatmap <- function(
     if("avg_log2FC" %in% colnames(markers)) {
       markers$cluster <- ifelse(markers$avg_log2FC > 0, compare[1], compare[2])
     }
+  }
+
+  # Seurat returns an empty table (with warnings) when every comparison failed
+  required_cols <- c("pct.1", "pct.2", "avg_log2FC", "p_val_adj")
+  if (nrow(markers) == 0 || !all(required_cols %in% colnames(markers))) {
+    warning("[", sample_name, "] No markers were returned, so no heatmap or tables were written. ",
+            "See the warnings from Seurat above for the reason.", call. = FALSE)
+    return(invisible(list(top_markers = markers, heatmap = NULL, markers = markers, output_dir = NULL)))
   }
 
   # --- PATCH FOR NEGATIVE FILTERING ---

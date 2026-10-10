@@ -1,6 +1,6 @@
 Package: OHMmy
 Title: Streamlined Single-Cell RNA-Seq Analysis and Visualization for Seurat v5
-Version: 1.0.2
+Version: 1.0.2.9000
 Authors@R: 
     person("Chomchon", "Uansiri", , "chomchom1910travel@gmail.com", role = c("aut", "cre"))
 Description: A comprehensive toolkit engineered for high-resolution single-cell RNA 

@@ -95,3 +95,6 @@ synthetic_cellranger <- function(root, n_empty = 300) {
   }
   list(filtered_dir = file.path(root, "filtered"), raw_dir = file.path(root, "raw"))
 }
+
+# Silence messages only (keeps warnings visible to expect_warning)
+quietly_messages <- function(expr) suppressMessages(expr)

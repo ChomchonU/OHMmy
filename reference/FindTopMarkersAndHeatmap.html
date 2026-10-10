@@ -9,7 +9,7 @@ CSV tables containing both the filtered and unfiltered marker lists (ready for G
 biological relevance score (combining log2 fold change, percentage difference, and
 adjusted p-value) to strictly filter and rank the top n markers per cluster.
 The function automatically generates a Seurat DoHeatmap and exports multiple
-CSV tables containing both the filtered and unfiltered marker lists (ready for GSEA/ORA)."></head><body>
+CSV tables containing both the filtered and unfiltered marker lists (ready for GSEA/ORA)."><meta name="google-site-verification" content="cFzfD0BtC5SaN0M-9VVC8PO6mREhyoycIufVFjsST_Q"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -17,7 +17,7 @@ CSV tables containing both the filtered and unfiltered marker lists (ready for G
 
     <a class="navbar-brand me-2" href="../index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,7 +30,7 @@ CSV tables containing both the filtered and unfiltered marker lists (ready for G
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/PicooO12/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ChomchonU/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -40,7 +40,7 @@ CSV tables containing both the filtered and unfiltered marker lists (ready for G
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Find and Visualize Top Cluster Markers</h1>
-      <small class="dont-index">Source: <a href="https://github.com/PicooO12/OHMmy/blob/v1.0.2/R/Marker_visualizations.R" class="external-link"><code>R/Marker_visualizations.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/R/Marker_visualizations.R" class="external-link"><code>R/Marker_visualizations.R</code></a></small>
       <div class="d-none name"><code>FindTopMarkersAndHeatmap.Rd</code></div>
     </div>
 
@@ -87,7 +87,7 @@ CSV tables containing both the filtered and unfiltered marker lists (ready for G
 
 
 <dt id="arg-use-sct">use_sct<a class="anchor" aria-label="anchor" href="#arg-use-sct"></a></dt>
-<dd><p>Logical. If <code>TRUE</code>, sets the default assay to <code>"SCT"</code>, runs <code><a href="https://satijalab.org/seurat/reference/PrepSCTFindMarkers.html" class="external-link">PrepSCTFindMarkers</a></code> to ensure model comparability across samples/batches, and performs marker identification on the SCT assay. Defaults to <code>FALSE</code>.</p></dd>
+<dd><p>Logical. If <code>TRUE</code>, sets the default assay to <code>"SCT"</code>, runs <code><a href="https://satijalab.org/seurat/reference/PrepSCTFindMarkers.html" class="external-link">PrepSCTFindMarkers</a></code> to ensure model comparability across samples/batches, and performs marker identification on the SCT assay. If the SCT models still have unequal library sizes afterwards (which happens when an SCT object has been subset), the already-corrected counts are used (<code>recorrect_umi = FALSE</code>) instead of failing. Defaults to <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-marker-diff-thresh">marker_diff_thresh<a class="anchor" aria-label="anchor" href="#arg-marker-diff-thresh"></a></dt>
@@ -140,7 +140,7 @@ CSV tables containing both the filtered and unfiltered marker lists (ready for G
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing four elements:</p><ul><li><p><code>top_markers</code>: A <code>tibble</code> of the highly filtered, top-scoring marker genes used for the heatmap.</p></li>
+    <p>A list containing four elements (returned invisibly, with <code>heatmap</code> and <code>output_dir</code> set to <code>NULL</code> and a warning, when Seurat finds no markers at all):</p><ul><li><p><code>top_markers</code>: A <code>tibble</code> of the highly filtered, top-scoring marker genes used for the heatmap.</p></li>
 <li><p><code>heatmap</code>: The <code>ggplot</code> object of the generated <code>DoHeatmap</code>.</p></li>
 <li><p><code>markers</code>: A data frame of the full, unfiltered differential expression results.</p></li>
 <li><p><code>output_dir</code>: A character string of the specific path where the files were saved.</p></li>

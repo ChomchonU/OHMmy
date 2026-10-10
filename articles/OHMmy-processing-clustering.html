@@ -11,6 +11,7 @@
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Data Processing, Integration, and Clustering">
+<meta name="google-site-verification" content="cFzfD0BtC5SaN0M-9VVC8PO6mREhyoycIufVFjsST_Q">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -20,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,7 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/PicooO12/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ChomchonU/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,9 +56,9 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
-            <h4 data-toc-skip class="date">2026-10-06</h4>
+            <h4 data-toc-skip class="date">2026-10-10</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/PicooO12/OHMmy/blob/v1.0.2/vignettes/OHMmy-processing-clustering.Rmd" class="external-link"><code>vignettes/OHMmy-processing-clustering.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/vignettes/OHMmy-processing-clustering.Rmd" class="external-link"><code>vignettes/OHMmy-processing-clustering.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-processing-clustering.Rmd</code></div>
     </div>
 
@@ -118,7 +119,7 @@ articles.</p>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PicooO12/OHMmy" class="external-link">OHMmy</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ChomchonU/OHMmy" class="external-link">OHMmy</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Shared helpers: data download/caching, the simulated cohort and figure display</span></span>
@@ -158,7 +159,7 @@ column can be used for grouping; before clustering we simply group by
 <span>  output_dir       <span class="op">=</span> <span class="va">out_dir</span>,</span>
 <span>  dpi              <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-06_17-07-55.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-10_10-00-12.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>Based on these distributions we apply the standard pbmc3k
 thresholds.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -232,7 +233,7 @@ separate look-alike populations such as CD8 T and NK cells;</li>
 <span>  sample_name           <span class="op">=</span> <span class="st">"pbmc3k"</span>,</span>
 <span>  verbose               <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261006_170808.jpg" class="r-plt" alt="" width="70%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261010_100023.jpg" class="r-plt" alt="" width="70%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pbmc</span></span>
 <span><span class="co">#&gt; An object of class Seurat </span></span>
@@ -340,8 +341,8 @@ working resolution.</p>
 <code class="sourceCode R"><span><span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span> <span class="op">&lt;-</span> <span class="va">pbmc</span><span class="op">$</span><span class="va">har_snn_res.0.6</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   0   1   2   3   4   5   6   7 </span></span>
-<span><span class="co">#&gt; 614 554 478 341 298 178 141  34</span></span></code></pre></div>
+<span><span class="co">#&gt;   0   1   2   3   4   5   6   7   8 </span></span>
+<span><span class="co">#&gt; 627 538 477 341 285 163 157  34  16</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="annotation">4. Annotation<a class="anchor" aria-label="anchor" href="#annotation"></a>
@@ -367,15 +368,16 @@ or manual curation.</p>
 <span><span class="va">pbmc</span> <span class="op">&lt;-</span> <span class="fu">annotate_pbmc</span><span class="op">(</span><span class="va">pbmc</span>, cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span>, <span class="va">pbmc</span><span class="op">$</span><span class="va">cell_type</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    </span></span>
-<span><span class="co">#&gt;     CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC</span></span>
-<span><span class="co">#&gt;   0   614     0   0   0         0           0   0</span></span>
-<span><span class="co">#&gt;   1   554     0   0   0         0           0   0</span></span>
-<span><span class="co">#&gt;   2     0     0   0   0       478           0   0</span></span>
-<span><span class="co">#&gt;   3     0     0   0 341         0           0   0</span></span>
-<span><span class="co">#&gt;   4     0   298   0   0         0           0   0</span></span>
-<span><span class="co">#&gt;   5     0     0   0   0         0         178   0</span></span>
-<span><span class="co">#&gt;   6     0     0 141   0         0           0   0</span></span>
-<span><span class="co">#&gt;   7     0     0   0   0         0           0  34</span></span></code></pre></div>
+<span><span class="co">#&gt;     CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC Platelet</span></span>
+<span><span class="co">#&gt;   0   627     0   0   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   1   538     0   0   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   2     0     0   0   0       477           0   0        0</span></span>
+<span><span class="co">#&gt;   3     0     0   0 341         0           0   0        0</span></span>
+<span><span class="co">#&gt;   4     0   285   0   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   5     0     0   0   0         0         163   0        0</span></span>
+<span><span class="co">#&gt;   6     0     0 157   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   7     0     0   0   0         0           0  34        0</span></span>
+<span><span class="co">#&gt;   8     0     0   0   0         0           0   0       16</span></span></code></pre></div>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">pbmc</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>, group.by <span class="op">=</span> <span class="st">"seurat_clusters"</span>, label <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SeuratTheme.html" class="external-link">NoLegend</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">pbmc</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>, group.by <span class="op">=</span> <span class="st">"cell_type"</span>, label <span class="op">=</span> <span class="cn">TRUE</span>, repel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SeuratTheme.html" class="external-link">NoLegend</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -441,7 +443,7 @@ argument of <code><a href="../reference/ClusterAndUMAP.html">ClusterAndUMAP()</a
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] ggraph_2.2.2       future_1.76.0      patchwork_1.3.2    OHMmy_1.0.2       </span></span>
+<span><span class="co">#&gt; [1] ggraph_2.2.2       future_1.76.0      patchwork_1.3.2    OHMmy_1.0.2.9000  </span></span>
 <span><span class="co">#&gt; [5] Seurat_5.6.0       SeuratObject_5.4.0 sp_2.2-3          </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>

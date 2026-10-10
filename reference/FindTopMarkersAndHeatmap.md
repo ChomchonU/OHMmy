@@ -48,7 +48,10 @@ FindTopMarkersAndHeatmap(
   Logical. If `TRUE`, sets the default assay to `"SCT"`, runs
   [`PrepSCTFindMarkers`](https://satijalab.org/seurat/reference/PrepSCTFindMarkers.html)
   to ensure model comparability across samples/batches, and performs
-  marker identification on the SCT assay. Defaults to `FALSE`.
+  marker identification on the SCT assay. If the SCT models still have
+  unequal library sizes afterwards (which happens when an SCT object has
+  been subset), the already-corrected counts are used
+  (`recorrect_umi = FALSE`) instead of failing. Defaults to `FALSE`.
 
 - marker_diff_thresh:
 
@@ -112,7 +115,9 @@ FindTopMarkersAndHeatmap(
 
 ## Value
 
-A list containing four elements:
+A list containing four elements (returned invisibly, with `heatmap` and
+`output_dir` set to `NULL` and a warning, when Seurat finds no markers
+at all):
 
 - `top_markers`: A `tibble` of the highly filtered, top-scoring marker
   genes used for the heatmap.

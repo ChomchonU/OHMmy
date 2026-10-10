@@ -11,6 +11,7 @@
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Advanced Visualization and Marker Analysis">
+<meta name="google-site-verification" content="cFzfD0BtC5SaN0M-9VVC8PO6mREhyoycIufVFjsST_Q">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -20,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">OHMmy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,7 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/PicooO12/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ChomchonU/OHMmy/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,9 +56,9 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
-            <h4 data-toc-skip class="date">2026-10-06</h4>
+            <h4 data-toc-skip class="date">2026-10-10</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/PicooO12/OHMmy/blob/v1.0.2/vignettes/OHMmy-advanced-visualization.Rmd" class="external-link"><code>vignettes/OHMmy-advanced-visualization.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/vignettes/OHMmy-advanced-visualization.Rmd" class="external-link"><code>vignettes/OHMmy-advanced-visualization.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-advanced-visualization.Rmd</code></div>
     </div>
 
@@ -120,7 +121,7 @@ object, so you can keep customising in R.</p>
 </table>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PicooO12/OHMmy" class="external-link">OHMmy</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ChomchonU/OHMmy" class="external-link">OHMmy</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"ohmmy-vignette-helpers.R"</span><span class="op">)</span></span>
@@ -132,9 +133,9 @@ object, so you can keep customising in R.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">cell_type</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;       CD4 T       CD8 T          NK           B   CD14 Mono FCGR3A Mono </span></span>
-<span><span class="co">#&gt;        1168         298         141         341         478         178 </span></span>
-<span><span class="co">#&gt;          DC </span></span>
-<span><span class="co">#&gt;          34</span></span></code></pre></div>
+<span><span class="co">#&gt;        1165         285         157         341         477         163 </span></span>
+<span><span class="co">#&gt;          DC    Platelet </span></span>
+<span><span class="co">#&gt;          34          16</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="colour-palettes-for-many-clusters">1. Colour palettes for many clusters<a class="anchor" aria-label="anchor" href="#colour-palettes-for-many-clusters"></a>
@@ -237,7 +238,7 @@ and one for genes, grouped by any identity column.</p>
 <span>  output_dir       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"violins"</span><span class="op">)</span>,</span>
 <span>  dpi              <span class="op">=</span> <span class="fl">90</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-06_16-47-26.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-06_16-47-26.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-10_09-35-14.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-10_09-35-14.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="discretising-expression-into-low-int-high">Discretising expression into Low / Int / High<a class="anchor" aria-label="anchor" href="#discretising-expression-into-low-int-high"></a>
@@ -260,12 +261,12 @@ highest-expressing groups of each gene are labelled
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 5</span></span></span>
 <span><span class="co">#&gt;   Cluster Gene   AvgExpression PctExpress Expression_Level</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>           </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> CD4 T   CD3E          7.55        77.0  High            </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> CD4 T   CD8A          0.731       11.1  High            </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> CD4 T   GNLY          0.571       10.4  Int             </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> CD4 T   MS4A1         0.203        4.97 Low             </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> CD4 T   CD14          0.083<span style="text-decoration: underline;">8</span>       1.80 Int             </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> CD4 T   FCGR3A        0.207        4.54 Low</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> CD4 T   CD3E          7.54        76.8  High            </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> CD4 T   CD8A          0.728       11.0  High            </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> CD4 T   GNLY          0.563       10.3  Low             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> CD4 T   MS4A1         0.196        4.89 Low             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> CD4 T   CD14          0.084<span style="text-decoration: underline;">0</span>       1.80 Int             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> CD4 T   FCGR3A        0.204        4.46 Low</span></span></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">binned</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">Gene</span>, <span class="va">Cluster</span>, fill <span class="op">=</span> <span class="va">Expression_Level</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">"white"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -384,16 +385,16 @@ directly which clusters each label absorbed. Rows are named
 <span>  output_dir    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"dot_multi"</span><span class="op">)</span>,</span>
 <span>  save_options  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"combined"</span>, <span class="st">"gene_list"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261006_164734.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261010_093522.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">multi_df</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster_var"</span>, <span class="st">"feature"</span>, <span class="st">"avg.exp.scaled"</span>, <span class="st">"pct.exp"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;              cluster_var feature avg.exp.scaled  pct.exp</span></span>
-<span><span class="co">#&gt; IL7R...1 CD4 T_cell_type    IL7R      1.6004838 66.43836</span></span>
-<span><span class="co">#&gt; CCR7...2 CD4 T_cell_type    CCR7      1.9228209 36.38699</span></span>
-<span><span class="co">#&gt; LDHB...3 CD4 T_cell_type    LDHB      1.7808176 92.72260</span></span>
-<span><span class="co">#&gt; CD3E...4 CD4 T_cell_type    CD3E      1.3155181 76.96918</span></span>
-<span><span class="co">#&gt; MAL...5  CD4 T_cell_type     MAL      2.2501354 27.31164</span></span>
-<span><span class="co">#&gt; CD8A...6 CD4 T_cell_type    CD8A      0.2059775 11.13014</span></span></code></pre></div>
+<span><span class="co">#&gt; IL7R...1 CD4 T_cell_type    IL7R      1.6552981 66.18026</span></span>
+<span><span class="co">#&gt; CCR7...2 CD4 T_cell_type    CCR7      2.0153829 36.30901</span></span>
+<span><span class="co">#&gt; LDHB...3 CD4 T_cell_type    LDHB      1.9231096 92.53219</span></span>
+<span><span class="co">#&gt; CD3E...4 CD4 T_cell_type    CD3E      1.3666726 76.82403</span></span>
+<span><span class="co">#&gt; MAL...5  CD4 T_cell_type     MAL      2.4402184 27.29614</span></span>
+<span><span class="co">#&gt; CD8A...6 CD4 T_cell_type    CD8A      0.2086779 10.98712</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -490,17 +491,17 @@ column of <code>cons$cutoffs</code> reports this.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cons</span><span class="op">$</span><span class="va">cutoffs</span></span>
-<span><span class="co">#&gt;    variant     cutoff fallback   med_diff q05_diff q95_diff  frac_cd8</span></span>
-<span><span class="co">#&gt; 1  CD8_TCR -0.8432246    FALSE 0.60889522 -2.88979 2.367464 0.6514806</span></span>
-<span><span class="co">#&gt; 2 CD8_core -1.2859800    FALSE 0.07507069 -2.44122 2.751788 0.6924829</span></span>
+<span><span class="co">#&gt;    variant     cutoff fallback   med_diff  q05_diff q95_diff  frac_cd8</span></span>
+<span><span class="co">#&gt; 1  CD8_TCR -0.8463179    FALSE 0.62392346 -2.948398 2.340278 0.6515837</span></span>
+<span><span class="co">#&gt; 2 CD8_core -1.3141486    FALSE 0.02909187 -2.412048 2.700774 0.6945701</span></span>
 <span><span class="va">cons</span><span class="op">$</span><span class="va">agreement</span></span>
 <span><span class="co">#&gt;            CD8_TCR  CD8_core</span></span>
-<span><span class="co">#&gt; CD8_TCR  1.0000000 0.9453303</span></span>
-<span><span class="co">#&gt; CD8_core 0.9453303 1.0000000</span></span>
+<span><span class="co">#&gt; CD8_TCR  1.0000000 0.9434389</span></span>
+<span><span class="co">#&gt; CD8_core 0.9434389 1.0000000</span></span>
 <span><span class="va">cons</span><span class="op">$</span><span class="va">bootstrap</span><span class="op">$</span><span class="va">summary</span></span>
-<span><span class="co">#&gt;    variant target   observed       mean        sd     ci_lo      ci_hi fb_rate</span></span>
-<span><span class="co">#&gt; 1  CD8_TCR cutoff -0.8432246 -0.7863805 0.1892429 -1.111310 -0.4723863       0</span></span>
-<span><span class="co">#&gt; 2 CD8_core cutoff -1.2859800 -1.2765134 0.1086915 -1.497219 -1.0857047       0</span></span></code></pre></div>
+<span><span class="co">#&gt;    variant target   observed      mean        sd     ci_lo      ci_hi fb_rate</span></span>
+<span><span class="co">#&gt; 1  CD8_TCR cutoff -0.8463179 -0.794449 0.1717250 -1.030044 -0.5128929       0</span></span>
+<span><span class="co">#&gt; 2 CD8_core cutoff -1.3141486 -1.294615 0.1148437 -1.530047 -1.0904355       0</span></span></code></pre></div>
 <p>Both variants get a data-driven cutoff
 (<code>fallback = FALSE</code>), and the bootstrap confidence intervals
 show how stable it is. The consensus agrees with the cluster-level
@@ -511,11 +512,11 @@ closer inspection:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span>consensus <span class="op">=</span> <span class="va">cons</span><span class="op">$</span><span class="va">consensus</span>, annotation <span class="op">=</span> <span class="va">cyto</span><span class="op">$</span><span class="va">cell_type</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                        annotation</span></span>
-<span><span class="co">#&gt; consensus               CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC</span></span>
-<span><span class="co">#&gt;   Ambiguous_CD8_confirm     0     7  14   0         0           0   0</span></span>
-<span><span class="co">#&gt;   Ambiguous_CD8_primary     0     2   1   0         0           0   0</span></span>
-<span><span class="co">#&gt;   CD8                       0   274   9   0         0           0   0</span></span>
-<span><span class="co">#&gt;   NK                        0    15 117   0         0           0   0</span></span></code></pre></div>
+<span><span class="co">#&gt; consensus               CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC Platelet</span></span>
+<span><span class="co">#&gt;   Ambiguous_CD8_confirm     0     8  14   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   Ambiguous_CD8_primary     0     2   1   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   CD8                       0   273  12   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   NK                        0     2 130   0         0           0   0        0</span></span></code></pre></div>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">cons</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">Violin_CD8_TCR</span><span class="op">)</span> <span class="op">/</span></span>
 <span>  <span class="op">(</span><span class="va">cons</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">Primary_vs_Confirm</span> <span class="op">|</span> <span class="va">cons</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">Bootstrap_ForestPlot</span><span class="op">)</span></span></code></pre></div>
@@ -559,7 +560,7 @@ closer inspection:</p>
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] ggraph_2.2.2       ggplot2_4.0.3      patchwork_1.3.2    OHMmy_1.0.2       </span></span>
+<span><span class="co">#&gt; [1] ggraph_2.2.2       ggplot2_4.0.3      patchwork_1.3.2    OHMmy_1.0.2.9000  </span></span>
 <span><span class="co">#&gt; [5] Seurat_5.6.0       SeuratObject_5.4.0 sp_2.2-3          </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>

@@ -160,7 +160,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261006_164819.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261010_093606.jpg)
 
 ## 4. Visualise markers
 
@@ -238,7 +238,7 @@ gsea <- run_global_gsea(
 )
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261006_165504.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261010_094518.jpg)
 
 ## Where to go next
 
@@ -274,7 +274,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ggraph_2.2.2       patchwork_1.3.2    OHMmy_1.0.2        Seurat_5.6.0      
+#> [1] ggraph_2.2.2       patchwork_1.3.2    OHMmy_1.0.2.9000   Seurat_5.6.0      
 #> [5] SeuratObject_5.4.0 sp_2.2-3          
 #> 
 #> loaded via a namespace (and not attached):
@@ -294,7 +294,7 @@ sessionInfo()
 #>  [27] spatstat.data_3.1-9         ggridges_0.5.7             
 #>  [29] pbapply_1.7-5               pkgdown_2.2.1              
 #>  [31] yulab.utils_0.2.5           systemfonts_1.3.2          
-#>  [33] gson_0.2.1                  DOSE_4.6.0                 
+#>  [33] gson_0.2.2                  DOSE_4.6.0                 
 #>  [35] R.utils_2.13.0              harmony_2.0.5              
 #>  [37] parallelly_1.48.0           RSQLite_3.53.3             
 #>  [39] gridGraphics_0.5-1          generics_0.1.4             
@@ -316,7 +316,7 @@ sessionInfo()
 #>  [71] GenomicRanges_1.64.0        future.apply_1.20.2        
 #>  [73] codetools_0.2-20            glue_1.8.1                 
 #>  [75] ggiraph_0.9.6               leidenbase_0.1.37          
-#>  [77] fontLiberation_0.1.0        ggfun_0.2.1                
+#>  [77] fontLiberation_0.1.0        ggfun_0.2.2                
 #>  [79] spatstat.univar_3.2-0       data.table_1.18.6.1        
 #>  [81] treeio_1.36.1               vctrs_0.7.3                
 #>  [83] png_0.1-9                   spam_2.11-4                
@@ -366,7 +366,7 @@ sessionInfo()
 #> [171] splines_4.6.1               tensor_1.5.1               
 #> [173] ps_1.9.3                    clustree_0.5.1             
 #> [175] igraph_2.3.4                ggpubr_1.0.0               
-#> [177] spatstat.geom_3.8-3         enrichit_0.2.5             
+#> [177] spatstat.geom_3.8-3         enrichit_0.2.6             
 #> [179] ggsignif_0.6.4              RcppHNSW_0.7.0             
 #> [181] reshape2_1.4.5              stats4_4.6.1               
 #> [183] evaluate_1.0.5              Nebulosa_1.22.0            
@@ -377,10 +377,10 @@ sessionInfo()
 #> [193] ggplot2_4.0.3               ggforce_0.5.0              
 #> [195] broom_1.0.13                xtable_1.8-8               
 #> [197] tidytree_0.4.8              RSpectra_0.16-2            
-#> [199] tidydr_0.0.6                rstatix_1.1.0              
+#> [199] tidydr_0.0.7                rstatix_1.1.0              
 #> [201] later_1.4.8                 viridisLite_0.4.3          
 #> [203] ragg_1.5.2                  tibble_3.3.1               
-#> [205] aplot_0.3.2                 clusterProfiler_4.20.0     
+#> [205] aplot_0.3.2                 clusterProfiler_4.20.2     
 #> [207] memoise_2.0.1               beeswarm_0.4.0             
 #> [209] AnnotationDbi_1.74.0        IRanges_2.46.0             
 #> [211] cluster_2.1.8.2             globals_0.19.1

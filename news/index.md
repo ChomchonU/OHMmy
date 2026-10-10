@@ -1,5 +1,24 @@
 # Changelog
 
+## OHMmy (development version)
+
+### Bug fixes
+
+- `FindTopMarkersAndHeatmap(use_sct = TRUE)` now works on SCT objects
+  that were subset after
+  [`SCTransform()`](https://satijalab.org/seurat/reference/SCTransform.html)/[`PrepSCTFindMarkers()`](https://satijalab.org/seurat/reference/PrepSCTFindMarkers.html).
+  In that situation
+  [`PrepSCTFindMarkers()`](https://satijalab.org/seurat/reference/PrepSCTFindMarkers.html)
+  skips re-correction and every
+  [`FindMarkers()`](https://satijalab.org/seurat/reference/FindMarkers.html)
+  test failed with “Object contains multiple models with unequal library
+  sizes”, followed by “object ‘pct.1’ not found”. The function now
+  detects this and uses the existing corrected counts
+  (`recorrect_umi = FALSE`), as Seurat recommends for subsets.
+- [`FindTopMarkersAndHeatmap()`](https://chomchonu.github.io/OHMmy/reference/FindTopMarkersAndHeatmap.md)
+  warns and returns without writing files when Seurat finds no markers
+  at all, instead of failing with “object ‘pct.1’ not found”.
+
 ## OHMmy 1.0.2
 
 ### Bug fixes
@@ -43,6 +62,18 @@
   and
   [`run_global_ora()`](https://chomchonu.github.io/OHMmy/reference/run_global_ora.md)
   accept `output_dir` with or without a trailing slash.
+- `plot_cell_abundance(global_test = "anova")` and
+  [`plot_metadata_stats()`](https://chomchonu.github.io/OHMmy/reference/plot_metadata_stats.md)
+  with `continuous_test_n3 = "anova"` no longer fail when filtering the
+  ANOVA results.
+- [`plot_metadata_stats()`](https://chomchonu.github.io/OHMmy/reference/plot_metadata_stats.md)
+  skips `metadata_vars` that are not in the metadata (previously it
+  errored before reaching its skip check).
+- [`ProcessSeuratLOG()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratLOG.md)
+  and
+  [`ProcessSeuratSCT()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratSCT.md)
+  check `integration_method` before any computation and give a clear
+  error for unsupported values.
 
 ### Improvements
 

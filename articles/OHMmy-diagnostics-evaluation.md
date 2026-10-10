@@ -73,7 +73,7 @@ generate_dimheatmaps(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_DimHeatmap_pca.log_PC1-9_20261006_165519.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_DimHeatmap_pca.log_PC1-9_20261010_094535.jpg)
 
 PC 1 separates myeloid genes (*LYZ*, *FCN1*, *CST3*) from lymphoid genes
 (*IL7R*, *LTB*). Note that *MALAT1* is among its top lymphoid loadings,
@@ -111,7 +111,7 @@ failed
 #> character(0)
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_VizDimLoadings_PC1-6_20261006_165520.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_VizDimLoadings_PC1-6_20261010_094536.jpg)
 
 ## 2. Quantifying technical gene contributions
 
@@ -140,7 +140,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261006_165521.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261010_094537.jpg)
 
 In pbmc3k every PC stays well below the 15 % cutoff. The largest value
 is a few percent on the negative side of PC 1. This is expected, because
@@ -172,7 +172,7 @@ plot_stacked_technical_contribution(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-stacked_technical_contrib_posneg_pbmc3k_20261006_165524.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-stacked_technical_contrib_posneg_pbmc3k_20261010_094539.jpg)
 
 ## 3. Correlating PCs with QC covariates
 
@@ -204,7 +204,7 @@ plot_pc_metadata_correlation(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-corr_pc_pbmc3k_20261006_165525.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-corr_pc_pbmc3k_20261010_094541.jpg)
 
 ## Interpreting the diagnostics
 
@@ -248,7 +248,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] OHMmy_1.0.2        Seurat_5.6.0       SeuratObject_5.4.0 sp_2.2-3          
+#> [1] OHMmy_1.0.2.9000   Seurat_5.6.0       SeuratObject_5.4.0 sp_2.2-3          
 #> 
 #> loaded via a namespace (and not attached):
 #>   [1] RColorBrewer_1.1-3     jsonlite_2.0.0         magrittr_2.0.5        

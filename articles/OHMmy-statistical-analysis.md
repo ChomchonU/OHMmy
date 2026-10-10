@@ -293,16 +293,16 @@ head(cor_res$data[order(-cor_res$data$N_Cells), ], 10)
 #> # A tibble: 10 × 4
 #>    Cluster     Correlation N_Cells Pair            
 #>    <fct>             <dbl>   <int> <chr>           
-#>  1 CD14 Mono        0.773      463 S100A8 vs S100A9
+#>  1 CD14 Mono        0.773      462 S100A8 vs S100A9
 #>  2 B                0.0743     275 CD79A vs MS4A1  
-#>  3 NK              -0.110      134 GNLY vs NKG7    
-#>  4 CD8 T            0.248      101 GNLY vs NKG7    
-#>  5 FCGR3A Mono      0.200       80 S100A8 vs S100A9
+#>  3 NK              -0.236      149 GNLY vs NKG7    
+#>  4 CD8 T            0.305       87 GNLY vs NKG7    
+#>  5 FCGR3A Mono      0.222       79 S100A8 vs S100A9
 #>  6 CD4 T            0.844       21 S100A8 vs S100A9
-#>  7 CD4 T            0.967       18 GNLY vs NKG7    
+#>  7 CD4 T            0.961       17 GNLY vs NKG7    
 #>  8 CD14 Mono        0.512       16 GNLY vs NKG7    
-#>  9 FCGR3A Mono      0.261       10 GNLY vs NKG7    
-#> 10 DC               0.333       10 S100A8 vs S100A9
+#>  9 DC               0.333       10 S100A8 vs S100A9
+#> 10 FCGR3A Mono     -0.119        8 GNLY vs NKG7
 ```
 
 ## Session information
@@ -331,7 +331,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] patchwork_1.3.2    OHMmy_1.0.2        Seurat_5.6.0       SeuratObject_5.4.0
+#> [1] patchwork_1.3.2    OHMmy_1.0.2.9000   Seurat_5.6.0       SeuratObject_5.4.0
 #> [5] sp_2.2-3          
 #> 
 #> loaded via a namespace (and not attached):

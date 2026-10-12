@@ -155,3 +155,115 @@ test_that(".suggest_n_pcs returns a value within the computed PCs", {
   n <- OHMmy:::.suggest_n_pcs(obj, "pca", max_pca = 19)
   expect_true(n >= 1 && n <= 19)
 })
+
+# Reusing existing normalisation / scaling (force_norm, force_scale) -------------------
+
+test_that(".has_layer recognises joined and split layers and tells data from scale.data", {
+  obj <- small_seurat()
+  expect_true(OHMmy:::.has_layer(obj, "RNA", "data"))
+  expect_true(OHMmy:::.has_layer(obj, "RNA", "scale.data"))
+  expect_false(OHMmy:::.has_layer(obj, "SCT", "data"))           # assay does not exist
+
+  obj[["RNA"]] <- split(obj[["RNA"]], f = obj$batch)               # data -> data.B1, data.B2
+  expect_true(OHMmy:::.has_layer(obj, "RNA", "data"))
+
+  no_data <- SeuratObject::CreateSeuratObject(SeuratObject::LayerData(small_seurat(), layer = "counts"))
+  expect_false(OHMmy:::.has_layer(no_data, "RNA", "data"))
+  expect_false(OHMmy:::.has_layer(no_data, "RNA", "scale.data"))  # "data" must not match "scale.data"
+})
+
+# Run ProcessSeuratLOG/SCT with integration mocked out, capturing messages
+run_without_integration <- function(fun, obj, ...) {
+  msgs <- character(0)
+  res <- withCallingHandlers(
+    quietly_output(fun(obj, batch_col = "batch", reduction_name = "pca.x",
+                       integration_reduction = "int.x", dims = 1:10, verbose = FALSE, ...)),
+    message = function(m) { msgs <<- c(msgs, conditionMessage(m)); invokeRestart("muffleMessage") }
+  )
+  list(obj = res, messages = paste(msgs, collapse = "\n"))
+}
+
+test_that("ProcessSeuratLOG reuses or recomputes normalised data as requested", {
+  local_mocked_bindings(.integrate_layers = function(seurat_obj, ...) seurat_obj)
+  obj <- small_seurat()
+  marked <- SeuratObject::LayerData(obj, layer = "data") * 2      # not what NormalizeData produces
+  SeuratObject::LayerData(obj, layer = "data") <- marked
+
+  reused <- run_without_integration(ProcessSeuratLOG, obj, force_norm = FALSE)
+  expect_match(reused$messages, "Using the existing normalized data layer")
+  expect_equal(as.matrix(SeuratObject::LayerData(reused$obj, layer = "data"))[rownames(obj), colnames(obj)],
+               as.matrix(marked))
+
+  forced <- run_without_integration(ProcessSeuratLOG, obj, force_norm = TRUE)
+  expect_match(forced$messages, "Running LogNormalization")
+  expect_false(isTRUE(all.equal(as.matrix(SeuratObject::LayerData(forced$obj, layer = "data"))[rownames(obj), colnames(obj)],
+                                as.matrix(marked))))
+})
+
+test_that("ProcessSeuratLOG normalises anyway when force_norm = FALSE but no data layer exists", {
+  local_mocked_bindings(.integrate_layers = function(seurat_obj, ...) seurat_obj)
+  obj <- small_seurat()
+  counts_only <- SeuratObject::CreateSeuratObject(SeuratObject::LayerData(obj, layer = "counts"))
+  counts_only$batch <- obj$batch
+
+  res <- run_without_integration(ProcessSeuratLOG, counts_only, force_norm = FALSE)
+  expect_match(res$messages, "No existing data layer found")
+  expect_match(res$messages, "Running LogNormalization")
+  expect_true(OHMmy:::.has_layer(res$obj, "RNA", "data"))
+})
+
+test_that("ProcessSeuratLOG reuses scale.data only when it covers all variable features", {
+  local_mocked_bindings(.integrate_layers = function(seurat_obj, ...) seurat_obj)
+  obj <- small_seurat()     # scale.data holds only 20 genes; all 230 genes become variable
+
+  partial <- run_without_integration(ProcessSeuratLOG, obj, force_scale = FALSE)
+  expect_match(partial$messages, "does not contain all variable features")
+  expect_match(partial$messages, "Scaling data and regressing variables")
+
+  full <- quietly(Seurat::ScaleData(obj, features = rownames(obj), verbose = FALSE))
+  reused <- run_without_integration(ProcessSeuratLOG, full, force_scale = FALSE)
+  expect_match(reused$messages, "Using the existing scale.data layer")
+  expect_false(grepl("Scaling data and regressing variables", reused$messages))
+
+  forced <- run_without_integration(ProcessSeuratLOG, full, force_scale = TRUE)
+  expect_match(forced$messages, "Scaling data and regressing variables")
+})
+
+test_that("ProcessSeuratSCT reuses an existing SCT assay when force_norm = FALSE", {
+  local_mocked_bindings(.integrate_layers = function(seurat_obj, ...) seurat_obj)
+  first <- run_without_integration(ProcessSeuratSCT, small_seurat(), vars_to_regress = NULL)
+  expect_match(first$messages, "Running SCTransform")
+  sct_obj <- first$obj
+
+  # force_norm = FALSE: SCTransform must not run again
+  local_mocked_bindings(SCTransform = function(...) stop("SCTransform should not be called"))
+  recompute <- run_without_integration(ProcessSeuratSCT, sct_obj, force_norm = FALSE, force_scale = TRUE)
+  expect_match(recompute$messages, "Using the existing SCT assay")
+  expect_match(recompute$messages, "Recomputing SCT residuals")
+  expect_equal(SeuratObject::DefaultAssay(recompute$obj), "SCT")
+
+  # With one model per batch, scale.data lacks variable features that are missing from
+  # one batch: force_scale = FALSE tries to add them and reports those it cannot add
+  partial <- run_without_integration(ProcessSeuratSCT, sct_obj, force_norm = FALSE, force_scale = FALSE)
+  expect_match(partial$messages, "Computing SCT residuals for [0-9]+ variable features")
+  expect_match(partial$messages, "will not be used for PCA")
+
+  # When every variable feature already has residuals, they are reused as they are
+  covered <- sct_obj
+  SeuratObject::DefaultAssay(covered) <- "SCT"
+  SeuratObject::VariableFeatures(covered) <-
+    rownames(SeuratObject::GetAssayData(covered, assay = "SCT", layer = "scale.data"))
+  keep <- run_without_integration(ProcessSeuratSCT, covered, force_norm = FALSE, force_scale = FALSE)
+  expect_match(keep$messages, "Using the existing SCT scale.data")
+  expect_false(grepl("will not be used for PCA", keep$messages))
+})
+
+test_that("ProcessSeuratSCT runs SCTransform when force_norm = FALSE but no SCT assay exists", {
+  local_mocked_bindings(.integrate_layers = function(seurat_obj, ...) seurat_obj)
+
+  res <- run_without_integration(ProcessSeuratSCT, small_seurat(), vars_to_regress = NULL, force_norm = FALSE)
+
+  expect_match(res$messages, "No existing SCT assay")
+  expect_match(res$messages, "Running SCTransform")
+  expect_true("SCT" %in% SeuratObject::Assays(res$obj))
+})

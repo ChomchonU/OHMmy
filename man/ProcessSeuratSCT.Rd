@@ -23,7 +23,9 @@ ProcessSeuratSCT(
   verbose = TRUE,
   sample_name = "seurat",
   boost_genes = c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1"),
-  boost_multiplier = 1
+  boost_multiplier = 1,
+  force_norm = TRUE,
+  force_scale = TRUE
 )
 }
 \arguments{
@@ -64,6 +66,10 @@ ProcessSeuratSCT(
 \item{boost_genes}{A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Only used when \code{boost_multiplier > 1}; set to \code{NULL} to disable. Default is \code{c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")}.}
 
 \item{boost_multiplier}{A numeric value indicating the weight factor applied to the \code{boost_genes}. The scaled expression data for these genes will be multiplied by this number. Default is \code{1} (no boosting).}
+
+\item{force_norm}{Logical. If \code{TRUE} (default), \code{SCTransform} is always run. If \code{FALSE} and the object already has an SCT assay with \code{data} and \code{scale.data} layers, that assay is reused and \code{SCTransform} is skipped (so \code{vars_to_regress} is not re-applied); if no such assay exists, \code{SCTransform} is run anyway.}
+
+\item{force_scale}{Logical. Only used when an existing SCT assay is reused (\code{force_norm = FALSE}). If \code{TRUE} (default), the Pearson residuals in \code{scale.data} are recomputed for the variable features with \code{\link[Seurat]{GetResidual}()}. If \code{FALSE}, the existing residuals are kept and only missing variable features are filled in.}
 }
 \value{
 An integrated \code{Seurat} object with the \code{DefaultAssay} set to "SCT". The split RNA layers are re-joined at the end of the pipeline.

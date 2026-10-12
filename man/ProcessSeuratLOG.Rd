@@ -23,7 +23,9 @@ ProcessSeuratLOG(
   verbose = TRUE,
   sample_name = "seurat",
   boost_genes = c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1"),
-  boost_multiplier = 1
+  boost_multiplier = 1,
+  force_norm = TRUE,
+  force_scale = TRUE
 )
 }
 \arguments{
@@ -64,6 +66,10 @@ ProcessSeuratLOG(
 \item{boost_genes}{A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Only used when \code{boost_multiplier > 1}; set to \code{NULL} to disable. Default is \code{c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")}.}
 
 \item{boost_multiplier}{A numeric value indicating the weight factor applied to the \code{boost_genes}. The scaled expression data for these genes will be multiplied by this number. Default is \code{1} (no boosting).}
+
+\item{force_norm}{Logical. If \code{TRUE} (default), \code{NormalizeData} is always run. If \code{FALSE} and the RNA assay already has a \code{data} layer, it is reused; otherwise the data are normalized anyway.}
+
+\item{force_scale}{Logical. If \code{TRUE} (default), \code{ScaleData} is always run. If \code{FALSE} and the existing \code{scale.data} layer contains every variable feature, it is reused (so \code{vars_to_regress} is not re-applied); otherwise the data are scaled anyway.}
 }
 \value{
 An integrated \code{Seurat} object with the \code{DefaultAssay} set to "RNA". The split RNA layers are automatically re-joined at the end of the pipeline.

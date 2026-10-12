@@ -98,3 +98,10 @@ synthetic_cellranger <- function(root, n_empty = 300) {
 
 # Silence messages only (keeps warnings visible to expect_warning)
 quietly_messages <- function(expr) suppressMessages(expr)
+
+# Silence console output and warnings only (keeps messages for withCallingHandlers)
+quietly_output <- function(expr) {
+  out <- NULL
+  utils::capture.output(out <- suppressWarnings(expr))
+  out
+}

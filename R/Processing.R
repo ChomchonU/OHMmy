@@ -256,6 +256,24 @@ ClusterAndUMAP <- function(seurat_obj,
   seurat_obj
 }
 
+#' Does an assay contain a layer (joined, e.g. "data", or split, e.g. "data.B1")?
+#' @keywords internal
+#' @noRd
+.has_layer <- function(seurat_obj, assay, layer) {
+  if (!assay %in% SeuratObject::Assays(seurat_obj)) return(FALSE)
+  pattern <- paste0("^", gsub(".", "\\.", layer, fixed = TRUE), "($|\\.)")
+  any(grepl(pattern, SeuratObject::Layers(seurat_obj[[assay]])))
+}
+
+#' Does the scale.data layer contain every requested feature?
+#' @keywords internal
+#' @noRd
+.scale_covers_features <- function(seurat_obj, assay, features) {
+  if (!.has_layer(seurat_obj, assay, "scale.data")) return(FALSE)
+  scaled <- rownames(GetAssayData(seurat_obj, assay = assay, layer = "scale.data"))
+  all(features %in% scaled)
+}
+
 #' Multiply the scaled expression of selected genes before PCA
 #' @keywords internal
 #' @noRd
@@ -479,6 +497,8 @@ ClusterAndUMAP <- function(seurat_obj,
 #' @param sample_name Character. A prefix used for saving the elbow plot file. Default is "seurat".
 #' @param boost_genes A character vector of gene names whose variance should be artificially increased prior to PCA. This forces the dimensionality reduction to prioritize these specific lineage markers, which is highly useful for cleanly separating biologically distinct but transcriptomically similar populations (e.g., NK cells vs. CD8+ T cells). Only used when \code{boost_multiplier > 1}; set to \code{NULL} to disable. Default is \code{c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1")}.
 #' @param boost_multiplier A numeric value indicating the weight factor applied to the \code{boost_genes}. The scaled expression data for these genes will be multiplied by this number. Default is \code{1} (no boosting).
+#' @param force_norm Logical. If \code{TRUE} (default), \code{SCTransform} is always run. If \code{FALSE} and the object already has an SCT assay with \code{data} and \code{scale.data} layers, that assay is reused and \code{SCTransform} is skipped (so \code{vars_to_regress} is not re-applied); if no such assay exists, \code{SCTransform} is run anyway.
+#' @param force_scale Logical. Only used when an existing SCT assay is reused (\code{force_norm = FALSE}). If \code{TRUE} (default), the Pearson residuals in \code{scale.data} are recomputed for the variable features with \code{\link[Seurat]{GetResidual}()}. If \code{FALSE}, the existing residuals are kept and only missing variable features are filled in.
 #'
 #' @return An integrated \code{Seurat} object with the \code{DefaultAssay} set to "SCT". The split RNA layers are re-joined at the end of the pipeline.
 #' @importFrom SeuratObject JoinLayers Layers
@@ -520,16 +540,54 @@ ProcessSeuratSCT <- function(
     verbose = TRUE,
     sample_name = "seurat",
     boost_genes = c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1"),
-    boost_multiplier = 1
+    boost_multiplier = 1,
+    force_norm = TRUE,
+    force_scale = TRUE
 ) {
   .validate_integration_method(integration_method)
 
-  message("Splitting RNA layer by batch...")
-  DefaultAssay(seurat_obj) <- "RNA"
-  seurat_obj[["RNA"]] <- split(seurat_obj[["RNA"]], f = seurat_obj[[batch_col]][, 1])
+  has_sct <- .has_layer(seurat_obj, "SCT", "data") && .has_layer(seurat_obj, "SCT", "scale.data")
+  if (force_norm || !has_sct) {
+    if (!force_norm) message("No existing SCT assay with data and scale.data layers found.")
+    # Splitting RNA by batch makes SCTransform fit one model per batch
+    message("Splitting RNA layer by batch...")
+    DefaultAssay(seurat_obj) <- "RNA"
+    seurat_obj[["RNA"]] <- split(seurat_obj[["RNA"]], f = seurat_obj[[batch_col]][, 1])
 
-  message("Running SCTransform...")
-  seurat_obj <- SCTransform(seurat_obj, vars.to.regress = vars_to_regress, verbose = verbose)
+    message("Running SCTransform...")
+    seurat_obj <- SCTransform(seurat_obj, vars.to.regress = vars_to_regress, verbose = verbose)
+  } else {
+    message("Using the existing SCT assay (force_norm = FALSE); SCTransform is not re-run, ",
+            "so vars_to_regress is not re-applied.")
+    DefaultAssay(seurat_obj) <- "SCT"
+    var_features <- VariableFeatures(seurat_obj)
+    missing_residuals <- function(obj) {
+      setdiff(var_features, rownames(GetAssayData(obj, assay = "SCT", layer = "scale.data")))
+    }
+    n_missing <- length(missing_residuals(seurat_obj))
+
+    # Recompute the Pearson residuals if requested; otherwise only try to add the
+    # variable features that have no residuals yet
+    if (force_scale) {
+      message("Recomputing SCT residuals (scale.data) for the variable features...")
+      seurat_obj <- GetResidual(seurat_obj, features = var_features, assay = "SCT",
+                                replace.value = TRUE, verbose = verbose)
+    } else if (n_missing > 0) {
+      message("Computing SCT residuals for ", n_missing, " variable features missing from scale.data...")
+      seurat_obj <- GetResidual(seurat_obj, features = var_features, assay = "SCT",
+                                replace.value = FALSE, verbose = verbose)
+    } else {
+      message("Using the existing SCT scale.data (force_scale = FALSE).")
+    }
+
+    # Features absent from one batch cannot get residuals in every SCT model;
+    # RunPCA() skips them, so just report it
+    still_missing <- length(missing_residuals(seurat_obj))
+    if (still_missing > 0) {
+      message(still_missing, " variable features have no residuals in every SCT model ",
+              "(e.g. not detected in one batch) and will not be used for PCA.")
+    }
+  }
 
   seurat_obj <- .remove_receptor_genes(seurat_obj, tcr_bcr_patterns)
   seurat_obj <- .boost_scaled_genes(seurat_obj, "SCT", boost_genes, boost_multiplier)
@@ -586,6 +644,8 @@ ProcessSeuratSCT <- function(
 #' @param integration_reduction Character. The name to assign to the final integrated dimensional reduction. Default is "integrated.har.SCT" (kept for backward compatibility; a name such as "integrated.har.log" is clearer for this workflow).
 #' @param dims Numeric vector. The dimensions (PCs) to use for the integration step (RPCA/CCA). Default is \code{1:30}.
 #' @param clustering_resolution Numeric. Retained for pipeline compatibility; clustering itself is performed downstream (e.g., by \code{\link{ClusterAndUMAP}()}). Default is 1.
+#' @param force_norm Logical. If \code{TRUE} (default), \code{NormalizeData} is always run. If \code{FALSE} and the RNA assay already has a \code{data} layer, it is reused; otherwise the data are normalized anyway.
+#' @param force_scale Logical. If \code{TRUE} (default), \code{ScaleData} is always run. If \code{FALSE} and the existing \code{scale.data} layer contains every variable feature, it is reused (so \code{vars_to_regress} is not re-applied); otherwise the data are scaled anyway.
 #'
 #' @return An integrated \code{Seurat} object with the \code{DefaultAssay} set to "RNA". The split RNA layers are automatically re-joined at the end of the pipeline.
 #' @importFrom SeuratObject JoinLayers Layers
@@ -630,7 +690,9 @@ ProcessSeuratLOG <- function(
     verbose = TRUE,
     sample_name = "seurat",
     boost_genes = c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1"),
-    boost_multiplier = 1
+    boost_multiplier = 1,
+    force_norm = TRUE,
+    force_scale = TRUE
 ) {
   .validate_integration_method(integration_method)
 
@@ -638,17 +700,34 @@ ProcessSeuratLOG <- function(
   DefaultAssay(seurat_obj) <- "RNA"
   seurat_obj[["RNA"]] <- split(seurat_obj[["RNA"]], f = seurat_obj[[batch_col]][, 1])
 
-  message("Running LogNormalization...")
-  seurat_obj <- NormalizeData(seurat_obj, normalization.method = "LogNormalize", verbose = verbose)
+  if (force_norm || !.has_layer(seurat_obj, "RNA", "data")) {
+    if (!force_norm) message("No existing data layer found.")
+    message("Running LogNormalization...")
+    seurat_obj <- NormalizeData(seurat_obj, normalization.method = "LogNormalize", verbose = verbose)
+  } else {
+    message("Using the existing normalized data layer (force_norm = FALSE).")
+  }
 
   message("Finding variable features...")
   seurat_obj <- FindVariableFeatures(seurat_obj, selection.method = "vst", nfeatures = 2000, verbose = verbose)
 
   seurat_obj <- .remove_receptor_genes(seurat_obj, tcr_bcr_patterns)
 
-  message("Scaling data and regressing variables...")
-  seurat_obj <- ScaleData(seurat_obj, vars.to.regress = vars_to_regress,
-                          features = VariableFeatures(seurat_obj), verbose = verbose)
+  # Re-use scale.data only if it covers every variable feature (PCA needs all of them)
+  if (force_scale || !.scale_covers_features(seurat_obj, "RNA", VariableFeatures(seurat_obj))) {
+    if (!force_scale) {
+      message(if (.has_layer(seurat_obj, "RNA", "scale.data")) {
+        "Existing scale.data does not contain all variable features."
+      } else {
+        "No existing scale.data layer found."
+      })
+    }
+    message("Scaling data and regressing variables...")
+    seurat_obj <- ScaleData(seurat_obj, vars.to.regress = vars_to_regress,
+                            features = VariableFeatures(seurat_obj), verbose = verbose)
+  } else {
+    message("Using the existing scale.data layer (force_scale = FALSE); vars_to_regress is not re-applied.")
+  }
 
   seurat_obj <- .boost_scaled_genes(seurat_obj, "RNA", boost_genes, boost_multiplier)
 

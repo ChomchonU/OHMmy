@@ -56,7 +56,7 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
-            <h4 data-toc-skip class="date">2026-10-10</h4>
+            <h4 data-toc-skip class="date">2026-10-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/vignettes/OHMmy-statistical-analysis.Rmd" class="external-link"><code>vignettes/OHMmy-statistical-analysis.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-statistical-analysis.Rmd</code></div>
@@ -342,16 +342,16 @@ identified:</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 4</span></span></span>
 <span><span class="co">#&gt;    Cluster     Correlation N_Cells Pair            </span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> CD14 Mono        0.773      462 S100A8 vs S100A9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> CD14 Mono        0.773      463 S100A8 vs S100A9</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> B                0.074<span style="text-decoration: underline;">3</span>     275 CD79A vs MS4A1  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> NK              -<span style="color: #BB0000;">0.236</span>      149 GNLY vs NKG7    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> CD8 T            0.305       87 GNLY vs NKG7    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> FCGR3A Mono      0.222       79 S100A8 vs S100A9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> NK              -<span style="color: #BB0000;">0.110</span>      134 GNLY vs NKG7    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> CD8 T            0.248      101 GNLY vs NKG7    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> FCGR3A Mono      0.200       80 S100A8 vs S100A9</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> CD4 T            0.844       21 S100A8 vs S100A9</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> CD4 T            0.961       17 GNLY vs NKG7    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> CD4 T            0.967       18 GNLY vs NKG7    </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> CD14 Mono        0.512       16 GNLY vs NKG7    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> DC               0.333       10 S100A8 vs S100A9</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> FCGR3A Mono     -<span style="color: #BB0000;">0.119</span>        8 GNLY vs NKG7</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> FCGR3A Mono      0.261       10 GNLY vs NKG7    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> DC               0.333       10 S100A8 vs S100A9</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
@@ -380,7 +380,7 @@ identified:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt; [1] patchwork_1.3.2    OHMmy_1.0.2.9000   Seurat_5.6.0       SeuratObject_5.4.0</span></span>
-<span><span class="co">#&gt; [5] sp_2.2-3          </span></span>
+<span><span class="co">#&gt; [5] sp_2.2-4          </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] RColorBrewer_1.1-3     jsonlite_2.0.0         magrittr_2.0.5        </span></span>
@@ -423,7 +423,7 @@ identified:</p>
 <span><span class="co">#&gt; [112] codetools_0.2-20       ggraph_2.2.2           tibble_3.3.1          </span></span>
 <span><span class="co">#&gt; [115] cli_3.6.6              uwot_0.2.5             xtable_1.8-8          </span></span>
 <span><span class="co">#&gt; [118] reticulate_1.47.0      systemfonts_1.3.2      jquerylib_0.1.4       </span></span>
-<span><span class="co">#&gt; [121] Rcpp_1.1.2             globals_0.19.1         spatstat.random_3.5-2 </span></span>
+<span><span class="co">#&gt; [121] Rcpp_1.1.2             globals_0.20.0         spatstat.random_3.5-2 </span></span>
 <span><span class="co">#&gt; [124] png_0.1-9              spatstat.univar_3.2-0  parallel_4.6.1        </span></span>
 <span><span class="co">#&gt; [127] pkgdown_2.2.1          ggplot2_4.0.3          dotCall64_1.2         </span></span>
 <span><span class="co">#&gt; [130] listenv_1.1.0          viridisLite_0.4.3      scales_1.4.0          </span></span>

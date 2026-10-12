@@ -32,7 +32,9 @@ ProcessSeuratLOG(
   verbose = TRUE,
   sample_name = "seurat",
   boost_genes = c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1"),
-  boost_multiplier = 1
+  boost_multiplier = 1,
+  force_norm = TRUE,
+  force_scale = TRUE
 )
 ```
 
@@ -148,6 +150,19 @@ ProcessSeuratLOG(
   A numeric value indicating the weight factor applied to the
   `boost_genes`. The scaled expression data for these genes will be
   multiplied by this number. Default is `1` (no boosting).
+
+- force_norm:
+
+  Logical. If `TRUE` (default), `NormalizeData` is always run. If
+  `FALSE` and the RNA assay already has a `data` layer, it is reused;
+  otherwise the data are normalized anyway.
+
+- force_scale:
+
+  Logical. If `TRUE` (default), `ScaleData` is always run. If `FALSE`
+  and the existing `scale.data` layer contains every variable feature,
+  it is reused (so `vars_to_regress` is not re-applied); otherwise the
+  data are scaled anyway.
 
 ## Value
 

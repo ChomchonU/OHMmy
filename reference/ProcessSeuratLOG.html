@@ -77,7 +77,9 @@ downwards to accommodate the smallest batch size, preventing common integration 
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  sample_name <span class="op">=</span> <span class="st">"seurat"</span>,</span>
 <span>  boost_genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD3D"</span>, <span class="st">"CD3E"</span>, <span class="st">"CD3G"</span>, <span class="st">"TYROBP"</span>, <span class="st">"FCGR3A"</span>, <span class="st">"NCAM1"</span><span class="op">)</span>,</span>
-<span>  boost_multiplier <span class="op">=</span> <span class="fl">1</span></span>
+<span>  boost_multiplier <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  force_norm <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  force_scale <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -159,6 +161,14 @@ downwards to accommodate the smallest batch size, preventing common integration 
 
 <dt id="arg-boost-multiplier">boost_multiplier<a class="anchor" aria-label="anchor" href="#arg-boost-multiplier"></a></dt>
 <dd><p>A numeric value indicating the weight factor applied to the <code>boost_genes</code>. The scaled expression data for these genes will be multiplied by this number. Default is <code>1</code> (no boosting).</p></dd>
+
+
+<dt id="arg-force-norm">force_norm<a class="anchor" aria-label="anchor" href="#arg-force-norm"></a></dt>
+<dd><p>Logical. If <code>TRUE</code> (default), <code>NormalizeData</code> is always run. If <code>FALSE</code> and the RNA assay already has a <code>data</code> layer, it is reused; otherwise the data are normalized anyway.</p></dd>
+
+
+<dt id="arg-force-scale">force_scale<a class="anchor" aria-label="anchor" href="#arg-force-scale"></a></dt>
+<dd><p>Logical. If <code>TRUE</code> (default), <code>ScaleData</code> is always run. If <code>FALSE</code> and the existing <code>scale.data</code> layer contains every variable feature, it is reused (so <code>vars_to_regress</code> is not re-applied); otherwise the data are scaled anyway.</p></dd>
 
 </dl></div>
     <div class="section level2">

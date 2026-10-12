@@ -33,7 +33,9 @@ ProcessSeuratSCT(
   verbose = TRUE,
   sample_name = "seurat",
   boost_genes = c("CD3D", "CD3E", "CD3G", "TYROBP", "FCGR3A", "NCAM1"),
-  boost_multiplier = 1
+  boost_multiplier = 1,
+  force_norm = TRUE,
+  force_scale = TRUE
 )
 ```
 
@@ -147,6 +149,23 @@ ProcessSeuratSCT(
   A numeric value indicating the weight factor applied to the
   `boost_genes`. The scaled expression data for these genes will be
   multiplied by this number. Default is `1` (no boosting).
+
+- force_norm:
+
+  Logical. If `TRUE` (default), `SCTransform` is always run. If `FALSE`
+  and the object already has an SCT assay with `data` and `scale.data`
+  layers, that assay is reused and `SCTransform` is skipped (so
+  `vars_to_regress` is not re-applied); if no such assay exists,
+  `SCTransform` is run anyway.
+
+- force_scale:
+
+  Logical. Only used when an existing SCT assay is reused
+  (`force_norm = FALSE`). If `TRUE` (default), the Pearson residuals in
+  `scale.data` are recomputed for the variable features with
+  [`GetResidual()`](https://satijalab.org/seurat/reference/GetResidual.html).
+  If `FALSE`, the existing residuals are kept and only missing variable
+  features are filled in.
 
 ## Value
 

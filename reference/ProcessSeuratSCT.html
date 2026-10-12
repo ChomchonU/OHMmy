@@ -80,7 +80,9 @@ It also features an interactive mode to manually select optimal PC dimensions vi
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  sample_name <span class="op">=</span> <span class="st">"seurat"</span>,</span>
 <span>  boost_genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD3D"</span>, <span class="st">"CD3E"</span>, <span class="st">"CD3G"</span>, <span class="st">"TYROBP"</span>, <span class="st">"FCGR3A"</span>, <span class="st">"NCAM1"</span><span class="op">)</span>,</span>
-<span>  boost_multiplier <span class="op">=</span> <span class="fl">1</span></span>
+<span>  boost_multiplier <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  force_norm <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  force_scale <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -162,6 +164,14 @@ It also features an interactive mode to manually select optimal PC dimensions vi
 
 <dt id="arg-boost-multiplier">boost_multiplier<a class="anchor" aria-label="anchor" href="#arg-boost-multiplier"></a></dt>
 <dd><p>A numeric value indicating the weight factor applied to the <code>boost_genes</code>. The scaled expression data for these genes will be multiplied by this number. Default is <code>1</code> (no boosting).</p></dd>
+
+
+<dt id="arg-force-norm">force_norm<a class="anchor" aria-label="anchor" href="#arg-force-norm"></a></dt>
+<dd><p>Logical. If <code>TRUE</code> (default), <code>SCTransform</code> is always run. If <code>FALSE</code> and the object already has an SCT assay with <code>data</code> and <code>scale.data</code> layers, that assay is reused and <code>SCTransform</code> is skipped (so <code>vars_to_regress</code> is not re-applied); if no such assay exists, <code>SCTransform</code> is run anyway.</p></dd>
+
+
+<dt id="arg-force-scale">force_scale<a class="anchor" aria-label="anchor" href="#arg-force-scale"></a></dt>
+<dd><p>Logical. Only used when an existing SCT assay is reused (<code>force_norm = FALSE</code>). If <code>TRUE</code> (default), the Pearson residuals in <code>scale.data</code> are recomputed for the variable features with <code><a href="https://satijalab.org/seurat/reference/GetResidual.html" class="external-link">GetResidual()</a></code>. If <code>FALSE</code>, the existing residuals are kept and only missing variable features are filled in.</p></dd>
 
 </dl></div>
     <div class="section level2">

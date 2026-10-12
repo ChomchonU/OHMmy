@@ -293,16 +293,16 @@ head(cor_res$data[order(-cor_res$data$N_Cells), ], 10)
 #> # A tibble: 10 × 4
 #>    Cluster     Correlation N_Cells Pair            
 #>    <fct>             <dbl>   <int> <chr>           
-#>  1 CD14 Mono        0.773      462 S100A8 vs S100A9
+#>  1 CD14 Mono        0.773      463 S100A8 vs S100A9
 #>  2 B                0.0743     275 CD79A vs MS4A1  
-#>  3 NK              -0.236      149 GNLY vs NKG7    
-#>  4 CD8 T            0.305       87 GNLY vs NKG7    
-#>  5 FCGR3A Mono      0.222       79 S100A8 vs S100A9
+#>  3 NK              -0.110      134 GNLY vs NKG7    
+#>  4 CD8 T            0.248      101 GNLY vs NKG7    
+#>  5 FCGR3A Mono      0.200       80 S100A8 vs S100A9
 #>  6 CD4 T            0.844       21 S100A8 vs S100A9
-#>  7 CD4 T            0.961       17 GNLY vs NKG7    
+#>  7 CD4 T            0.967       18 GNLY vs NKG7    
 #>  8 CD14 Mono        0.512       16 GNLY vs NKG7    
-#>  9 DC               0.333       10 S100A8 vs S100A9
-#> 10 FCGR3A Mono     -0.119        8 GNLY vs NKG7
+#>  9 FCGR3A Mono      0.261       10 GNLY vs NKG7    
+#> 10 DC               0.333       10 S100A8 vs S100A9
 ```
 
 ## Session information
@@ -332,7 +332,7 @@ sessionInfo()
 #> 
 #> other attached packages:
 #> [1] patchwork_1.3.2    OHMmy_1.0.2.9000   Seurat_5.6.0       SeuratObject_5.4.0
-#> [5] sp_2.2-3          
+#> [5] sp_2.2-4          
 #> 
 #> loaded via a namespace (and not attached):
 #>   [1] RColorBrewer_1.1-3     jsonlite_2.0.0         magrittr_2.0.5        
@@ -375,7 +375,7 @@ sessionInfo()
 #> [112] codetools_0.2-20       ggraph_2.2.2           tibble_3.3.1          
 #> [115] cli_3.6.6              uwot_0.2.5             xtable_1.8-8          
 #> [118] reticulate_1.47.0      systemfonts_1.3.2      jquerylib_0.1.4       
-#> [121] Rcpp_1.1.2             globals_0.19.1         spatstat.random_3.5-2 
+#> [121] Rcpp_1.1.2             globals_0.20.0         spatstat.random_3.5-2 
 #> [124] png_0.1-9              spatstat.univar_3.2-0  parallel_4.6.1        
 #> [127] pkgdown_2.2.1          ggplot2_4.0.3          dotCall64_1.2         
 #> [130] listenv_1.1.0          viridisLite_0.4.3      scales_1.4.0          

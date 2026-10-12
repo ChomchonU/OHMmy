@@ -160,7 +160,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261010_093606.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261012_111451.jpg)
 
 ## 4. Visualise markers
 
@@ -238,7 +238,7 @@ gsea <- run_global_gsea(
 )
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261010_094518.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261012_112359.jpg)
 
 ## Where to go next
 
@@ -275,7 +275,7 @@ sessionInfo()
 #> 
 #> other attached packages:
 #> [1] ggraph_2.2.2       patchwork_1.3.2    OHMmy_1.0.2.9000   Seurat_5.6.0      
-#> [5] SeuratObject_5.4.0 sp_2.2-3          
+#> [5] SeuratObject_5.4.0 sp_2.2-4          
 #> 
 #> loaded via a namespace (and not attached):
 #>   [1] fs_2.1.0                    matrixStats_1.5.0          
@@ -309,7 +309,7 @@ sessionInfo()
 #>  [57] SparseArray_1.12.3          Rtsne_0.17                 
 #>  [59] grid_4.6.1                  blob_1.3.0                 
 #>  [61] promises_1.5.0              crayon_1.5.3               
-#>  [63] ggtangle_0.1.3              miniUI_0.1.2               
+#>  [63] ggtangle_0.1.4              miniUI_0.1.2               
 #>  [65] lattice_0.22-9              msigdbr_26.1.1             
 #>  [67] cowplot_1.2.0               KEGGREST_1.52.2            
 #>  [69] pillar_1.11.1               knitr_1.52                 
@@ -383,5 +383,5 @@ sessionInfo()
 #> [205] aplot_0.3.2                 clusterProfiler_4.20.2     
 #> [207] memoise_2.0.1               beeswarm_0.4.0             
 #> [209] AnnotationDbi_1.74.0        IRanges_2.46.0             
-#> [211] cluster_2.1.8.2             globals_0.19.1
+#> [211] cluster_2.1.8.2             globals_0.20.0
 ```

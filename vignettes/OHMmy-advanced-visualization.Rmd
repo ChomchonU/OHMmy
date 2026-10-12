@@ -37,7 +37,7 @@ return the ggplot/patchwork object, so you can keep customising in R.
 | Colours | `make_cluster_palette()` |
 | Embedding overlays | `PlotDimByFactors()`, `plot_combined()` |
 | Distributions | `plot_violin_qc_single()`, `extract_binned_expression()` |
-| Clustered dot plots | `plot_dot_dendro()`, `plot_dot_dendro_split()`, `plot_dot_dendro_multi()` |
+| Clustered dot plots | `plot_dot_dendro()`, `plot_dot_dendro_split()`, `plot_dot_dendro_multi()`, `cluster_dot_dendro()` |
 | Co-expression | `plot_blend_nebulosa()`, `.blend_feature_plot_v5()` |
 | Lineage resolution | `score_consensus()` |
 
@@ -282,6 +282,71 @@ show_saved(file.path(out_dir, "dot_multi"), "^DotPlot_RowColDendro_PBMC")
 ```{r dot-multi-data}
 head(multi_df[, c("cluster_var", "feature", "avg.exp.scaled", "pct.exp")])
 ```
+
+### Cutting the dendrograms into clusters with `cluster_dot_dendro()`
+
+`cluster_dot_dendro()` takes the output of `plot_dot_dendro_multi()` and cuts its
+dendrograms into clusters of groups, of genes, or both. It uses the exact trees
+behind the figure, which are attached to the returned data frame.
+
+Natural clusters often sit at different heights of a dendrogram, so a single
+horizontal cut either merges tight clusters or splits loose ones. The default
+`"inconsistency"` method therefore cuts each branch at its own height: a branch
+stays one cluster while none of its merges is unusually high compared with the
+merges directly below it. The threshold is chosen automatically by silhouette
+width, and every candidate is reported.
+
+```{r dendro-clusters}
+dc <- cluster_dot_dendro(multi_df, what = "both")
+
+dc$k
+dc$selection$rows
+head(dc$clusters[dc$clusters$type == "rows",
+                 c("label", "cluster", "cluster_height", "cut_height")], 10)
+```
+
+Each cluster gets its own cut height, marked by a dashed line. Leaves that do not
+clearly belong to any cluster stay unassigned (grey); use `assign_all = TRUE` to
+assign them to their nearest cluster.
+
+```{r dendro-clusters-plot, fig.width = 11, fig.height = 5.5}
+dc$plot$rows
+```
+
+The same call also returns gene modules: genes whose scaled expression varies
+together across the groups.
+
+```{r dendro-clusters-genes, fig.width = 11, fig.height = 5}
+split(dc$clusters$label[dc$clusters$type == "genes"],
+      dc$clusters$cluster[dc$clusters$type == "genes"])
+dc$plot$genes
+```
+
+For comparison, `method = "dynamic"` uses the hybrid dynamic tree cut of the
+**dynamicTreeCut** package, and `method = "fixed"` an ordinary cut by `k` or `h`.
+
+```{r dendro-clusters-methods}
+c(inconsistency = unname(dc$k["rows"]),
+  dynamic       = unname(cluster_dot_dendro(multi_df, method = "dynamic")$k["rows"]),
+  fixed_k4      = unname(cluster_dot_dendro(multi_df, method = "fixed", k = 4)$k["rows"]))
+```
+
+Finally, the group clusters can be written back to the cells. Here each
+`seurat_clusters` cluster receives the dendrogram cluster of its row, giving a
+coarser grouping of the clusters based on their marker profiles:
+
+```{r dendro-clusters-cells, fig.width = 10, fig.height = 4.5}
+dc_cells <- cluster_dot_dendro(multi_df, seurat_obj = pbmc, meta_col = "seurat_clusters",
+                               new_col = "marker_group")
+table(seurat_cluster = pbmc$seurat_clusters, marker_group = dc_cells$seurat_obj$marker_group,
+      useNA = "ifany")
+DimPlot(dc_cells$seurat_obj, reduction = "umap.har", group.by = "marker_group", label = TRUE) +
+  DimPlot(pbmc, reduction = "umap.har", group.by = "cell_type", label = TRUE, repel = TRUE) & NoLegend()
+```
+
+Each marker-defined cell type ends up in its own group, and the two `seurat_clusters`
+that are both CD4 T cells (0 and 1) are combined into one: the dendrogram joins
+them low down, well below the height at which the CD4 T branch is cut.
 
 ## 5. Co-expression: blend and density plots
 

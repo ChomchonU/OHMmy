@@ -28,18 +28,12 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-In droplet-based scRNA-seq, transcripts released by lysed cells form a "soup"
-that is captured in every droplet. This ambient RNA makes highly expressed
-genes, such as monocyte *LYZ* and *S100A8/9* or haemoglobin, appear in
-unrelated cell types. [SoupX](https://github.com/constantAmateur/SoupX)
-estimates the soup profile from empty droplets, estimates the contamination
-fraction (*rho*) per sample, and subtracts the soup from each cell.
+In droplet-based scRNA-seq, transcripts released by lysed cells form a "soup" that is captured in every droplet. This ambient RNA makes highly expressed genes, such as monocyte *LYZ* and *S100A8/9* or haemoglobin, appear in unrelated cell types. [SoupX](https://github.com/constantAmateur/SoupX) estimates the soup profile from empty droplets, estimates the contamination fraction (*rho*) per sample, and subtracts the soup from each cell.
 
-OHMmy wraps SoupX into a multi-sample pipeline that reads Cell Ranger output
-directories directly:
+OHMmy wraps SoupX into a multi-sample pipeline that reads Cell Ranger output directories directly:
 
 | Level | Functions |
-|-------|-----------|
+|----|----|
 | Building blocks | `get_sample_names()`, `load_counts()`, `create_soup_channels()`, `create_seurat_for_clustering()`, `estimate_contamination()`, `create_final_seurat()` |
 | Two-stage pipeline | `prepare_soupx_inputs()` (run once) + `run_soupx_post_clustering()` (run per parameter setting) |
 | One-step wrapper | `process_soupx_samples()` |
@@ -54,20 +48,14 @@ source("ohmmy-vignette-helpers.R")
 
 ## 1. Input data
 
-OHMmy expects the standard Cell Ranger layout, with one folder per sample in
-each of two parent directories:
+OHMmy expects the standard Cell Ranger layout, with one folder per sample in each of two parent directories:
 
-```
+```         
 filtered/<sample>_filtered_feature_bc_matrix/{matrix.mtx.gz, features.tsv.gz, barcodes.tsv.gz}
 raw/<sample>_raw_feature_bc_matrix/{matrix.mtx.gz, features.tsv.gz, barcodes.tsv.gz}
 ```
 
-pbmc3k is only distributed as a filtered matrix. To get a fully reproducible
-example, `make_mock_cellranger()` (in `ohmmy-vignette-helpers.R`) splits the
-pbmc3k cells into two samples, `PBMC_A` and `PBMC_B`. For each sample it
-writes a *raw* matrix that also contains 6,000 **simulated empty droplets**,
-whose UMIs are drawn from the pooled expression profile of that sample, which
-mimics how ambient RNA behaves.
+pbmc3k is only distributed as a filtered matrix. To get a fully reproducible example, `make_mock_cellranger()` (in `ohmmy-vignette-helpers.R`) splits the pbmc3k cells into two samples, `PBMC_A` and `PBMC_B`. For each sample it writes a *raw* matrix that also contains 6,000 **simulated empty droplets**, whose UMIs are drawn from the pooled expression profile of that sample, which mimics how ambient RNA behaves.
 
 ```{r mock-input}
 cr <- make_mock_cellranger(file.path(tempdir(), "cellranger"))
@@ -78,8 +66,7 @@ list.files(dirname(cr$filtered_dir), recursive = TRUE)
 
 ### Discover samples and load matrices
 
-`get_sample_names()` derives sample IDs from the folder names. `load_counts()`
-reads the filtered and raw matrices of every sample.
+`get_sample_names()` derives sample IDs from the folder names. `load_counts()` reads the filtered and raw matrices of every sample.
 
 ```{r load, results = "hide"}
 samples <- get_sample_names(cr$filtered_dir)
@@ -94,10 +81,7 @@ sapply(counts$raw, ncol)        # all droplets
 
 ### Build SoupChannels and a quick clustering
 
-`create_soup_channels()` pairs each raw matrix (`tod`, all droplets) with its
-filtered matrix (`toc`, cells). SoupX estimates contamination more reliably
-with **over-clustered** cells, so `create_seurat_for_clustering()` runs a fast
-standard Seurat pipeline per sample at resolution 1.8.
+`create_soup_channels()` pairs each raw matrix (`tod`, all droplets) with its filtered matrix (`toc`, cells). SoupX estimates contamination more reliably with **over-clustered** cells, so `create_seurat_for_clustering()` runs a fast standard Seurat pipeline per sample at resolution 1.8.
 
 ```{r channels, results = "hide"}
 soup_list   <- create_soup_channels(counts$raw, counts$filtered, samples)
@@ -111,13 +95,10 @@ sapply(seurat_list, function(x) nlevels(x$seurat_clusters))
 
 ### Estimate and remove contamination
 
-`estimate_contamination()` sets the clusters on each channel, runs
-`SoupX::autoEstCont()` and adjusts the counts. The contamination fraction can
-be raised on purpose with `mulFac`, given as **percentage points** added to the
-estimated *rho*:
+`estimate_contamination()` sets the clusters on each channel, runs `SoupX::autoEstCont()` and adjusts the counts. The contamination fraction can be raised on purpose with `mulFac`, given as **percentage points** added to the estimated *rho*:
 
-* `manual = FALSE` (default): `mulFac` is added for **every** sample;
-* `manual = TRUE`: `mulFac` is added **only** for the samples listed in `manual_contam`.
+-   `manual = FALSE` (default): `mulFac` is added for **every** sample;
+-   `manual = TRUE`: `mulFac` is added **only** for the samples listed in `manual_contam`.
 
 ```{r estimate, results = "hide", fig.show = "hide"}
 est_auto <- estimate_contamination(
@@ -137,17 +118,14 @@ get_rho <- function(soup_objs) sapply(soup_objs, function(sc) unique(sc$metaData
 rbind(auto = get_rho(est_auto$soup_list_all), selective = get_rho(est_manual$soup_list_all))
 ```
 
-`autoEstCont()` estimates about 6 % contamination. The selective override raises
-only `PBMC_B`. The estimated soup profile shows which genes dominate the
-ambient pool:
+`autoEstCont()` estimates about 6 % contamination. The selective override raises only `PBMC_B`. The estimated soup profile shows which genes dominate the ambient pool:
 
 ```{r soup-profile}
 sp <- est_auto$soup_list_all$PBMC_A$soupProfile
 head(sp[order(-sp$est), ], 10)
 ```
 
-`create_final_seurat()` turns the corrected channels into new Seurat objects
-(with `min.cells = 3`, `min.features = 200`, and a `mitoPercent` column):
+`create_final_seurat()` turns the corrected channels into new Seurat objects (with `min.cells = 3`, `min.features = 200`, and a `mitoPercent` column):
 
 ```{r final, results = "hide"}
 clean_list <- create_final_seurat(est_auto$soup_list_all, samples)
@@ -159,10 +137,7 @@ clean_list
 
 ## 3. The two-stage pipeline
 
-Loading, channel creation and clustering do not depend on the contamination
-settings. `prepare_soupx_inputs()` therefore bundles them and runs them
-**once**. `run_soupx_post_clustering()` takes that bundle and only performs
-estimation, correction and Seurat creation, so parameter sweeps are cheap.
+Loading, channel creation and clustering do not depend on the contamination settings. `prepare_soupx_inputs()` therefore bundles them and runs them **once**. `run_soupx_post_clustering()` takes that bundle and only performs estimation, correction and Seurat creation, so parameter sweeps are cheap.
 
 ```{r prepare, results = "hide"}
 prep <- prepare_soupx_inputs(cr$filtered_dir, cr$raw_dir)
@@ -200,8 +175,7 @@ ggplot(sweep, aes(rho, pct_removed, colour = sample)) +
 
 ### Per-sample overrides
 
-Giving `manual_contam` restricts the `multiFac` penalty to those samples. All
-other samples keep their auto-estimated *rho*:
+Giving `manual_contam` restricts the `multiFac` penalty to those samples. All other samples keep their auto-estimated *rho*:
 
 ```{r override, results = "hide", fig.show = "hide"}
 override <- run_soupx_post_clustering(prep, multiFac = 10, manual_contam = "PBMC_B")
@@ -213,9 +187,7 @@ get_rho(override$soup_objects)
 
 ### One-step wrapper
 
-When no parameter sweep is needed, `process_soupx_samples()` runs both stages
-in a single call and returns the same structure as
-`run_soupx_post_clustering()`:
+When no parameter sweep is needed, `process_soupx_samples()` runs both stages in a single call and returns the same structure as `run_soupx_post_clustering()`:
 
 ```{r one-step, results = "hide", fig.show = "hide"}
 one_step <- process_soupx_samples(cr$filtered_dir, cr$raw_dir, multiFac = 0)
@@ -228,15 +200,9 @@ get_rho(one_step$soup_objects)
 
 ## 4. Transferring the cleaned counts to an existing object
 
-Often an analysed Seurat object already exists, built from the uncorrected
-counts. `addSoupXMetaToSeurat()` merges the per-sample SoupX objects, prefixes
-the barcodes with the sample name and removes the `-1` suffix. It then
-**replaces the `counts` layer** of the original object and updates
-`nCount_RNA`, `nFeature_RNA` and `pct_counts_mt`, keeping only cells and genes
-present in both objects.
+Often an analysed Seurat object already exists, built from the uncorrected counts. `addSoupXMetaToSeurat()` merges the per-sample SoupX objects, prefixes the barcodes with the sample name and removes the `-1` suffix. It then **replaces the `counts` layer** of the original object and updates `nCount_RNA`, `nFeature_RNA` and `pct_counts_mt`, keeping only cells and genes present in both objects.
 
-To show this, we build the "original" object with the same barcode convention
-(`<sample>_<barcode>`):
+To show this, we build the "original" object with the same barcode convention (`<sample>_<barcode>`):
 
 ```{r original}
 original <- CreateSeuratObject(
@@ -268,10 +234,7 @@ corrected
 
 ### Did it work?
 
-The clearest check is ambient monocyte transcripts in **non-monocytes**. We
-compare, before and after correction, the fraction of lymphocytes (cells with
-low *LYZ* + *CD14* expression in a marker-based gate) that still contain
-monocyte-specific UMIs:
+The clearest check is ambient monocyte transcripts in **non-monocytes**. We compare, before and after correction, the fraction of lymphocytes (cells with low *LYZ* + *CD14* expression in a marker-based gate) that still contain monocyte-specific UMIs:
 
 ```{r evaluate, fig.width = 9, fig.height = 4}
 before <- LayerData(original,  layer = "counts")
@@ -298,13 +261,7 @@ ggplot(plot_df, aes(nCount, fill = state)) +
   labs(x = "UMIs per cell (log10)", fill = NULL) + theme_bw()
 ```
 
-SoupX removes about 6 % of the UMIs, spread across all cells. Its effect on
-the ambient transcripts is much larger: *LYZ*, *S100A8* and *S100A9*, which
-were detected in a large share of non-monocytes before correction, almost
-disappear from them afterwards. Ubiquitously expressed genes such as *FTL* are
-barely affected, which is the intended behaviour. `corrected` can now go into
-`ProcessSeuratLOG()` or `ProcessSeuratSCT()`. See the article *Data Processing,
-Integration, and Clustering*.
+SoupX removes about 6 % of the UMIs, spread across all cells. Its effect on the ambient transcripts is much larger: *LYZ*, *S100A8* and *S100A9*, which were detected in a large share of non-monocytes before correction, almost disappear from them afterwards. Ubiquitously expressed genes such as *FTL* are barely affected, which is the intended behaviour. `corrected` can now go into `ProcessSeuratLOG()` or `ProcessSeuratSCT()`. See the article *Data Processing, Integration, and Clustering*.
 
 ## Session information
 

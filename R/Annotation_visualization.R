@@ -541,7 +541,7 @@ plot_dot_dendro_split <- function(
 #' @param range Numeric vector of length 2. The minimum and maximum point sizes for the dots (\code{scale_radius}). Default is \code{c(0.25, 6)}.
 #' @param save_options Character vector. Defines which specific outputs to generate and save. Options include "combined", "col_dend", "row_dend", and "gene_list". Default includes all four.
 #'
-#' @return Invisibly returns a \code{tibble} containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in \code{ggplot2}).
+#' @return Invisibly returns a \code{tibble} containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in \code{ggplot2}). The clustering behind the dendrograms is attached as attributes: \code{"dendro_matrix"} (groups x genes matrix of scaled average expression), \code{"row_hclust"} and \code{"col_hclust"} (the \code{hclust} trees for groups and genes). Pass the result to \code{\link{cluster_dot_dendro}()} to cut these trees into clusters.
 #'
 #' @export
 #'
@@ -696,6 +696,11 @@ plot_dot_dendro_multi <- function(
            combined_plot, width = min(75, max(15, 0.3 * length(keep_features))),
            height = 0.75 * nrow(mat_avg) + 5, limitsize = FALSE)
   }
+
+  # Keep the exact trees and matrix behind the dendrograms, e.g. for cluster_dot_dendro()
+  attr(filtered_plot_df, "dendro_matrix") <- mat_avg
+  attr(filtered_plot_df, "row_hclust") <- row_hc
+  attr(filtered_plot_df, "col_hclust") <- col_hc
 
   return(invisible(filtered_plot_df))
 }

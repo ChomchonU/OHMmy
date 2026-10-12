@@ -45,6 +45,7 @@ URL: https://github.com/ChomchonU/OHMmy, https://chomchonu.github.io/OHMmy/
 BugReports: https://github.com/ChomchonU/OHMmy/issues
 Suggests: 
     DESeq2,
+    dynamicTreeCut,
     enrichplot,
     EnhancedVolcano,
     harmony,

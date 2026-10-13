@@ -28,12 +28,10 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-Once cells are clustered, the next step is to interpret them. OHMmy wraps the
-most common figures into functions that save a publication-ready file **and**
-return the ggplot/patchwork object, so you can keep customising in R.
+Once cells are clustered, the next step is to interpret them. OHMmy wraps the most common figures into functions that save a publication-ready file **and** return the ggplot/patchwork object, so you can keep customising in R.
 
 | Theme | Functions |
-|-------|-----------|
+|----|----|
 | Colours | `make_cluster_palette()` |
 | Embedding overlays | `PlotDimByFactors()`, `plot_combined()` |
 | Distributions | `plot_violin_qc_single()`, `extract_binned_expression()` |
@@ -57,10 +55,7 @@ table(pbmc$cell_type)
 
 ## 1. Colour palettes for many clusters
 
-`make_cluster_palette()` returns `n` maximally distinct colours from curated
-qualitative palettes (`"kelly"`, `"alphabet"`, `"polychrome"`) or from a blend of
-RColorBrewer sets (`"auto"`). When `n` is larger than the palette, it
-interpolates.
+`make_cluster_palette()` returns `n` maximally distinct colours from curated qualitative palettes (`"kelly"`, `"alphabet"`, `"polychrome"`) or from a blend of RColorBrewer sets (`"auto"`). When `n` is larger than the palette, it interpolates.
 
 ```{r palettes, fig.width = 9, fig.height = 2.6}
 pal_df <- do.call(rbind, lapply(c("auto", "kelly", "alphabet", "polychrome"), function(p) {
@@ -78,8 +73,7 @@ ggplot(pal_df, aes(i, palette, fill = col)) +
 
 ### One UMAP per metadata column
 
-`PlotDimByFactors()` draws one `DimPlot` per metadata column, saves each to
-disk and returns the plots as a named list.
+`PlotDimByFactors()` draws one `DimPlot` per metadata column, saves each to disk and returns the plots as a named list.
 
 ```{r dim-factors, results = "hide"}
 dim_plots <- PlotDimByFactors(
@@ -102,10 +96,7 @@ wrap_plots(dim_plots, ncol = 2) & NoLegend()
 
 ### Feature plots paired with density estimates
 
-Sparse genes are hard to read on a standard `FeaturePlot`. `plot_combined()`
-places each feature next to its kernel-density estimate (Nebulosa), using a
-Seurat v5-safe implementation. Features can be **genes or numeric metadata
-columns**, and each list element becomes one saved figure.
+Sparse genes are hard to read on a standard `FeaturePlot`. `plot_combined()` places each feature next to its kernel-density estimate (Nebulosa), using a Seurat v5-safe implementation. Features can be **genes or numeric metadata columns**, and each list element becomes one saved figure.
 
 ```{r combined, results = "hide"}
 feature_sets <- list(
@@ -136,8 +127,7 @@ combined$combined_plots$QC
 
 ### Violin plots for QC metrics and genes
 
-`plot_violin_qc_single()` saves one figure for QC metadata and one for genes,
-grouped by any identity column.
+`plot_violin_qc_single()` saves one figure for QC metadata and one for genes, grouped by any identity column.
 
 ```{r violins, results = "hide"}
 plot_violin_qc_single(
@@ -158,12 +148,7 @@ show_saved(file.path(out_dir, "violins"), "ViolinGene")
 
 ### Discretising expression into Low / Int / High
 
-`extract_binned_expression()` returns the average expression and percent
-expressed per group. For each gene it then bins the groups into terciles
-(`Low`, `Int`, `High`). This is useful for writing marker tables or for defining
-"marker-high" populations. The terciles are relative to the groups being
-compared: with eight cell types, for example, the three highest-expressing
-groups of each gene are labelled `High`.
+`extract_binned_expression()` returns the average expression and percent expressed per group. For each gene it then bins the groups into terciles (`Low`, `Int`, `High`). This is useful for writing marker tables or for defining "marker-high" populations. The terciles are relative to the groups being compared: with eight cell types, for example, the three highest-expressing groups of each gene are labelled `High`.
 
 ```{r binned}
 binned <- extract_binned_expression(
@@ -185,10 +170,7 @@ ggplot(binned, aes(Gene, Cluster, fill = Expression_Level)) +
 
 ## 4. Hierarchically clustered dot plots
 
-The dot-plot family takes a two-column data frame, `feature_df`, that maps genes
-(`feature`) to panels (`group`). Groups are matched by **prefix**: with
-`prefix = "PBMC"`, every group starting with `"PBMC_"` is plotted. This lets one
-table hold several marker panels, for example `PBMC_*` and `Tcell_*`.
+The dot-plot family takes a two-column data frame, `feature_df`, that maps genes (`feature`) to panels (`group`). Groups are matched by **prefix**: with `prefix = "PBMC"`, every group starting with `"PBMC_"` is plotted. This lets one table hold several marker panels, for example `PBMC_*` and `Tcell_*`.
 
 ```{r feature-df}
 feature_df <- data.frame(
@@ -200,10 +182,7 @@ head(feature_df, 8)
 
 ### `plot_dot_dendro()`: genes and clusters clustered together
 
-Genes expressed in fewer than `pct_threshold` % of cells in every group are
-dropped. Rows and columns are then ordered by hierarchical clustering, and both
-dendrograms are drawn. The function also saves standalone dendrograms and a
-text file of the clustered gene order.
+Genes expressed in fewer than `pct_threshold` % of cells in every group are dropped. Rows and columns are then ordered by hierarchical clustering, and both dendrograms are drawn. The function also saves standalone dendrograms and a text file of the clustered gene order.
 
 ```{r dot-dendro, results = "hide"}
 p_dot <- plot_dot_dendro(
@@ -222,9 +201,7 @@ p_dot
 
 ### `plot_dot_dendro_split()`: large panels in chunks
 
-With long marker lists, `plot_dot_dendro_split()` keeps the **global**
-clustering but splits the gene axis into chunks of `max_genes_per_plot`. The
-same cluster dendrogram is attached to every chunk.
+With long marker lists, `plot_dot_dendro_split()` keeps the **global** clustering but splits the gene axis into chunks of `max_genes_per_plot`. The same cluster dendrogram is attached to every chunk.
 
 ```{r dot-split, results = "hide"}
 extended_markers <- list(
@@ -258,10 +235,7 @@ split_plots[[2]]
 
 ### `plot_dot_dendro_multi()`: several groupings in one clustering
 
-`plot_dot_dendro_multi()` stacks the dot-plot summaries of **several metadata
-columns** into one matrix before clustering. Here, plotting the marker-based
-`cell_type` labels next to the unsupervised `seurat_clusters` shows directly
-which clusters each label absorbed. Rows are named `<group>_<column>`.
+`plot_dot_dendro_multi()` stacks the dot-plot summaries of **several metadata columns** into one matrix before clustering. Here, plotting the marker-based `cell_type` labels next to the unsupervised `seurat_clusters` shows directly which clusters each label absorbed. Rows are named `<group>_<column>`.
 
 ```{r dot-multi, results = "hide"}
 multi_df <- plot_dot_dendro_multi(
@@ -285,16 +259,9 @@ head(multi_df[, c("cluster_var", "feature", "avg.exp.scaled", "pct.exp")])
 
 ### Cutting the dendrograms into clusters with `cluster_dot_dendro()`
 
-`cluster_dot_dendro()` takes the output of `plot_dot_dendro_multi()` and cuts its
-dendrograms into clusters of groups, of genes, or both. It uses the exact trees
-behind the figure, which are attached to the returned data frame.
+`cluster_dot_dendro()` takes the output of `plot_dot_dendro_multi()` and cuts its dendrograms into clusters of groups, of genes, or both. It uses the exact trees behind the figure, which are attached to the returned data frame.
 
-Natural clusters often sit at different heights of a dendrogram, so a single
-horizontal cut either merges tight clusters or splits loose ones. The default
-`"inconsistency"` method therefore cuts each branch at its own height: a branch
-stays one cluster while none of its merges is unusually high compared with the
-merges directly below it. The threshold is chosen automatically by silhouette
-width, and every candidate is reported.
+Natural clusters often sit at different heights of a dendrogram, so a single horizontal cut either merges tight clusters or splits loose ones. The default `"inconsistency"` method therefore cuts each branch at its own height: a branch stays one cluster while none of its merges is unusually high compared with the merges directly below it. The threshold is chosen automatically by silhouette width, and every candidate is reported.
 
 ```{r dendro-clusters}
 dc <- cluster_dot_dendro(multi_df, what = "both")
@@ -305,16 +272,13 @@ head(dc$clusters[dc$clusters$type == "rows",
                  c("label", "cluster", "cluster_height", "cut_height")], 10)
 ```
 
-Each cluster gets its own cut height, marked by a dashed line. Leaves that do not
-clearly belong to any cluster stay unassigned (grey); use `assign_all = TRUE` to
-assign them to their nearest cluster.
+Each cluster gets its own cut height, marked by a dashed line. Leaves that do not clearly belong to any cluster stay unassigned (grey); use `assign_all = TRUE` to assign them to their nearest cluster.
 
 ```{r dendro-clusters-plot, fig.width = 11, fig.height = 5.5}
 dc$plot$rows
 ```
 
-The same call also returns gene modules: genes whose scaled expression varies
-together across the groups.
+The same call also returns gene modules: genes whose scaled expression varies together across the groups.
 
 ```{r dendro-clusters-genes, fig.width = 11, fig.height = 5}
 split(dc$clusters$label[dc$clusters$type == "genes"],
@@ -322,8 +286,7 @@ split(dc$clusters$label[dc$clusters$type == "genes"],
 dc$plot$genes
 ```
 
-For comparison, `method = "dynamic"` uses the hybrid dynamic tree cut of the
-**dynamicTreeCut** package, and `method = "fixed"` an ordinary cut by `k` or `h`.
+For comparison, `method = "dynamic"` uses the hybrid dynamic tree cut of the **dynamicTreeCut** package, and `method = "fixed"` an ordinary cut by `k` or `h`.
 
 ```{r dendro-clusters-methods}
 c(inconsistency = unname(dc$k["rows"]),
@@ -331,9 +294,7 @@ c(inconsistency = unname(dc$k["rows"]),
   fixed_k4      = unname(cluster_dot_dendro(multi_df, method = "fixed", k = 4)$k["rows"]))
 ```
 
-Finally, the group clusters can be written back to the cells. Here each
-`seurat_clusters` cluster receives the dendrogram cluster of its row, giving a
-coarser grouping of the clusters based on their marker profiles:
+Finally, the group clusters can be written back to the cells. Here each `seurat_clusters` cluster receives the dendrogram cluster of its row, giving a coarser grouping of the clusters based on their marker profiles:
 
 ```{r dendro-clusters-cells, fig.width = 10, fig.height = 4.5}
 dc_cells <- cluster_dot_dendro(multi_df, seurat_obj = pbmc, meta_col = "seurat_clusters",
@@ -344,17 +305,9 @@ DimPlot(dc_cells$seurat_obj, reduction = "umap.har", group.by = "marker_group", 
   DimPlot(pbmc, reduction = "umap.har", group.by = "cell_type", label = TRUE, repel = TRUE) & NoLegend()
 ```
 
-Each marker-defined cell type ends up in its own group, and the two `seurat_clusters`
-that are both CD4 T cells (0 and 1) are combined into one: the dendrogram joins
-them low down, well below the height at which the CD4 T branch is cut.
-
 ## 5. Co-expression: blend and density plots
 
-`plot_blend_nebulosa()` produces one row per gene pair with the two single-gene
-panels, their colour blend, a 2-D colour key, and a Nebulosa density estimate
-for each gene. Cells below `blend_threshold` (after scaling to 0 to 1) are shown
-as background, which keeps sparse genes readable. All pairs are stacked into one
-saved figure.
+`plot_blend_nebulosa()` produces one row per gene pair with the two single-gene panels, their colour blend, a 2-D colour key, and a Nebulosa density estimate for each gene. Cells below `blend_threshold` (after scaling to 0 to 1) are shown as background, which keeps sparse genes readable. All pairs are stacked into one saved figure.
 
 ```{r blend, results = "hide"}
 blend <- plot_blend_nebulosa(
@@ -376,12 +329,9 @@ blend$dimensions
 blend$plot
 ```
 
-The *CD3E*/*GNLY* row separates T cells (green), NK cells (red) and the
-cytotoxic CD8 T cells that express both (yellow). The *CD14*/*FCGR3A* row shows
-the two monocyte subsets and the intermediate cells between them.
+The *CD3E*/*GNLY* row separates T cells (green), NK cells (red) and the cytotoxic CD8 T cells that express both (yellow). The *CD14*/*FCGR3A* row shows the two monocyte subsets and the intermediate cells between them.
 
-The four-panel blend is also available on its own as `.blend_feature_plot_v5()`,
-a Seurat v5-compatible replacement for `FeaturePlot(blend = TRUE)`.
+The four-panel blend is also available on its own as `.blend_feature_plot_v5()`, a Seurat v5-compatible replacement for `FeaturePlot(blend = TRUE)`.
 
 ```{r blend-single, fig.width = 14, fig.height = 3.8}
 .blend_feature_plot_v5(
@@ -392,17 +342,9 @@ a Seurat v5-compatible replacement for `FeaturePlot(blend = TRUE)`.
 
 ## 6. Resolving CD8 T cells from NK cells with `score_consensus()`
 
-Cytotoxic CD8 T cells and NK cells share much of their effector programme and
-are often mixed in clustering. `score_consensus()` compares one or more **CD8
-signature scores** with an **NK signature score** for each cell. It labels a
-cell CD8 when `z(CD8) - z(NK)` exceeds a cutoff, which can be fixed
-(`"fixed"`), the density valley (`"trough"`), or the decision boundary of a
-two-component Gaussian mixture (`"gmm"`). Two CD8 signatures act as `primary`
-and `confirm` scores, and disagreements are flagged as ambiguous. Bootstrapping
-reports how stable the cutoff is.
+Cytotoxic CD8 T cells and NK cells share much of their effector programme and are often mixed in clustering. `score_consensus()` compares one or more **CD8 signature scores** with an **NK signature score** for each cell. It labels a cell CD8 when `z(CD8) - z(NK)` exceeds a cutoff, which can be fixed (`"fixed"`), the density valley (`"trough"`), or the decision boundary of a two-component Gaussian mixture (`"gmm"`). Two CD8 signatures act as `primary` and `confirm` scores, and disagreements are flagged as ambiguous. Bootstrapping reports how stable the cutoff is.
 
-Any per-cell score can be used, such as `AddModuleScore()` or UCell. Here we
-score the CD8 T and NK cells with `AddModuleScore()`.
+Any per-cell score can be used, such as `AddModuleScore()` or UCell. Here we score the CD8 T and NK cells with `AddModuleScore()`.
 
 ```{r consensus-scores}
 cyto <- subset(pbmc, subset = cell_type %in% c("CD8 T", "NK"))
@@ -418,10 +360,7 @@ for (s in names(score_sets)) {
 }
 ```
 
-With `method = "gmm"`, the cutoff is the decision boundary of a two-component
-Gaussian mixture fitted with **mclust**, which only needs to be installed. If
-no cutoff can be estimated, `fixed_cut` is used instead, and the `fallback`
-column of `cons$cutoffs` reports this.
+With `method = "gmm"`, the cutoff is the decision boundary of a two-component Gaussian mixture fitted with **mclust**, which only needs to be installed. If no cutoff can be estimated, `fixed_cut` is used instead, and the `fallback` column of `cons$cutoffs` reports this.
 
 ```{r consensus-run}
 cons <- score_consensus(
@@ -441,12 +380,7 @@ cons$agreement
 cons$bootstrap$summary
 ```
 
-Both variants get a data-driven cutoff (`fallback = FALSE`), and the
-bootstrap confidence intervals show how stable it is. The consensus agrees
-with the cluster-level annotation for the large majority of cells. Most of the
-remaining cells are flagged as *Ambiguous*, because the primary and
-confirmatory CD8 signatures disagree on them. These cells are good candidates
-for closer inspection:
+Both variants get a data-driven cutoff (`fallback = FALSE`), and the bootstrap confidence intervals show how stable it is. The consensus agrees with the cluster-level annotation for the large majority of cells. Most of the remaining cells are flagged as *Ambiguous*, because the primary and confirmatory CD8 signatures disagree on them. These cells are good candidates for closer inspection:
 
 ```{r consensus-table}
 table(consensus = cons$consensus, annotation = cyto$cell_type)
@@ -457,8 +391,7 @@ table(consensus = cons$consensus, annotation = cyto$cell_type)
   (cons$plots$Primary_vs_Confirm | cons$plots$Bootstrap_ForestPlot)
 ```
 
-The labels are also written to the object's metadata (prefix `CD8vNK_`), ready
-for plotting:
+The labels are also written to the object's metadata (prefix `CD8vNK_`), ready for plotting:
 
 ```{r consensus-umap, fig.width = 10, fig.height = 4.5}
 grep("^CD8vNK_", colnames(cons$obj@meta.data), value = TRUE)

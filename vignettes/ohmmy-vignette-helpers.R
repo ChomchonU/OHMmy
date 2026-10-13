@@ -206,6 +206,29 @@ make_mock_cellranger <- function(root, n_empty = 6000, seed = 7) {
   list(filtered_dir = filt_root, raw_dir = raw_root)
 }
 
+# MSigDB Hallmark gene sets ------------------------------------------------------
+# msigdbr downloads its database from Zenodo the first time it is used. If that
+# download fails (e.g. a temporary Zenodo outage), return NULL so the articles can
+# skip their enrichment sections instead of failing to build.
+load_hallmark_sets <- function() {
+  tryCatch(
+    as.data.frame(msigdbr::msigdbr(species = "Homo sapiens", collection = "H")[, c("gs_name", "gene_symbol")]),
+    error = function(e) {
+      message("MSigDB gene sets could not be loaded (", conditionMessage(e),
+              "); the enrichment sections are skipped.")
+      NULL
+    }
+  )
+}
+
+# Note shown in place of the enrichment results when the gene sets are unavailable
+hallmark_unavailable_note <- function() {
+  cat("> **Note:** the MSigDB gene sets could not be downloaded while this article",
+      "was built, so the enrichment results are not shown. Run the code locally to",
+      "reproduce them.
+")
+}
+
 # Display helpers ---------------------------------------------------------------
 # Many OHMmy functions write timestamped figures to disk. `show_saved()` finds the
 # newest file matching `pattern` in `dir`, copies it next to the knitted figures

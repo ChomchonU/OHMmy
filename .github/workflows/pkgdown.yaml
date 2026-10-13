@@ -37,6 +37,36 @@ jobs:
           extra-packages: any::pkgdown, local::.
           needs: website
 
+      # msigdbr downloads its gene-set database from Zenodo on first use. Keep that
+      # download between runs (keyed on the msigdbr version) so the site build does
+      # not depend on Zenodo being reachable every time.
+      - name: Get msigdbr version
+        id: msigdbr
+        run: cat("version=", as.character(packageVersion("msigdbr")), "\n", sep = "", file = Sys.getenv("GITHUB_OUTPUT"), append = TRUE)
+        shell: Rscript {0}
+
+      - name: Cache MSigDB gene sets
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/R/msigdbr
+          key: msigdbr-${{ runner.os }}-${{ steps.msigdbr.outputs.version }}
+
+      - name: Download MSigDB gene sets (with retries)
+        continue-on-error: true
+        run: |
+          for (i in 1:5) {
+            ok <- tryCatch({
+              msigdbr::msigdbr(species = "Homo sapiens", collection = "H")
+              TRUE
+            }, error = function(e) {
+              message("Attempt ", i, " failed: ", conditionMessage(e))
+              FALSE
+            })
+            if (ok) break
+            Sys.sleep(30 * i)
+          }
+        shell: Rscript {0}
+
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}

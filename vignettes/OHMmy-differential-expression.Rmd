@@ -197,7 +197,8 @@ for the nine `seurat_clusters` (two of which are CD4 T) and attach their cell
 type.
 
 ```{r gsea-input, results = "hide"}
-hallmark <- msigdbr(species = "Homo sapiens", collection = "H")[, c("gs_name", "gene_symbol")]
+hallmark <- load_hallmark_sets()     # MSigDB Hallmark gene sets; NULL if they cannot be downloaded
+have_sets <- !is.null(hallmark)
 
 Idents(pbmc) <- "seurat_clusters"
 mk_clusters <- FindTopMarkersAndHeatmap(
@@ -211,6 +212,10 @@ mk_clusters <- FindTopMarkersAndHeatmap(
 enrich_df <- mk_clusters$markers %>%
   mutate(cluster   = as.character(cluster),
          cell_type = as.character(pbmc$cell_type[match(cluster, pbmc$seurat_clusters)]))
+```
+
+```{r gsea-unavailable, echo = FALSE, results = "asis", eval = !have_sets}
+hallmark_unavailable_note()
 ```
 
 ```{r gsea-input-show}
@@ -228,7 +233,7 @@ plot for the top pathway of each cluster, alphabetical and hierarchically
 clustered overview dot plots, signed-significance plots (global and per cell
 type), and CSV summaries.
 
-```{r gsea, results = "hide"}
+```{r gsea, results = "hide", eval = have_sets}
 gsea_dir <- file.path(out_dir, "gsea")
 
 gsea_res <- run_global_gsea(
@@ -241,7 +246,7 @@ gsea_res <- run_global_gsea(
 )
 ```
 
-```{r gsea-table}
+```{r gsea-table, eval = have_sets}
 gsea_res %>%
   group_by(cluster) %>%
   slice_min(p.adjust, n = 2, with_ties = FALSE) %>%
@@ -255,20 +260,20 @@ platelets (cluster 8) stand apart. Cluster 2 has activated inflammatory and
 TNF-alpha signalling, and cluster 8 has activated coagulation. Clusters without
 significant pathways, here the small DC cluster 7, are left out.
 
-```{r gsea-clustered, echo = FALSE}
+```{r gsea-clustered, echo = FALSE, eval = have_sets}
 show_saved(gsea_dir, "Hallmark_GSEA_Clustered_Dendro_Dotplot")
 ```
 
 The signed-significance view puts direction and significance on one axis:
 
-```{r gsea-signed, echo = FALSE}
+```{r gsea-signed, echo = FALSE, eval = have_sets}
 show_saved(gsea_dir, "Hallmark_GSEA_Signed_Significance_Dotplot")
 ```
 
 Per-cluster outputs for cluster 2 (CD14 monocytes): the NES dot plot and the
 running enrichment score of its top pathway.
 
-```{r gsea-cluster, echo = FALSE, out.width = "49%", fig.show = "hold"}
+```{r gsea-cluster, echo = FALSE, out.width = "49%", fig.show = "hold", eval = have_sets}
 show_saved(gsea_dir, "^Hallmark_2_GSEA_NES_Dotplot")
 show_saved(gsea_dir, "^Hallmark_2_.*_Gseaplot")
 ```
@@ -281,7 +286,7 @@ padj_cutoff`, and tests each set with `clusterProfiler::enricher()` against the
 universe of all tested genes. With `variable_per_clus = TRUE`, the function
 also draws a signed-significance plot for every cell type.
 
-```{r ora, results = "hide"}
+```{r ora, results = "hide", eval = have_sets}
 ora_dir <- file.path(out_dir, "ora")
 
 ora_res <- run_global_ora(
@@ -299,20 +304,20 @@ ora_res <- run_global_ora(
 )
 ```
 
-```{r ora-table}
+```{r ora-table, eval = have_sets}
 ora_res %>%
   dplyr::count(cluster, cell_type, Direction) %>%
   arrange(as.numeric(cluster))
 ```
 
-```{r ora-show, echo = FALSE}
+```{r ora-show, echo = FALSE, eval = have_sets}
 show_saved(ora_dir, "Hallmark_Global_Activated_Clustered_Dendro")
 show_saved(ora_dir, "Hallmark_ORA_Signed_Significance_Dotplot")
 ```
 
 Per-cluster ORA outputs (cluster 2, CD14 monocytes):
 
-```{r ora-cluster, echo = FALSE, out.width = "49%", fig.show = "hold"}
+```{r ora-cluster, echo = FALSE, out.width = "49%", fig.show = "hold", eval = have_sets}
 show_saved(ora_dir, "^Hallmark_2_Dotplot")
 show_saved(ora_dir, "^Hallmark_2_Barplot")
 ```

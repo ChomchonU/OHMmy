@@ -224,17 +224,23 @@ Idents(pbmc) <- "cell_type"
 mk <- FindTopMarkersAndHeatmap(pbmc, sample_name = "pbmc3k", top_n = 5, onlyPos = FALSE,
                                output_dir_base = out_dir, height = 10, dpi = 72)
 
-hallmark <- msigdbr::msigdbr(species = "Homo sapiens", collection = "H")[, c("gs_name", "gene_symbol")]
-gsea <- run_global_gsea(
-  GSEA_df      = dplyr::mutate(mk$markers, cluster = as.character(cluster)),
-  m_t2g        = hallmark,
-  output_dir   = file.path(out_dir, "gsea"),
-  title_prefix = "Hallmark"
-)
+hallmark <- load_hallmark_sets()     # MSigDB Hallmark gene sets (see helpers file)
+if (!is.null(hallmark)) {
+  gsea <- run_global_gsea(
+    GSEA_df      = dplyr::mutate(mk$markers, cluster = as.character(cluster)),
+    m_t2g        = hallmark,
+    output_dir   = file.path(out_dir, "gsea"),
+    title_prefix = "Hallmark"
+  )
+}
 ```
 
-```{r gsea-show, echo = FALSE}
+```{r gsea-show, echo = FALSE, eval = !is.null(hallmark)}
 show_saved(file.path(out_dir, "gsea"), "Hallmark_GSEA_Clustered_Dendro_Dotplot")
+```
+
+```{r gsea-unavailable, echo = FALSE, results = "asis", eval = is.null(hallmark)}
+hallmark_unavailable_note()
 ```
 
 ## Where to go next

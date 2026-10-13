@@ -12,7 +12,7 @@ you can keep customising in R.
 | Colours | [`make_cluster_palette()`](https://chomchonu.github.io/OHMmy/reference/make_cluster_palette.md) |
 | Embedding overlays | [`PlotDimByFactors()`](https://chomchonu.github.io/OHMmy/reference/PlotDimByFactors.md), [`plot_combined()`](https://chomchonu.github.io/OHMmy/reference/plot_combined.md) |
 | Distributions | [`plot_violin_qc_single()`](https://chomchonu.github.io/OHMmy/reference/plot_violin_qc_single.md), [`extract_binned_expression()`](https://chomchonu.github.io/OHMmy/reference/extract_binned_expression.md) |
-| Clustered dot plots | [`plot_dot_dendro()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro.md), [`plot_dot_dendro_split()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_split.md), [`plot_dot_dendro_multi()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_multi.md) |
+| Clustered dot plots | [`plot_dot_dendro()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro.md), [`plot_dot_dendro_split()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_split.md), [`plot_dot_dendro_multi()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_multi.md), [`cluster_dot_dendro()`](https://chomchonu.github.io/OHMmy/reference/cluster_dot_dendro.md) |
 | Co-expression | [`plot_blend_nebulosa()`](https://chomchonu.github.io/OHMmy/reference/plot_blend_nebulosa.md), [`.blend_feature_plot_v5()`](https://chomchonu.github.io/OHMmy/reference/dot-blend_feature_plot_v5.md) |
 | Lineage resolution | [`score_consensus()`](https://chomchonu.github.io/OHMmy/reference/score_consensus.md) |
 
@@ -157,7 +157,7 @@ plot_violin_qc_single(
 )
 ```
 
-![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-12_11-13-50.jpg)![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-12_11-13-50.jpg)
+![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-13_08-18-45.jpg)![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-13_08-18-45.jpg)
 
 ### Discretising expression into Low / Int / High
 
@@ -322,7 +322,7 @@ multi_df <- plot_dot_dendro_multi(
 )
 ```
 
-![](OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261012_111400.jpg)
+![](OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261013_081855.jpg)
 
 ``` r
 
@@ -335,6 +335,148 @@ head(multi_df[, c("cluster_var", "feature", "avg.exp.scaled", "pct.exp")])
 #> MAL...5  CD4 T_cell_type     MAL      2.2501354 27.31164
 #> CD8A...6 CD4 T_cell_type    CD8A      0.2059775 11.13014
 ```
+
+### Cutting the dendrograms into clusters with `cluster_dot_dendro()`
+
+[`cluster_dot_dendro()`](https://chomchonu.github.io/OHMmy/reference/cluster_dot_dendro.md)
+takes the output of
+[`plot_dot_dendro_multi()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_multi.md)
+and cuts its dendrograms into clusters of groups, of genes, or both. It
+uses the exact trees behind the figure, which are attached to the
+returned data frame.
+
+Natural clusters often sit at different heights of a dendrogram, so a
+single horizontal cut either merges tight clusters or splits loose ones.
+The default `"inconsistency"` method therefore cuts each branch at its
+own height: a branch stays one cluster while none of its merges is
+unusually high compared with the merges directly below it. The threshold
+is chosen automatically by silhouette width, and every candidate is
+reported.
+
+``` r
+
+dc <- cluster_dot_dendro(multi_df, what = "both")
+
+dc$k
+#>  rows genes 
+#>     7    10
+dc$selection$rows
+#>      cutoff n_clusters n_unassigned avg_silhouette selected
+#> 1 0.0000000          7            1      0.8198003    FALSE
+#> 2 0.6194836          7            1      0.8198003    FALSE
+#> 3 0.7071068          7            0      0.8541494     TRUE
+#> 4 0.8424165          7            0      0.8541494    FALSE
+#> 5 0.9006495          7            0      0.8541494    FALSE
+#> 6 1.0008067          7            0      0.8541494    FALSE
+#> 7 1.1160426          7            0      0.8541494    FALSE
+#> 8 1.1546760          1            0             NA    FALSE
+#> 9 2.1546760          1            0             NA    FALSE
+head(dc$clusters[dc$clusters$type == "rows",
+                 c("label", "cluster", "cluster_height", "cut_height")], 10)
+#>                    label cluster cluster_height cut_height
+#> 1  FCGR3A Mono_cell_type      C1      0.6418832   4.208865
+#> 2      5_seurat_clusters      C1      0.6418832   4.208865
+#> 3    CD14 Mono_cell_type      C2      0.5690872   2.863924
+#> 4      2_seurat_clusters      C2      0.5690872   2.863924
+#> 5           DC_cell_type      C3      0.6035432   2.881152
+#> 6      7_seurat_clusters      C3      0.6035432   2.881152
+#> 7            B_cell_type      C4      0.6514424   4.826426
+#> 8      3_seurat_clusters      C4      0.6514424   4.826426
+#> 9           NK_cell_type      C5      0.6249326   4.612283
+#> 10     6_seurat_clusters      C5      0.6249326   4.612283
+```
+
+Each cluster gets its own cut height, marked by a dashed line. Leaves
+that do not clearly belong to any cluster stay unassigned (grey); use
+`assign_all = TRUE` to assign them to their nearest cluster.
+
+``` r
+
+dc$plot$rows
+```
+
+![](OHMmy-advanced-visualization_files/figure-html/dendro-clusters-plot-1.png)
+
+The same call also returns gene modules: genes whose scaled expression
+varies together across the groups.
+
+``` r
+
+split(dc$clusters$label[dc$clusters$type == "genes"],
+      dc$clusters$cluster[dc$clusters$type == "genes"])
+#> $C1
+#> [1] "CD8B" "CD8A" "GZMK"
+#> 
+#> $C2
+#> [1] "LDHB" "CD3E" "IL7R" "CD3D"
+#> 
+#> $C3
+#> [1] "CCR7" "MAL" 
+#> 
+#> $C4
+#> [1] "FCGR3A" "IFITM2"
+#> 
+#> $C5
+#> [1] "MS4A7" "PF4"   "PPBP"  "GNG11"
+#> 
+#> $C6
+#> [1] "FCER1A"  "CLEC10A"
+#> 
+#> $C7
+#> [1] "S100A9" "CD14"   "S100A8"
+#> 
+#> $C8
+#> [1] "LST1" "LYZ"  "CST3"
+#> 
+#> $C9
+#> [1] "CD79B" "CD79A" "MS4A1" "CD19" 
+#> 
+#> $C10
+#> [1] "GZMB"  "NKG7"  "GNLY"  "PRF1"  "KLRD1"
+dc$plot$genes
+```
+
+![](OHMmy-advanced-visualization_files/figure-html/dendro-clusters-genes-1.png)
+
+For comparison, `method = "dynamic"` uses the hybrid dynamic tree cut of
+the **dynamicTreeCut** package, and `method = "fixed"` an ordinary cut
+by `k` or `h`.
+
+``` r
+
+c(inconsistency = unname(dc$k["rows"]),
+  dynamic       = unname(cluster_dot_dendro(multi_df, method = "dynamic")$k["rows"]),
+  fixed_k4      = unname(cluster_dot_dendro(multi_df, method = "fixed", k = 4)$k["rows"]))
+#> inconsistency       dynamic      fixed_k4 
+#>             7             7             4
+```
+
+Finally, the group clusters can be written back to the cells. Here each
+`seurat_clusters` cluster receives the dendrogram cluster of its row,
+giving a coarser grouping of the clusters based on their marker
+profiles:
+
+``` r
+
+dc_cells <- cluster_dot_dendro(multi_df, seurat_obj = pbmc, meta_col = "seurat_clusters",
+                               new_col = "marker_group")
+table(seurat_cluster = pbmc$seurat_clusters, marker_group = dc_cells$seurat_obj$marker_group,
+      useNA = "ifany")
+#>               marker_group
+#> seurat_cluster  C1  C2  C3  C4  C5  C6  C7
+#>              0   0   0   0   0   0   0 614
+#>              1   0   0   0   0   0   0 554
+#>              2   0 478   0   0   0   0   0
+#>              3   0   0   0 341   0   0   0
+#>              4   0   0   0   0   0 298   0
+#>              5 178   0   0   0   0   0   0
+#>              6   0   0   0   0 141   0   0
+#>              7   0   0  34   0   0   0   0
+DimPlot(dc_cells$seurat_obj, reduction = "umap.har", group.by = "marker_group", label = TRUE) +
+  DimPlot(pbmc, reduction = "umap.har", group.by = "cell_type", label = TRUE, repel = TRUE) & NoLegend()
+```
+
+![](OHMmy-advanced-visualization_files/figure-html/dendro-clusters-cells-1.png)
 
 ## 5. Co-expression: blend and density plots
 
@@ -559,60 +701,61 @@ sessionInfo()
 #>  [49] DelayedArray_0.38.2         codetools_0.2-20           
 #>  [51] ggforce_0.5.0               tidyselect_1.2.1           
 #>  [53] farver_2.1.2                SoupX_1.6.2                
-#>  [55] viridis_0.6.5               matrixStats_1.5.0          
-#>  [57] stats4_4.6.1                spatstat.explore_3.8-3     
-#>  [59] Seqinfo_1.2.0               jsonlite_2.0.0             
-#>  [61] ks_1.15.3                   tidygraph_1.3.1            
-#>  [63] progressr_1.0.0             Formula_1.2-6              
-#>  [65] ggridges_0.5.7              survival_3.8-6             
-#>  [67] systemfonts_1.3.2           tools_4.6.1                
-#>  [69] ragg_1.5.2                  ica_1.0-3                  
-#>  [71] Rcpp_1.1.2                  glue_1.8.1                 
-#>  [73] SparseArray_1.12.3          gridExtra_2.3.1            
-#>  [75] xfun_0.61                   MatrixGenerics_1.24.0      
-#>  [77] dplyr_1.2.1                 withr_3.0.3                
-#>  [79] fastmap_1.2.0               clustree_0.5.1             
-#>  [81] digest_0.6.39               R6_2.6.1                   
-#>  [83] mime_0.13                   textshaping_1.0.5          
-#>  [85] Cairo_1.7-0                 scattermore_1.2            
-#>  [87] tensor_1.5.1                jpeg_0.1-11                
-#>  [89] spatstat.data_3.1-9         R.methodsS3_1.8.2          
-#>  [91] RhpcBLASctl_0.23-42         utf8_1.2.6                 
-#>  [93] Nebulosa_1.22.0             tidyr_1.3.2                
-#>  [95] generics_0.1.4              data.table_1.18.6.1        
-#>  [97] S4Arrays_1.12.1             graphlayouts_1.2.5         
-#>  [99] httr_1.4.9                  htmlwidgets_1.6.4          
-#> [101] uwot_0.2.5                  pkgconfig_2.0.3            
-#> [103] gtable_0.3.6                lmtest_0.9-40              
-#> [105] S7_0.2.2                    XVector_0.52.0             
-#> [107] SingleCellExperiment_1.34.0 htmltools_0.5.9            
-#> [109] carData_3.0-6               dotCall64_1.2              
-#> [111] Biobase_2.72.0              scales_1.4.0               
-#> [113] png_0.1-9                   harmony_2.0.5              
-#> [115] spatstat.univar_3.2-0       ggdendro_0.2.0             
-#> [117] knitr_1.52                  reshape2_1.4.5             
-#> [119] checkmate_2.3.4             nlme_3.1-169               
-#> [121] cachem_1.1.0                zoo_1.9-1                  
-#> [123] stringr_1.6.0               KernSmooth_2.23-26         
-#> [125] vipor_0.4.7                 parallel_4.6.1             
-#> [127] miniUI_0.1.2                ggrastr_1.0.2              
-#> [129] desc_1.4.3                  pillar_1.11.1              
-#> [131] grid_4.6.1                  vctrs_0.7.3                
-#> [133] RANN_2.6.3                  promises_1.5.0             
-#> [135] ggpubr_1.0.0                car_3.1-5                  
-#> [137] xtable_1.8-8                cluster_2.1.8.2            
-#> [139] beeswarm_0.4.0              evaluate_1.0.5             
-#> [141] mvtnorm_1.4-2               cli_3.6.6                  
-#> [143] compiler_4.6.1              rlang_1.3.0                
-#> [145] leidenbase_0.1.37           future.apply_1.20.2        
-#> [147] ggsignif_0.6.4              labeling_0.4.3             
-#> [149] mclust_6.1.3                ggbeeswarm_0.7.3           
-#> [151] plyr_1.8.9                  fs_2.1.0                   
-#> [153] stringi_1.8.9               viridisLite_0.4.3          
-#> [155] deldir_2.0-4                spatstat.geom_3.8-3        
-#> [157] Matrix_1.7-5                RcppHNSW_0.7.0             
-#> [159] future_1.76.0               shiny_1.14.0               
-#> [161] SummarizedExperiment_1.42.0 ROCR_1.0-12                
-#> [163] igraph_2.3.4                broom_1.0.13               
-#> [165] memoise_2.0.1               bslib_0.12.0
+#>  [55] viridis_0.6.5               dynamicTreeCut_1.63-1      
+#>  [57] matrixStats_1.5.0           stats4_4.6.1               
+#>  [59] spatstat.explore_3.8-3      Seqinfo_1.2.0              
+#>  [61] jsonlite_2.0.0              ks_1.15.3                  
+#>  [63] tidygraph_1.3.1             progressr_1.0.0            
+#>  [65] Formula_1.2-6               ggridges_0.5.7             
+#>  [67] survival_3.8-6              systemfonts_1.3.2          
+#>  [69] tools_4.6.1                 ragg_1.5.2                 
+#>  [71] ica_1.0-3                   Rcpp_1.1.2                 
+#>  [73] glue_1.8.1                  SparseArray_1.12.3         
+#>  [75] gridExtra_2.3.1             xfun_0.61                  
+#>  [77] MatrixGenerics_1.24.0       dplyr_1.2.1                
+#>  [79] withr_3.0.3                 fastmap_1.2.0              
+#>  [81] clustree_0.5.1              digest_0.6.39              
+#>  [83] R6_2.6.1                    mime_0.13                  
+#>  [85] textshaping_1.0.5           Cairo_1.7-0                
+#>  [87] scattermore_1.2             tensor_1.5.1               
+#>  [89] jpeg_0.1-11                 spatstat.data_3.1-9        
+#>  [91] R.methodsS3_1.8.2           RhpcBLASctl_0.23-42        
+#>  [93] utf8_1.2.6                  Nebulosa_1.22.0            
+#>  [95] tidyr_1.3.2                 generics_0.1.4             
+#>  [97] data.table_1.18.6.1         S4Arrays_1.12.1            
+#>  [99] graphlayouts_1.2.5          httr_1.4.9                 
+#> [101] htmlwidgets_1.6.4           uwot_0.2.5                 
+#> [103] pkgconfig_2.0.3             gtable_0.3.6               
+#> [105] lmtest_0.9-40               S7_0.2.2                   
+#> [107] XVector_0.52.0              SingleCellExperiment_1.34.0
+#> [109] htmltools_0.5.9             carData_3.0-6              
+#> [111] dotCall64_1.2               Biobase_2.72.0             
+#> [113] scales_1.4.0                png_0.1-9                  
+#> [115] harmony_2.0.5               spatstat.univar_3.2-0      
+#> [117] ggdendro_0.2.0              knitr_1.52                 
+#> [119] reshape2_1.4.5              checkmate_2.3.4            
+#> [121] nlme_3.1-169                cachem_1.1.0               
+#> [123] zoo_1.9-1                   stringr_1.6.0              
+#> [125] KernSmooth_2.23-26          vipor_0.4.7                
+#> [127] parallel_4.6.1              miniUI_0.1.2               
+#> [129] ggrastr_1.0.2               desc_1.4.3                 
+#> [131] pillar_1.11.1               grid_4.6.1                 
+#> [133] vctrs_0.7.3                 RANN_2.6.3                 
+#> [135] promises_1.5.0              ggpubr_1.0.0               
+#> [137] car_3.1-5                   xtable_1.8-8               
+#> [139] cluster_2.1.8.2             beeswarm_0.4.0             
+#> [141] evaluate_1.0.5              mvtnorm_1.4-2              
+#> [143] cli_3.6.6                   compiler_4.6.1             
+#> [145] rlang_1.3.0                 leidenbase_0.1.37          
+#> [147] future.apply_1.20.2         ggsignif_0.6.4             
+#> [149] labeling_0.4.3              mclust_6.1.3               
+#> [151] ggbeeswarm_0.7.3            plyr_1.8.9                 
+#> [153] fs_2.1.0                    stringi_1.8.9              
+#> [155] viridisLite_0.4.3           deldir_2.0-4               
+#> [157] spatstat.geom_3.8-3         Matrix_1.7-5               
+#> [159] RcppHNSW_0.7.0              future_1.76.0              
+#> [161] shiny_1.14.0                SummarizedExperiment_1.42.0
+#> [163] ROCR_1.0-12                 igraph_2.3.4               
+#> [165] broom_1.0.13                memoise_2.0.1              
+#> [167] bslib_0.12.0
 ```

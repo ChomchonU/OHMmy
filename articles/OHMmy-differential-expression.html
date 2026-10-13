@@ -56,7 +56,7 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
-            <h4 data-toc-skip class="date">2026-10-12</h4>
+            <h4 data-toc-skip class="date">2026-10-13</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/vignettes/OHMmy-differential-expression.Rmd" class="external-link"><code>vignettes/OHMmy-differential-expression.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-differential-expression.Rmd</code></div>
@@ -273,7 +273,7 @@ genes.</p>
 <span>  plot_title_prefix <span class="op">=</span> <span class="st">"HLA class II markers"</span>,</span>
 <span>  output_dir        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"split_dot"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-DotPlot_Part1_2026-10-12_11-29-07.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Dendrogram_ALL_2026-10-12_11-29-07.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-DotPlot_Part1_2026-10-13_08-33-15.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Dendrogram_ALL_2026-10-13_08-33-15.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level2">
@@ -287,7 +287,8 @@ additionally summarised per cell type. We therefore compute markers for
 the nine <code>seurat_clusters</code> (two of which are CD4 T) and
 attach their cell type.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">hallmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://igordot.github.io/msigdbr/reference/msigdbr.html" class="external-link">msigdbr</a></span><span class="op">(</span>species <span class="op">=</span> <span class="st">"Homo sapiens"</span>, collection <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gs_name"</span>, <span class="st">"gene_symbol"</span><span class="op">)</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="va">hallmark</span> <span class="op">&lt;-</span> <span class="fu">load_hallmark_sets</span><span class="op">(</span><span class="op">)</span>     <span class="co"># MSigDB Hallmark gene sets; NULL if they cannot be downloaded</span></span>
+<span><span class="va">have_sets</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">hallmark</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Idents.html" class="external-link">Idents</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"seurat_clusters"</span></span>
 <span><span class="va">mk_clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FindTopMarkersAndHeatmap.html">FindTopMarkersAndHeatmap</a></span><span class="op">(</span></span>
@@ -367,13 +368,13 @@ The two CD4 T clusters (0 and 1) are neighbours, while CD14 monocytes
 activated inflammatory and TNF-alpha signalling, and cluster 8 has
 activated coagulation. Clusters without significant pathways, here the
 small DC cluster 7, are left out.</p>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261012_113749.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261013_084209.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>The signed-significance view puts direction and significance on one
 axis:</p>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Signed_Significance_Dotplot_20261012_113749.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Signed_Significance_Dotplot_20261013_084209.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>Per-cluster outputs for cluster 2 (CD14 monocytes): the NES dot plot
 and the running enrichment score of its top pathway.</p>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_GSEA_NES_Dotplot_20261012_113749.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20261012_113749.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_GSEA_NES_Dotplot_20261013_084209.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20261013_084209.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="over-representation-analysis-run_global_ora">Over-Representation Analysis: <code>run_global_ora()</code><a class="anchor" aria-label="anchor" href="#over-representation-analysis-run_global_ora"></a>
@@ -422,9 +423,9 @@ also draws a signed-significance plot for every cell type.</p>
 <span><span class="co">#&gt; 13       6          NK  Activated 1</span></span>
 <span><span class="co">#&gt; 14       6          NK Suppressed 2</span></span>
 <span><span class="co">#&gt; 15       7          DC Suppressed 1</span></span></code></pre></div>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_Global_Activated_Clustered_Dendro_20261012_113807.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_ORA_Signed_Significance_Dotplot_20261012_113807.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_Global_Activated_Clustered_Dendro_20261013_084227.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_ORA_Signed_Significance_Dotplot_20261013_084227.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>Per-cluster ORA outputs (cluster 2, CD14 monocytes):</p>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Dotplot_20261012_113807.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Barplot_20261012_113807.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Dotplot_20261013_084227.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Barplot_20261013_084227.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level2">
@@ -523,7 +524,7 @@ clusters the samples freely.</p>
 <span>  ts            <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"%Y%m%d_%H%M%S"</span><span class="op">)</span>,</span>
 <span>  clus          <span class="op">=</span> <span class="st">"Monocytes"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Heatmap_FCGR3A_vs_CD14_Monocytes_topP_25_topLFC_25_20261012_113830.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Heatmap_FCGR3A_vs_CD14_Monocytes_topP_25_topLFC_25_20261013_084249.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>In the unordered (right) heatmap the samples split by monocyte
 subset, not by the simulated severity. This is expected, because
 severity was simulated and has no transcriptional effect.</p>
@@ -611,7 +612,7 @@ severity was simulated and has no transcriptional effect.</p>
 <span><span class="co">#&gt; [121] shiny_1.14.0            farver_2.1.2            jquerylib_0.1.4        </span></span>
 <span><span class="co">#&gt; [124] zoo_1.9-1               jsonlite_2.0.0          BiocParallel_1.46.0    </span></span>
 <span><span class="co">#&gt; [127] GOSemSim_2.38.3         magrittr_2.0.5          Formula_1.2-6          </span></span>
-<span><span class="co">#&gt; [130] ggplotify_0.1.3         dotCall64_1.2           patchwork_1.3.2        </span></span>
+<span><span class="co">#&gt; [130] ggplotify_0.1.4         dotCall64_1.2           patchwork_1.3.2        </span></span>
 <span><span class="co">#&gt; [133] Rcpp_1.1.2              gdtools_0.5.1           ape_5.8-1              </span></span>
 <span><span class="co">#&gt; [136] ggnewscale_0.5.2        viridis_0.6.5           reticulate_1.47.0      </span></span>
 <span><span class="co">#&gt; [139] stringi_1.8.9           ggraph_2.2.2            MASS_7.3-65            </span></span>

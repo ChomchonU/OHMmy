@@ -56,7 +56,7 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
-            <h4 data-toc-skip class="date">2026-10-12</h4>
+            <h4 data-toc-skip class="date">2026-10-13</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/vignettes/OHMmy-comprehensive.Rmd" class="external-link"><code>vignettes/OHMmy-comprehensive.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-comprehensive.Rmd</code></div>
@@ -433,7 +433,7 @@ article.</p>
 <span>  <span class="va">pbmc</span>, sample_name <span class="op">=</span> <span class="st">"pbmc3k"</span>, reduction <span class="op">=</span> <span class="st">"pca.log"</span>,</span>
 <span>  max_pcs <span class="op">=</span> <span class="fl">20</span>, n_top_genes <span class="op">=</span> <span class="fl">200</span>, output_dir <span class="op">=</span> <span class="va">out_dir</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261012_111451.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261013_081952.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="visualise-markers">4. Visualise markers<a class="anchor" aria-label="anchor" href="#visualise-markers"></a>
@@ -484,14 +484,16 @@ severity.</p>
 <span><span class="va">mk</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FindTopMarkersAndHeatmap.html">FindTopMarkersAndHeatmap</a></span><span class="op">(</span><span class="va">pbmc</span>, sample_name <span class="op">=</span> <span class="st">"pbmc3k"</span>, top_n <span class="op">=</span> <span class="fl">5</span>, onlyPos <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                               output_dir_base <span class="op">=</span> <span class="va">out_dir</span>, height <span class="op">=</span> <span class="fl">10</span>, dpi <span class="op">=</span> <span class="fl">72</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">hallmark</span> <span class="op">&lt;-</span> <span class="fu">msigdbr</span><span class="fu">::</span><span class="fu"><a href="https://igordot.github.io/msigdbr/reference/msigdbr.html" class="external-link">msigdbr</a></span><span class="op">(</span>species <span class="op">=</span> <span class="st">"Homo sapiens"</span>, collection <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gs_name"</span>, <span class="st">"gene_symbol"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">gsea</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_global_gsea.html">run_global_gsea</a></span><span class="op">(</span></span>
-<span>  GSEA_df      <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">mk</span><span class="op">$</span><span class="va">markers</span>, cluster <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  m_t2g        <span class="op">=</span> <span class="va">hallmark</span>,</span>
-<span>  output_dir   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"gsea"</span><span class="op">)</span>,</span>
-<span>  title_prefix <span class="op">=</span> <span class="st">"Hallmark"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261012_112359.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<span><span class="va">hallmark</span> <span class="op">&lt;-</span> <span class="fu">load_hallmark_sets</span><span class="op">(</span><span class="op">)</span>     <span class="co"># MSigDB Hallmark gene sets (see helpers file)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">hallmark</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">gsea</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_global_gsea.html">run_global_gsea</a></span><span class="op">(</span></span>
+<span>    GSEA_df      <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">mk</span><span class="op">$</span><span class="va">markers</span>, cluster <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    m_t2g        <span class="op">=</span> <span class="va">hallmark</span>,</span>
+<span>    output_dir   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"gsea"</span><span class="op">)</span>,</span>
+<span>    title_prefix <span class="op">=</span> <span class="st">"Hallmark"</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p><img src="OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261013_082759.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="where-to-go-next">Where to go next<a class="anchor" aria-label="anchor" href="#where-to-go-next"></a>
@@ -592,54 +594,54 @@ visualisations are covered in the Differential Expression article.</li>
 <span><span class="co">#&gt; [111] DBI_1.3.0                   processx_3.9.0             </span></span>
 <span><span class="co">#&gt; [113] ggrastr_1.0.2               tidyselect_1.2.1           </span></span>
 <span><span class="co">#&gt; [115] bit_4.6.0                   compiler_4.6.1             </span></span>
-<span><span class="co">#&gt; [117] curl_8.0.0                  httr2_1.3.0                </span></span>
-<span><span class="co">#&gt; [119] fontBitstreamVera_0.1.1     desc_1.4.3                 </span></span>
-<span><span class="co">#&gt; [121] ggdendro_0.2.0              DelayedArray_0.38.2        </span></span>
-<span><span class="co">#&gt; [123] plotly_4.12.1               checkmate_2.3.4            </span></span>
-<span><span class="co">#&gt; [125] scales_1.4.0                lmtest_0.9-40              </span></span>
-<span><span class="co">#&gt; [127] callr_3.8.0                 rappdirs_0.3.4             </span></span>
-<span><span class="co">#&gt; [129] stringr_1.6.0               digest_0.6.39              </span></span>
-<span><span class="co">#&gt; [131] goftest_1.2-3               spatstat.utils_3.2-5       </span></span>
-<span><span class="co">#&gt; [133] rmarkdown_2.32              XVector_0.52.0             </span></span>
-<span><span class="co">#&gt; [135] RhpcBLASctl_0.23-42         htmltools_0.5.9            </span></span>
-<span><span class="co">#&gt; [137] pkgconfig_2.0.3             jpeg_0.1-11                </span></span>
-<span><span class="co">#&gt; [139] MatrixGenerics_1.24.0       fastmap_1.2.0              </span></span>
-<span><span class="co">#&gt; [141] rlang_1.3.0                 htmlwidgets_1.6.4          </span></span>
-<span><span class="co">#&gt; [143] shiny_1.14.0                farver_2.1.2               </span></span>
-<span><span class="co">#&gt; [145] jquerylib_0.1.4             zoo_1.9-1                  </span></span>
-<span><span class="co">#&gt; [147] jsonlite_2.0.0              BiocParallel_1.46.0        </span></span>
-<span><span class="co">#&gt; [149] mclust_6.1.3                GOSemSim_2.38.3            </span></span>
-<span><span class="co">#&gt; [151] R.oo_1.27.1                 magrittr_2.0.5             </span></span>
-<span><span class="co">#&gt; [153] ggplotify_0.1.3             Formula_1.2-6              </span></span>
-<span><span class="co">#&gt; [155] dotCall64_1.2               Rcpp_1.1.2                 </span></span>
-<span><span class="co">#&gt; [157] gdtools_0.5.1               ape_5.8-1                  </span></span>
-<span><span class="co">#&gt; [159] ggnewscale_0.5.2            viridis_0.6.5              </span></span>
-<span><span class="co">#&gt; [161] reticulate_1.47.0           stringi_1.8.9              </span></span>
-<span><span class="co">#&gt; [163] MASS_7.3-65                 plyr_1.8.9                 </span></span>
-<span><span class="co">#&gt; [165] parallel_4.6.1              listenv_1.1.0              </span></span>
-<span><span class="co">#&gt; [167] ggrepel_0.9.8               deldir_2.0-4               </span></span>
-<span><span class="co">#&gt; [169] Biostrings_2.80.2           graphlayouts_1.2.5         </span></span>
-<span><span class="co">#&gt; [171] splines_4.6.1               tensor_1.5.1               </span></span>
-<span><span class="co">#&gt; [173] ps_1.9.3                    clustree_0.5.1             </span></span>
-<span><span class="co">#&gt; [175] igraph_2.3.4                ggpubr_1.0.0               </span></span>
-<span><span class="co">#&gt; [177] spatstat.geom_3.8-3         enrichit_0.2.6             </span></span>
-<span><span class="co">#&gt; [179] ggsignif_0.6.4              RcppHNSW_0.7.0             </span></span>
-<span><span class="co">#&gt; [181] reshape2_1.4.5              stats4_4.6.1               </span></span>
-<span><span class="co">#&gt; [183] evaluate_1.0.5              Nebulosa_1.22.0            </span></span>
-<span><span class="co">#&gt; [185] tweenr_2.0.3                httpuv_1.6.17              </span></span>
-<span><span class="co">#&gt; [187] RANN_2.6.3                  tidyr_1.3.2                </span></span>
-<span><span class="co">#&gt; [189] purrr_1.2.2                 polyclip_1.10-7            </span></span>
-<span><span class="co">#&gt; [191] future_1.76.0               scattermore_1.2            </span></span>
-<span><span class="co">#&gt; [193] ggplot2_4.0.3               ggforce_0.5.0              </span></span>
-<span><span class="co">#&gt; [195] broom_1.0.13                xtable_1.8-8               </span></span>
-<span><span class="co">#&gt; [197] tidytree_0.4.8              RSpectra_0.16-2            </span></span>
-<span><span class="co">#&gt; [199] tidydr_0.0.7                rstatix_1.1.0              </span></span>
-<span><span class="co">#&gt; [201] later_1.4.8                 viridisLite_0.4.3          </span></span>
-<span><span class="co">#&gt; [203] ragg_1.5.2                  tibble_3.3.1               </span></span>
-<span><span class="co">#&gt; [205] aplot_0.3.2                 clusterProfiler_4.20.2     </span></span>
-<span><span class="co">#&gt; [207] memoise_2.0.1               beeswarm_0.4.0             </span></span>
-<span><span class="co">#&gt; [209] AnnotationDbi_1.74.0        IRanges_2.46.0             </span></span>
-<span><span class="co">#&gt; [211] cluster_2.1.8.2             globals_0.20.0</span></span></code></pre></div>
+<span><span class="co">#&gt; [117] httr2_1.3.0                 fontBitstreamVera_0.1.1    </span></span>
+<span><span class="co">#&gt; [119] desc_1.4.3                  ggdendro_0.2.0             </span></span>
+<span><span class="co">#&gt; [121] DelayedArray_0.38.2         plotly_4.12.1              </span></span>
+<span><span class="co">#&gt; [123] checkmate_2.3.4             scales_1.4.0               </span></span>
+<span><span class="co">#&gt; [125] lmtest_0.9-40               callr_3.8.0                </span></span>
+<span><span class="co">#&gt; [127] rappdirs_0.3.4              stringr_1.6.0              </span></span>
+<span><span class="co">#&gt; [129] digest_0.6.39               goftest_1.2-3              </span></span>
+<span><span class="co">#&gt; [131] spatstat.utils_3.2-5        rmarkdown_2.32             </span></span>
+<span><span class="co">#&gt; [133] XVector_0.52.0              RhpcBLASctl_0.23-42        </span></span>
+<span><span class="co">#&gt; [135] htmltools_0.5.9             pkgconfig_2.0.3            </span></span>
+<span><span class="co">#&gt; [137] jpeg_0.1-11                 MatrixGenerics_1.24.0      </span></span>
+<span><span class="co">#&gt; [139] fastmap_1.2.0               rlang_1.3.0                </span></span>
+<span><span class="co">#&gt; [141] htmlwidgets_1.6.4           shiny_1.14.0               </span></span>
+<span><span class="co">#&gt; [143] farver_2.1.2                jquerylib_0.1.4            </span></span>
+<span><span class="co">#&gt; [145] zoo_1.9-1                   jsonlite_2.0.0             </span></span>
+<span><span class="co">#&gt; [147] BiocParallel_1.46.0         mclust_6.1.3               </span></span>
+<span><span class="co">#&gt; [149] GOSemSim_2.38.3             R.oo_1.27.1                </span></span>
+<span><span class="co">#&gt; [151] magrittr_2.0.5              ggplotify_0.1.4            </span></span>
+<span><span class="co">#&gt; [153] Formula_1.2-6               dotCall64_1.2              </span></span>
+<span><span class="co">#&gt; [155] Rcpp_1.1.2                  gdtools_0.5.1              </span></span>
+<span><span class="co">#&gt; [157] ape_5.8-1                   ggnewscale_0.5.2           </span></span>
+<span><span class="co">#&gt; [159] viridis_0.6.5               reticulate_1.47.0          </span></span>
+<span><span class="co">#&gt; [161] stringi_1.8.9               MASS_7.3-65                </span></span>
+<span><span class="co">#&gt; [163] plyr_1.8.9                  parallel_4.6.1             </span></span>
+<span><span class="co">#&gt; [165] listenv_1.1.0               ggrepel_0.9.8              </span></span>
+<span><span class="co">#&gt; [167] deldir_2.0-4                Biostrings_2.80.2          </span></span>
+<span><span class="co">#&gt; [169] graphlayouts_1.2.5          splines_4.6.1              </span></span>
+<span><span class="co">#&gt; [171] tensor_1.5.1                ps_1.9.3                   </span></span>
+<span><span class="co">#&gt; [173] clustree_0.5.1              igraph_2.3.4               </span></span>
+<span><span class="co">#&gt; [175] ggpubr_1.0.0                spatstat.geom_3.8-3        </span></span>
+<span><span class="co">#&gt; [177] enrichit_0.2.6              ggsignif_0.6.4             </span></span>
+<span><span class="co">#&gt; [179] RcppHNSW_0.7.0              reshape2_1.4.5             </span></span>
+<span><span class="co">#&gt; [181] stats4_4.6.1                evaluate_1.0.5             </span></span>
+<span><span class="co">#&gt; [183] Nebulosa_1.22.0             tweenr_2.0.3               </span></span>
+<span><span class="co">#&gt; [185] httpuv_1.6.17               RANN_2.6.3                 </span></span>
+<span><span class="co">#&gt; [187] tidyr_1.3.2                 purrr_1.2.2                </span></span>
+<span><span class="co">#&gt; [189] polyclip_1.10-7             future_1.76.0              </span></span>
+<span><span class="co">#&gt; [191] scattermore_1.2             ggplot2_4.0.3              </span></span>
+<span><span class="co">#&gt; [193] ggforce_0.5.0               broom_1.0.13               </span></span>
+<span><span class="co">#&gt; [195] xtable_1.8-8                tidytree_0.4.8             </span></span>
+<span><span class="co">#&gt; [197] RSpectra_0.16-2             tidydr_0.0.7               </span></span>
+<span><span class="co">#&gt; [199] rstatix_1.1.0               later_1.4.8                </span></span>
+<span><span class="co">#&gt; [201] viridisLite_0.4.3           ragg_1.5.2                 </span></span>
+<span><span class="co">#&gt; [203] tibble_3.3.1                aplot_0.3.2                </span></span>
+<span><span class="co">#&gt; [205] clusterProfiler_4.20.2      memoise_2.0.1              </span></span>
+<span><span class="co">#&gt; [207] beeswarm_0.4.0              AnnotationDbi_1.74.0       </span></span>
+<span><span class="co">#&gt; [209] IRanges_2.46.0              cluster_2.1.8.2            </span></span>
+<span><span class="co">#&gt; [211] globals_0.20.0</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

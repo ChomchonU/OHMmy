@@ -2,6 +2,32 @@
 
 ## OHMmy (development version)
 
+### New features
+
+- New
+  [`cluster_dot_dendro()`](https://chomchonu.github.io/OHMmy/reference/cluster_dot_dendro.md)
+  cuts the group and/or gene dendrograms of
+  [`plot_dot_dendro_multi()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_multi.md)
+  into clusters. The default `"inconsistency"` method and the
+  `"dynamic"` method (dynamicTreeCut) cut each branch at its own height,
+  so clusters at different heights are found without choosing a single
+  `k` or `h`; `"fixed"` performs an ordinary cut. Settings can be chosen
+  automatically by silhouette width, unclear leaves stay unassigned (or
+  are assigned with `assign_all = TRUE`), and group clusters can be
+  written back to the cells of a Seurat object.
+- [`plot_dot_dendro_multi()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_multi.md)
+  attaches the matrix and `hclust` trees behind its dendrograms to its
+  returned data frame as attributes.
+- [`ProcessSeuratLOG()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratLOG.md)
+  and
+  [`ProcessSeuratSCT()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratSCT.md)
+  gain `force_norm` and `force_scale` (both `TRUE` by default, which
+  keeps the previous behaviour). With `force_norm = FALSE`, an existing
+  normalised `data` layer (LOG) or SCT assay (SCT) is reused instead of
+  being recomputed; with `force_scale = FALSE`, an existing `scale.data`
+  layer is reused when it covers the variable features. Missing layers
+  are always computed.
+
 ### Bug fixes
 
 - `FindTopMarkersAndHeatmap(use_sct = TRUE)` now works on SCT objects

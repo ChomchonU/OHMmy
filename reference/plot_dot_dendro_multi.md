@@ -84,7 +84,12 @@ plot_dot_dendro_multi(
 
 Invisibly returns a `tibble` containing the filtered, long-format data
 used to generate the plots (useful for custom downstream plotting in
-`ggplot2`).
+`ggplot2`). The clustering behind the dendrograms is attached as
+attributes: `"dendro_matrix"` (groups x genes matrix of scaled average
+expression), `"row_hclust"` and `"col_hclust"` (the `hclust` trees for
+groups and genes). Pass the result to
+[`cluster_dot_dendro()`](https://chomchonu.github.io/OHMmy/reference/cluster_dot_dendro.md)
+to cut these trees into clusters.
 
 ## Examples
 

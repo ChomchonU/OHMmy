@@ -207,7 +207,7 @@ plot_combined <- function(seurat_obj,
 #' @param dpi Numeric. The resolution of the saved plots. Default is 300.
 #' @param add_timestamp Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.
 #'
-#' @return Invisibly returns \code{NULL}. The primary purpose of this function is its side effect of saving combined plots to the specified output directory.
+#' @return Invisibly returns a list with \code{qc} and \code{genes}, the combined \code{patchwork} plots that were saved (each \code{NULL} when there was nothing to plot). Returns \code{NULL} with a warning when \code{res_col} is not in the metadata.
 #'
 #' @export
 #'
@@ -258,6 +258,9 @@ plot_violin_qc_single <- function(seurat_obj,
 
   meta_cols <- colnames(seurat_obj@meta.data)
   message("Meta.data columns: ", paste(head(meta_cols, 10), collapse = ", "), " ...")
+
+  p_qc <- NULL
+  p_gene <- NULL
 
   # --- QC Feature Violin Plots ---
   qc_found <- qc_meta_features[qc_meta_features %in% meta_cols]
@@ -369,7 +372,7 @@ plot_violin_qc_single <- function(seurat_obj,
   }
 
   message("Done: ", sample_name)
-  invisible(NULL)
+  invisible(list(qc = p_qc, genes = p_gene))
 }
 
 # ------------------------------------------------
@@ -857,13 +860,10 @@ plot_gene_pair_correlations <- function(seurat_obj,
   df        <- as.data.frame(emb[, 1:2])
   colnames(df) <- c("DIM1", "DIM2")
 
-  # -- Expression (v5 uses layer=, v4 used slot=; works with split layers) ---------
+  # -- Expression (FetchData joins split v5 layers) -------------------------------
   key  <- SeuratObject::Key(seurat_obj[[DefaultAssay(seurat_obj)]])
   vars <- paste0(key, c(gene1, gene2))
-  expr_df <- tryCatch(
-    FetchData(seurat_obj, vars = vars, cells = rownames(df), layer = "data"),
-    error = function(e) FetchData(seurat_obj, vars = vars, cells = rownames(df), slot = "data")
-  )
+  expr_df <- FetchData(seurat_obj, vars = vars, cells = rownames(df), layer = "data")
 
   e1 <- as.numeric(expr_df[rownames(df), vars[1]])
   e2 <- as.numeric(expr_df[rownames(df), vars[2]])

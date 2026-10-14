@@ -545,7 +545,7 @@ plot_dot_dendro_split <- function(
 #' @param range Numeric vector of length 2. The minimum and maximum point sizes for the dots (\code{scale_radius}). Default is \code{c(0.25, 6)}.
 #' @param save_options Character vector. Defines which specific outputs to generate and save. Options include "combined", "col_dend", "row_dend", and "gene_list". Default includes all four.
 #'
-#' @return Invisibly returns a \code{tibble} containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in \code{ggplot2}). The clustering behind the dendrograms is attached as attributes: \code{"dendro_matrix"} (groups x genes matrix of scaled average expression), \code{"row_hclust"} and \code{"col_hclust"} (the \code{hclust} trees for groups and genes). Pass the result to \code{\link{cluster_dot_dendro}()} to cut these trees into clusters. Returns \code{NULL} (with a message) when fewer than two groups or genes remain after filtering.
+#' @return Invisibly returns a \code{tibble} containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in \code{ggplot2}). The clustering behind the dendrograms is attached as attributes: \code{"dendro_matrix"} (groups x genes matrix of scaled average expression), \code{"row_hclust"} and \code{"col_hclust"} (the \code{hclust} trees for groups and genes). The plots are attached as attribute \code{"plots"}: a list with \code{combined}, \code{dotplot}, \code{row_dendrogram} and \code{col_dendrogram} (\code{NULL} for plots not requested in \code{save_options}), e.g. \code{attr(res, "plots")$combined}. Pass the result to \code{\link{cluster_dot_dendro}()} to cut these trees into clusters. Returns \code{NULL} (with a message) when fewer than two groups or genes remain after filtering.
 #'
 #' @export
 #'
@@ -645,6 +645,7 @@ plot_dot_dendro_multi <- function(
     )
 
   # 4. Reusable Plotting Components
+  p_row_dend <- p_col_dend <- dot_plot <- combined_plot <- NULL
   timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
   safe_prefix <- gsub("[^a-zA-Z0-9_]", "_", paste0(prefix, "_pct", pct_threshold))
 
@@ -709,6 +710,9 @@ plot_dot_dendro_multi <- function(
   attr(filtered_plot_df, "dendro_matrix") <- mat_avg
   attr(filtered_plot_df, "row_hclust") <- row_hc
   attr(filtered_plot_df, "col_hclust") <- col_hc
+  # ...and the plots that were drawn (NULL when not requested in save_options)
+  attr(filtered_plot_df, "plots") <- list(combined = combined_plot, dotplot = dot_plot,
+                                          row_dendrogram = p_row_dend, col_dendrogram = p_col_dend)
 
   return(invisible(filtered_plot_df))
 }

@@ -33,7 +33,7 @@ plot_technical_contribution(
 \item{cutoff}{Numeric. The threshold percentage used to draw a dashed horizontal warning line on the plot. Default is 15.}
 }
 \value{
-A character vector containing the names of any samples that failed to process (e.g., due to missing reductions). Returns an empty character vector (\code{character(0)}) if successful.
+A character vector containing the names of any samples that failed to process (e.g., due to missing reductions); an empty character vector (\code{character(0)}) if successful. When the plot was drawn, the vector is returned invisibly with the \code{ggplot} attached as attribute \code{"plot"} (\code{attr(res, "plot")}).
 }
 \description{
 Extracts PCA loadings from a Seurat object and calculates the weighted percentage

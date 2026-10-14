@@ -16,7 +16,8 @@ run_global_gsea(
   gseaplot_width = 8,
   gseaplot_height = 6,
   top_n_overall = 5,
-  variable_per_clus = FALSE
+  variable_per_clus = FALSE,
+  rank_by = c("avg_log2FC", "signed_p")
 )
 }
 \arguments{
@@ -43,15 +44,23 @@ run_global_gsea(
 \item{top_n_overall}{Integer. The number of top pathways to extract from \emph{each} cluster to build the combined global summary plots. Default is 5.}
 
 \item{variable_per_clus}{Logical. A toggle to dictate specific nested behavior (retained for pipeline compatibility with the ORA function framework). Default is FALSE.}
+
+\item{rank_by}{Character. The statistic used to rank the genes. \code{"avg_log2FC"} (default)
+ranks by fold change, as in earlier versions. \code{"signed_p"} ranks by
+\code{sign(avg_log2FC) * -log10(p)}, using \code{p_val} (or \code{p_val_adj} if \code{p_val}
+is absent). This combines direction and significance and gives far fewer ties, which
+makes the enrichment scores more stable; it is the usual choice for marker tables.
+p-values of 0 are set to the smallest non-zero p-value in the cluster.}
 }
 \value{
-A data frame (\code{combined_df}) containing the concatenated GSEA results across all evaluated clusters, or \code{NULL} if no pathway was significant. Outputs multiple JPEG plots (the classic enrichment plots require the \pkg{enrichplot} package) and CSV tables as side effects to the specified \code{output_dir}.
+A data frame (\code{combined_df}) containing the concatenated GSEA results across all evaluated clusters, or \code{NULL} if no pathway was significant. The saved plots are attached as attribute \code{"plots"}, a named list (e.g. \code{attr(res, "plots")$overall}, \code{"<cluster>_nes_dotplot"}). Outputs multiple JPEG plots (the classic enrichment plots require the \pkg{enrichplot} package) and CSV tables as side effects to the specified \code{output_dir}.
 }
 \description{
 An end-to-end pipeline for performing Gene Set Enrichment Analysis (GSEA) on
 differential expression results across multiple clusters or cell types. Unlike ORA,
 which relies on strict significance thresholds, this function ranks all available
-genes by their average log2 fold change and evaluates the entire spectrum using
+genes by their average log2 fold change (or, with \code{rank_by = "signed_p"}, by a signed
+significance score) and evaluates the entire spectrum using
 \code{clusterProfiler::GSEA}. It performs a "pre-pass" calculation to establish a
 global Normalized Enrichment Score (NES) range, ensuring all subsequent per-cluster
 dotplots share a unified, directly comparable x-axis. It automatically generates

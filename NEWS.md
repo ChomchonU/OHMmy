@@ -115,6 +115,56 @@
   `hclust()`.
 * For inputs that already worked, output is unchanged.
 
+## Improvements
+
+### Analysis quality
+
+* `run_global_gsea()` gains `rank_by`. The default `"avg_log2FC"` ranks genes by
+  fold change as before; `"signed_p"` ranks by `sign(avg_log2FC) * -log10(p)` (using
+  `p_val`, or `p_val_adj` if absent), which combines direction and significance and
+  gives far fewer tied ranks.
+* `run_global_ora()` gains `universe`, the background gene set for the test. The
+  default `NULL` keeps using the genes in `ORA_df`, which is only a valid background
+  when the table contains every tested gene, not just the significant ones.
+* `FindTopMarkersAndHeatmap()` now shows every top marker in the heatmap. Markers
+  missing from `scale.data` (non-variable genes) were silently dropped by
+  `DoHeatmap()`; they are now scaled for the heatmap only (Pearson residuals for
+  SCT), with a message. Genes that were already shown keep the same values.
+
+### Robustness
+
+* `CleanSeuratReductions()` no longer overwrites a reduction that already has the
+  clean name (e.g. renaming `pca.log` when `pcaLog` exists). It keeps both and
+  warns.
+
+### Plots are returned consistently
+
+Every plotting function now gives you the plots it saves, without changing what it
+returned before:
+
+* `plot_split_dotplots_by_gene_cluster()` returns `list(dendrogram, dotplots)`, and
+  `plot_violin_qc_single()` returns `list(qc, genes)`. Both returned `NULL` before.
+* Functions that return data or file paths attach their plots as an attribute:
+  - `attr(x, "plots")` on the results of `run_global_ora()` and `run_global_gsea()`
+    (a named list of every saved plot) and of `plot_dot_dendro_multi()`
+    (`combined`, `dotplot`, `row_dendrogram`, `col_dendrogram`);
+  - `attr(x, "plot")` on the results of `plot_technical_contribution()`,
+    `plot_stacked_technical_contribution()`, `plot_pc_metadata_correlation()` (a
+    `pheatmap` object, plus the correlation matrix as `attr(x, "cor_matrix")`) and
+    `generate_and_save_heatmap()` (a `gtable`).
+* `plot_technical_contribution()` now returns its value invisibly. Because the value
+  now carries an attribute, compare it with `length(x) == 0` rather than
+  `identical(x, character(0))`.
+
+### Maintenance
+
+* `plot_metadata_stats()` uses `after_stat()` instead of the deprecated
+  `..p.format..`; the labels are unchanged. `plot_cell_abundance()` keeps `..p..`,
+  which ggpubr (>= 1.0) converts to `after_stat()` itself (an `after_stat()` version
+  of that label is mangled by ggpubr and fails).
+* `.blend_feature_plot_v5()` no longer falls back to Seurat's deprecated `slot`
+  argument. OHMmy now requires SeuratObject (>= 5.0.0) and ggplot2 (>= 3.3.0).
+
 # OHMmy 1.0.2
 
 ## Bug fixes

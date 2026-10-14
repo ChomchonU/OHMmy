@@ -17,7 +17,8 @@ run_global_ora(
   indiv_height = 8,
   global_width = 15,
   global_height = 15,
-  variable_per_clus = FALSE
+  variable_per_clus = FALSE,
+  universe = NULL
 )
 }
 \arguments{
@@ -46,9 +47,16 @@ run_global_ora(
 \item{global_height}{Numeric. The height (in inches) of the global summary plots. Default is 15.}
 
 \item{variable_per_clus}{Logical. If \code{TRUE} and a cell type column is detected in \code{ORA_df}, it generates separate signed significance dotplots for each cell type. Default is FALSE.}
+
+\item{universe}{Character vector or \code{NULL}. The background genes for the enrichment test,
+ideally every gene that was tested (e.g. \code{rownames(seurat_obj)} or the genes passing the
+\code{min.pct} filter of \code{FindMarkers}). If \code{NULL} (default), the genes in
+\code{ORA_df} are used. That is only an appropriate background when \code{ORA_df} contains
+every tested gene, not just the significant ones (e.g. use \code{return.thresh = 1} in
+\code{FindAllMarkers}); a background of significant genes only hides real enrichments.}
 }
 \value{
-A data frame (\code{combined_df}) containing the concatenated enrichment results across all clusters and directions, or \code{NULL} if no pathway was enriched. Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
+A data frame (\code{combined_df}) containing the concatenated enrichment results across all clusters and directions, or \code{NULL} if no pathway was enriched. The saved \code{ggplot}s are attached as attribute \code{"plots"}, a named list (e.g. \code{attr(res, "plots")$global_activated}, \code{"<cluster>_dotplot"}). Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
 }
 \description{
 This function acts as an end-to-end pipeline for performing Over-Representation

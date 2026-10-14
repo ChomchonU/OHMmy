@@ -316,3 +316,82 @@ test_that("dendrogram leaves line up with the dot-plot rows in the combined figu
   den_range <- ggplot2::ggplot_build(res$dendrogram)$layout$panel_params[[1]]$y.range
   expect_equal(den_range, dot_range)
 })
+
+# -- Analysis-quality options and returned plots ---------------------------------------
+
+test_that("run_global_ora uses `universe` as the background and returns its plots", {
+  de <- synthetic_de()
+  # background genes that are annotated (enricher ignores unannotated universe genes)
+  t2g <- rbind(synthetic_t2g(), data.frame(gs_name = "SET_BG", gene_symbol = paste0("BG", 1:200)))
+  run <- function(...) quietly(run_global_ora(de, t2g, output_dir = test_out_dir("ora_universe"),
+                                              title_prefix = "Toy", indiv_width = 5, indiv_height = 4,
+                                              global_width = 5, global_height = 4, ...))
+  default <- run()
+  same    <- run(universe = unique(de$gene))
+  wider   <- run(universe = c(unique(de$gene), paste0("BG", 1:200)))
+
+  bg_size <- function(r) as.numeric(sub(".*/", "", r$BgRatio[r$cluster == "A" & r$ID == "SET_A"]))
+  expect_equal(default$pvalue, same$pvalue)                 # NULL = genes of ORA_df
+  expect_equal(bg_size(wider), bg_size(default) + 200)      # the universe is the background
+  expect_s3_class(attr(default, "plots")$A_dotplot, "ggplot")
+  expect_s3_class(attr(default, "plots")$global_activated, "ggplot")
+
+  expect_warning(
+    run_global_ora(de, t2g, output_dir = test_out_dir("ora_universe2"), universe = paste0("G", 1:150),
+                   indiv_width = 5, indiv_height = 4, global_width = 5, global_height = 4) |>
+      utils::capture.output() |> suppressMessages(),
+    "not in `universe`"
+  )
+})
+
+test_that("run_global_gsea can rank by a signed significance score", {
+  de <- synthetic_de()
+  de$p_val <- ifelse(de$p_val_adj < 0.05, 1e-12, 0.5) * stats::runif(nrow(de), 0.5, 1)
+  run <- function(...) quietly(run_global_gsea(de, synthetic_t2g(), output_dir = test_out_dir("gsea_rank"),
+                                               title_prefix = "Toy", dotplot_width = 5, dotplot_height = 4,
+                                               gseaplot_width = 5, gseaplot_height = 4, ...))
+  res <- run(rank_by = "signed_p")
+
+  expect_true(any(res$cluster == "A" & res$ID == "SET_A" & res$NES > 0))
+  expect_s3_class(attr(res, "plots")$A_nes_dotplot, "ggplot")
+  expect_error(run_global_gsea(de[, c("gene", "cluster", "avg_log2FC")], synthetic_t2g(),
+                               output_dir = test_out_dir("gsea_rank2"), rank_by = "signed_p"),
+               "p_val")
+  expect_error(run(rank_by = "nope"), "should be one of")
+})
+
+test_that("FindTopMarkersAndHeatmap scales top markers missing from scale.data", {
+  obj <- small_seurat()
+  SeuratObject::Idents(obj) <- "cell_type"
+  obj <- suppressMessages(Seurat::ScaleData(obj, features = rownames(obj)[1:5], verbose = FALSE))
+
+  expect_message(
+    res <- quietly_output(FindTopMarkersAndHeatmap(obj, sample_name = "s", top_n = 3,
+                                                   output_dir_base = test_out_dir("markers_scale"),
+                                                   width = 5, height = 5, dpi = 30, add_timestamp = FALSE)),
+    "missing from scale.data"
+  )
+  expect_true(all(unique(res$top_markers$gene) %in% as.character(res$heatmap$data$Feature)))
+})
+
+test_that("plot_split_dotplots_by_gene_cluster returns its plots", {
+  df <- multi_marker_table()
+  res <- quietly(plot_split_dotplots_by_gene_cluster(df, gene_regex = "^HLA-D|^CD79", id_col = "batch",
+                                                     output_dir = test_out_dir("split_return"),
+                                                     n_splits = 2))
+  expect_named(res, c("dendrogram", "dotplots"))
+  expect_s3_class(res$dendrogram, "ggplot")
+  expect_length(res$dotplots, 2)
+  expect_s3_class(res$dotplots$Part1, "ggplot")
+})
+
+test_that("generate_and_save_heatmap attaches the drawn heatmap", {
+  res <- synthetic_deseq()
+  set.seed(2)
+  mat <- matrix(stats::rnorm(100 * 4), 100, dimnames = list(rownames(res), paste0("S", 1:4)))
+  anno <- data.frame(group = c("a", "a", "b", "b"), row.names = colnames(mat))
+  f <- quietly(generate_and_save_heatmap(res, "ab", "a vs b", mat, anno, colnames(mat), n_padj = 5,
+                                         n_lfc = 5, out_dir = test_out_dir("heatmap_attr"), ts = "x"))
+  expect_true(file.exists(f))
+  expect_s3_class(attr(f, "plot"), "gtable")
+})

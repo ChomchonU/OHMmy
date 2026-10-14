@@ -42,7 +42,7 @@ plot_stacked_technical_contribution(
 \item{dpi}{Numeric. The resolution (dpi) of the saved JPEG. Default is 300.}
 }
 \value{
-Invisibly returns a character string containing the exact file path where the plot was saved.
+Invisibly returns a character string containing the exact file path where the plot was saved, with the \code{ggplot} attached as attribute \code{"plot"} (\code{attr(res, "plot")}).
 }
 \description{
 An advanced quality control tool that tracks how the influence of technical/nuisance

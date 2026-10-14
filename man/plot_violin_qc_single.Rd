@@ -42,7 +42,7 @@ plot_violin_qc_single(
 \item{add_timestamp}{Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.}
 }
 \value{
-Invisibly returns \code{NULL}. The primary purpose of this function is its side effect of saving combined plots to the specified output directory.
+Invisibly returns a list with \code{qc} and \code{genes}, the combined \code{patchwork} plots that were saved (each \code{NULL} when there was nothing to plot). Returns \code{NULL} with a warning when \code{res_col} is not in the metadata.
 }
 \description{
 This function generates highly customized violin plots for both quality control

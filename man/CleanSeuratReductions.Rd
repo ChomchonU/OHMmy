@@ -10,7 +10,7 @@ CleanSeuratReductions(seurat_obj)
 \item{seurat_obj}{A Seurat object containing one or more dimensional reductions.}
 }
 \value{
-An updated \code{Seurat} object where all dimensional reductions have been cleanly renamed and rebuilt. The old misnamed reductions are safely removed.
+An updated \code{Seurat} object where all dimensional reductions have been cleanly renamed and rebuilt. The old misnamed reductions are safely removed. If the clean name is already taken by another reduction, that reduction is left untouched and the old one is kept under its original name, with a warning.
 }
 \description{
 Automatically detects, renames, and rebuilds dimensional reductions within a Seurat

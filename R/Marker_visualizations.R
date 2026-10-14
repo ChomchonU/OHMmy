@@ -42,7 +42,7 @@
 #' @param min_height Numeric. The absolute minimum height (in inches) for the saved plots. Default is 5.
 #' @param label_space Numeric. The spatial padding multiplier for the text labels on the global dendrogram. Default is 1.
 #'
-#' @return Invisibly returns \code{NULL}. Plots are directly written to disk. When no gene matches, a message is shown and nothing is written. With a single condition, the dot plots are saved but no dendrogram is drawn.
+#' @return Invisibly returns a list with \code{dendrogram} (the global dendrogram \code{ggplot}, or \code{NULL} with a single condition) and \code{dotplots} (a named list of the dot-plot \code{ggplot}s, one per part). The plots are also written to disk. When no gene matches, a message is shown, nothing is written and \code{NULL} is returned.
 #'
 #' @details Numeric cluster ids are labelled \code{"gene (C<cluster>)"} and ordered numerically; other cluster labels (e.g. cell type names) are shown as \code{"gene (<cluster>)"} and ordered alphabetically. Genes are ordered by their mean \code{avg_log2FC}.
 #'
@@ -133,6 +133,7 @@ plot_split_dotplots_by_gene_cluster <- function(df,
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
   # 3. Global dendrogram (needs at least two conditions)
+  p_dendro <- NULL
   conditions <- unique(df_filtered$y_id)
   if (length(conditions) < 2) {
     message(" Only one condition ('", conditions, "') present: no dendrogram is drawn.")
@@ -174,6 +175,8 @@ plot_split_dotplots_by_gene_cluster <- function(df,
     ggsave(dendro_path, p_dendro, width = 10, height = max(5, height_scale * length(y_order)), dpi = 300)
     message("Global dendrogram saved: ", dendro_path)
   }
+
+  dotplots <- list()
 
   # 4. Split gene-cluster labels into chunks (never more chunks than labels, no empty chunks)
   gene_cluster_levels <- levels(df_filtered$gene_cluster)
@@ -230,12 +233,49 @@ plot_split_dotplots_by_gene_cluster <- function(df,
     plot_path <- file.path(output_dir, paste0("DotPlot_", part_name, "_", timestamp, ".png"))
     ggsave(plot_path, p, width = width, height = height, dpi = 300, limitsize = FALSE)
     message("DotPlot saved: ", plot_path)
+    dotplots[[part_name]] <- p
   }
 
-  invisible(NULL)
+  invisible(list(dendrogram = p_dendro, dotplots = dotplots))
 }
 
 # -------------------------------------------
+
+#' Add scaled values for features missing from scale.data (local copy only)
+#'
+#' Already-scaled genes are left untouched. Missing genes are scaled without
+#' regression (or, for SCT, their Pearson residuals are computed).
+#' @keywords internal
+#' @noRd
+.ensure_scaled <- function(seurat_obj, assay, features, sample_name = "Sample") {
+  scaled <- tryCatch(
+    GetAssayData(seurat_obj, assay = assay, layer = "scale.data"),
+    error = function(e) NULL
+  )
+  missing <- setdiff(features, rownames(scaled))
+  missing <- intersect(missing, rownames(seurat_obj[[assay]]))
+  if (length(missing) == 0) return(seurat_obj)
+
+  message("[", sample_name, "] Scaling ", length(missing), " top marker(s) missing from scale.data ",
+          "so they appear in the heatmap: ", paste(head(missing, 10), collapse = ", "),
+          if (length(missing) > 10) ", ..." else "")
+  tryCatch({
+    if (assay == "SCT") {
+      seurat_obj <- GetResidual(seurat_obj, features = missing, assay = assay, verbose = FALSE)
+    } else {
+      tmp <- ScaleData(seurat_obj, features = missing, assay = assay, verbose = FALSE)
+      new_rows <- GetAssayData(tmp, assay = assay, layer = "scale.data")
+      combined <- if (is.null(scaled) || nrow(scaled) == 0) new_rows else
+        rbind(as.matrix(scaled), as.matrix(new_rows)[, colnames(scaled), drop = FALSE])
+      seurat_obj <- SetAssayData(seurat_obj, assay = assay, layer = "scale.data", new.data = combined)
+    }
+    seurat_obj
+  }, error = function(e) {
+    warning("[", sample_name, "] Could not scale ", length(missing), " marker(s) (",
+            conditionMessage(e), "); they are left out of the heatmap.", call. = FALSE)
+    seurat_obj
+  })
+}
 
 #' Find and Visualize Top Cluster Markers
 #'
@@ -393,6 +433,8 @@ FindTopMarkersAndHeatmap <- function(
     heatmap <- NULL
   } else {
     message(" [", sample_name, "] Plotting heatmap...")
+    # DoHeatmap() silently drops genes without scaled values (non-variable genes)
+    seurat_obj <- .ensure_scaled(seurat_obj, active_assay, unique(top_markers$gene), sample_name)
     heatmap <- DoHeatmap(seurat_obj, features = top_markers$gene, assay = active_assay) +
       ggtitle(paste0("Top Markers - ", sample_name))
   }

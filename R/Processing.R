@@ -9,7 +9,7 @@
 #'
 #' @param seurat_obj A Seurat object containing one or more dimensional reductions.
 #'
-#' @return An updated \code{Seurat} object where all dimensional reductions have been cleanly renamed and rebuilt. The old misnamed reductions are safely removed.
+#' @return An updated \code{Seurat} object where all dimensional reductions have been cleanly renamed and rebuilt. The old misnamed reductions are safely removed. If the clean name is already taken by another reduction, that reduction is left untouched and the old one is kept under its original name, with a warning.
 #'
 #' @export
 #'
@@ -37,6 +37,13 @@ CleanSeuratReductions <- function(seurat_obj) {
 
     # Skip if already perfectly formatted
     if (old_name == new_name) next
+
+    # Never overwrite another reduction that already uses the clean name
+    if (new_name %in% Reductions(seurat_obj)) {
+      warning("Reduction '", old_name, "' was not renamed: a reduction called '", new_name,
+              "' already exists.", call. = FALSE)
+      next
+    }
 
     new_key <- paste0(new_name, "_")
     old_reduc <- seurat_obj[[old_name]]

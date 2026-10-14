@@ -43,7 +43,8 @@ test_that("plot_technical_contribution saves a plot and flags missing reductions
                                                 output_dir = out, technical_keywords = c("^RP", "^MT-"),
                                                 max_pcs = 5, n_top_genes = 10))
 
-  expect_identical(failed, character(0))
+  expect_length(failed, 0)
+  expect_s3_class(attr(failed, "plot"), "ggplot")
   expect_length(written_files(out, "^tech_contrib_pca_posneg_split_small"), 1)
   expect_equal(quietly(plot_technical_contribution(obj, "small", reduction = "nope",
                                                    output_dir = out)), "small")

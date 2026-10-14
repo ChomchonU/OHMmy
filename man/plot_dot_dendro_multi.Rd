@@ -39,7 +39,7 @@ plot_dot_dendro_multi(
 \item{save_options}{Character vector. Defines which specific outputs to generate and save. Options include "combined", "col_dend", "row_dend", and "gene_list". Default includes all four.}
 }
 \value{
-Invisibly returns a \code{tibble} containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in \code{ggplot2}). The clustering behind the dendrograms is attached as attributes: \code{"dendro_matrix"} (groups x genes matrix of scaled average expression), \code{"row_hclust"} and \code{"col_hclust"} (the \code{hclust} trees for groups and genes). Pass the result to \code{\link{cluster_dot_dendro}()} to cut these trees into clusters. Returns \code{NULL} (with a message) when fewer than two groups or genes remain after filtering.
+Invisibly returns a \code{tibble} containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in \code{ggplot2}). The clustering behind the dendrograms is attached as attributes: \code{"dendro_matrix"} (groups x genes matrix of scaled average expression), \code{"row_hclust"} and \code{"col_hclust"} (the \code{hclust} trees for groups and genes). The plots are attached as attribute \code{"plots"}: a list with \code{combined}, \code{dotplot}, \code{row_dendrogram} and \code{col_dendrogram} (\code{NULL} for plots not requested in \code{save_options}), e.g. \code{attr(res, "plots")$combined}. Pass the result to \code{\link{cluster_dot_dendro}()} to cut these trees into clusters. Returns \code{NULL} (with a message) when fewer than two groups or genes remain after filtering.
 }
 \description{
 An advanced extension of the clustered DotPlot function designed to handle and

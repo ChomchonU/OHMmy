@@ -45,7 +45,7 @@ plot_split_dotplots_by_gene_cluster(
 \item{label_space}{Numeric. The spatial padding multiplier for the text labels on the global dendrogram. Default is 1.}
 }
 \value{
-Invisibly returns \code{NULL}. Plots are directly written to disk. When no gene matches, a message is shown and nothing is written. With a single condition, the dot plots are saved but no dendrogram is drawn.
+Invisibly returns a list with \code{dendrogram} (the global dendrogram \code{ggplot}, or \code{NULL} with a single condition) and \code{dotplots} (a named list of the dot-plot \code{ggplot}s, one per part). The plots are also written to disk. When no gene matches, a message is shown, nothing is written and \code{NULL} is returned.
 }
 \description{
 Filters a differential expression results data frame for specific genes (via list or regex),

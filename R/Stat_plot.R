@@ -243,7 +243,9 @@ plot_cell_abundance <- function(seurat_obj, sample_col, condition_col, celltype_
   stat_layers <- list()
 
   if (run_global_test) {
-    # Add the global p-value text to the top
+    # Add the global p-value text to the top. Keep the ..p.. notation here: ggpubr (>= 1.0)
+    # converts it to after_stat() itself, while an after_stat(ifelse(...)) mapping is
+    # abbreviated by ggpubr's label parsing and fails.
     if (facet_by_cluster) {
       stat_layers[["global"]] <- stat_compare_means(
         method   = global_test,
@@ -572,7 +574,7 @@ plot_metadata_stats <- function(seurat_obj,
       # Notice the !! before display_method
       p <- p + stat_compare_means(
         method = global_method,
-        aes(label = paste0(!!display_method, ", p = ", ..p.format..)),
+        aes(label = after_stat(paste0(!!display_method, ", p = ", p.format))),
         vjust = -2
       )
       # ----------------------------------------------------

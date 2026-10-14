@@ -42,7 +42,7 @@ generate_and_save_heatmap(
 \item{clus}{Character. An optional identifier (e.g., "CD8_T_Cells") used in the filename if looping across multiple subsets or clusters. Default is "all".}
 }
 \value{
-Invisibly returns the path of the saved PNG, or \code{NULL} when fewer than two significant genes are available (genes with constant expression across the samples are dropped first, with a message). The function is called for its side effect of saving the combined plot to disk.
+Invisibly returns the path of the saved PNG, or \code{NULL} when fewer than two significant genes are available (genes with constant expression across the samples are dropped first, with a message). The combined heatmap (a \code{gtable}) is attached as attribute \code{"plot"}; draw it with \code{grid::grid.draw(attr(res, "plot"))}. The function is called for its side effect of saving the combined plot to disk.
 }
 \description{
 Automatically extracts the most biologically and statistically relevant genes for a

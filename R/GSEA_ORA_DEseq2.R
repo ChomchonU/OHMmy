@@ -24,8 +24,14 @@
 #' @param global_width Numeric. The width (in inches) of the global summary plots. Default is 15.
 #' @param global_height Numeric. The height (in inches) of the global summary plots. Default is 15.
 #' @param variable_per_clus Logical. If \code{TRUE} and a cell type column is detected in \code{ORA_df}, it generates separate signed significance dotplots for each cell type. Default is FALSE.
+#' @param universe Character vector or \code{NULL}. The background genes for the enrichment test,
+#'   ideally every gene that was tested (e.g. \code{rownames(seurat_obj)} or the genes passing the
+#'   \code{min.pct} filter of \code{FindMarkers}). If \code{NULL} (default), the genes in
+#'   \code{ORA_df} are used. That is only an appropriate background when \code{ORA_df} contains
+#'   every tested gene, not just the significant ones (e.g. use \code{return.thresh = 1} in
+#'   \code{FindAllMarkers}); a background of significant genes only hides real enrichments.
 #'
-#' @return A data frame (\code{combined_df}) containing the concatenated enrichment results across all clusters and directions, or \code{NULL} if no pathway was enriched. Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
+#' @return A data frame (\code{combined_df}) containing the concatenated enrichment results across all clusters and directions, or \code{NULL} if no pathway was enriched. The saved \code{ggplot}s are attached as attribute \code{"plots"}, a named list (e.g. \code{attr(res, "plots")$global_activated}, \code{"<cluster>_dotplot"}). Outputs multiple JPEG plots and CSV tables as side effects to the specified \code{output_dir}.
 #'
 #' @export
 #'
@@ -62,7 +68,8 @@ run_global_ora <- function(ORA_df,
                            indiv_height       = 8,    #Height for individual  plots
                            global_width       = 15,   #Width for the summary plots
                            global_height      = 15,   #Height for the summary plots
-                           variable_per_clus  = FALSE) # <-- Added boolean parameter
+                           variable_per_clus  = FALSE,
+                           universe           = NULL)
 {
 
   # =============================================================
@@ -72,9 +79,18 @@ run_global_ora <- function(ORA_df,
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
   ts <- format(Sys.time(), "%Y%m%d_%H%M%S")  # Global timestamp applied to ALL outputs
+  plots <- list()                                # every saved plot, returned as attribute "plots"
+  keep  <- function(name, p) plots[[name]] <<- p
 
-  universe_genes <- unique(ORA_df$gene)
+  universe_genes <- if (is.null(universe)) unique(ORA_df$gene) else unique(as.character(universe))
   all_clusters   <- unique(ORA_df$cluster)
+
+  missing_from_universe <- setdiff(unique(ORA_df$gene), universe_genes)
+  if (length(missing_from_universe) > 0) {
+    warning(length(missing_from_universe), " gene(s) in ORA_df are not in `universe` and cannot be ",
+            "counted as enriched (e.g. ", paste(head(missing_from_universe, 5), collapse = ", "), ").",
+            call. = FALSE)
+  }
 
   # Detect cell_type column for later per-cell-type grouping
   ct_col <- grep("cell_type|celltype", colnames(ORA_df), ignore.case = TRUE, value = TRUE)[1]
@@ -234,6 +250,7 @@ run_global_ora <- function(ORA_df,
         )
       ggsave(paste0(output_dir, title_prefix, "_", current_cluster, "_Dotplot_", ts, ".jpg"),
              plot = p_dot, width = indiv_width, height = indiv_height, dpi = 300, limitsize = FALSE)
+      keep(paste0(current_cluster, "_dotplot"), p_dot)
     }, error = function(e) { print(paste("  [ERROR] Cluster Dotplot failed:", e$message)) })
 
     # -- Per-Cluster Barplot --
@@ -263,6 +280,7 @@ run_global_ora <- function(ORA_df,
         )
       ggsave(paste0(output_dir, title_prefix, "_", current_cluster, "_Barplot_", ts, ".jpg"),
              plot = p_bar, width = indiv_width, height = indiv_height, dpi = 300, limitsize = FALSE)
+      keep(paste0(current_cluster, "_barplot"), p_bar)
     }, error = function(e) { print(paste("  [ERROR] Cluster Barplot failed:", e$message)) })
 
   }
@@ -367,6 +385,7 @@ run_global_ora <- function(ORA_df,
 
     path_up <- paste0(output_dir, title_prefix, "_Global_Activated_Dotplot_", ts, ".jpg")
     ggsave(filename = path_up, plot = p_up, width = global_width, height = global_height, dpi = 300, limitsize = FALSE)
+    keep("global_activated", p_up)
   }
 
   # -- Save Global Suppressed Plot --
@@ -383,6 +402,7 @@ run_global_ora <- function(ORA_df,
 
     path_dn <- paste0(output_dir, title_prefix, "_Global_Suppressed_Dotplot_", ts, ".jpg")
     ggsave(filename = path_dn, plot = p_dn, width = global_width, height = global_height, dpi = 300, limitsize = FALSE)
+    keep("global_suppressed", p_dn)
   }
 
   # =============================================================
@@ -453,6 +473,7 @@ run_global_ora <- function(ORA_df,
       save_path <- paste0(output_dir, title_prefix, filename_suffix, "_", ts, ".jpg")
       # Added +1 to height to give the dendrogram space without squashing the y-axis text
       ggsave(filename = save_path, plot = p_combined, width = global_width, height = global_height + 1, dpi = 300, limitsize = FALSE)
+      keep(sub("^_", "", filename_suffix), p_combined)
       print(paste("  [OK] Clustered dotplot saved for", title_label))
 
     }, error = function(e) { print(paste("  [ERROR] Clustered dotplot failed for", title_label, ":", e$message)) })
@@ -519,6 +540,7 @@ run_global_ora <- function(ORA_df,
       signed_plot_path <- paste0(output_dir, title_prefix, "_ORA_Signed_Significance_Dotplot_", ts, ".jpg")
       dyn_height <- max(8, length(unique(plot_df_signed$Description)) * 0.25 + 3)
       ggsave(filename = signed_plot_path, plot = p_signed, width = global_width, height = dyn_height, dpi = 300, limitsize = FALSE)
+      keep("signed_significance", p_signed)
 
       if (file.exists(signed_plot_path)) print(paste("  [OK] Signed Significance dotplot saved"))
     } else {
@@ -584,6 +606,7 @@ run_global_ora <- function(ORA_df,
 
         ct_plot_path <- paste0(output_dir, title_prefix, "_ORA_Signed_Sig_CT_", safe_c_type, "_", ts, ".jpg")
         ggsave(filename = ct_plot_path, plot = p_ct, width = 12, height = ct_dyn_height, dpi = 300, limitsize = FALSE)
+        keep(paste0("signed_", c_type), p_ct)
 
         if (file.exists(ct_plot_path)) print(paste("  [OK] Per-cell-type Signed Significance dotplot saved for", c_type))
 
@@ -599,6 +622,7 @@ run_global_ora <- function(ORA_df,
 
   print("==================================================")
   print(paste("Finished!", title_prefix, "results saved to:", output_dir))
+  attr(combined_df, "plots") <- plots
   return(combined_df)
 }
 
@@ -609,7 +633,8 @@ run_global_ora <- function(ORA_df,
 #' An end-to-end pipeline for performing Gene Set Enrichment Analysis (GSEA) on
 #' differential expression results across multiple clusters or cell types. Unlike ORA,
 #' which relies on strict significance thresholds, this function ranks all available
-#' genes by their average log2 fold change and evaluates the entire spectrum using
+#' genes by their average log2 fold change (or, with \code{rank_by = "signed_p"}, by a signed
+#' significance score) and evaluates the entire spectrum using
 #' \code{clusterProfiler::GSEA}. It performs a "pre-pass" calculation to establish a
 #' global Normalized Enrichment Score (NES) range, ensuring all subsequent per-cluster
 #' dotplots share a unified, directly comparable x-axis. It automatically generates
@@ -631,8 +656,14 @@ run_global_ora <- function(ORA_df,
 #' @param gseaplot_height Numeric. The height (in inches) of the classic GSEA enrichment plot for the top pathway. Default is 6.
 #' @param top_n_overall Integer. The number of top pathways to extract from *each* cluster to build the combined global summary plots. Default is 5.
 #' @param variable_per_clus Logical. A toggle to dictate specific nested behavior (retained for pipeline compatibility with the ORA function framework). Default is FALSE.
+#' @param rank_by Character. The statistic used to rank the genes. \code{"avg_log2FC"} (default)
+#'   ranks by fold change, as in earlier versions. \code{"signed_p"} ranks by
+#'   \code{sign(avg_log2FC) * -log10(p)}, using \code{p_val} (or \code{p_val_adj} if \code{p_val}
+#'   is absent). This combines direction and significance and gives far fewer ties, which
+#'   makes the enrichment scores more stable; it is the usual choice for marker tables.
+#'   p-values of 0 are set to the smallest non-zero p-value in the cluster.
 #'
-#' @return A data frame (\code{combined_df}) containing the concatenated GSEA results across all evaluated clusters, or \code{NULL} if no pathway was significant. Outputs multiple JPEG plots (the classic enrichment plots require the \pkg{enrichplot} package) and CSV tables as side effects to the specified \code{output_dir}.
+#' @return A data frame (\code{combined_df}) containing the concatenated GSEA results across all evaluated clusters, or \code{NULL} if no pathway was significant. The saved plots are attached as attribute \code{"plots"}, a named list (e.g. \code{attr(res, "plots")$overall}, \code{"<cluster>_nes_dotplot"}). Outputs multiple JPEG plots (the classic enrichment plots require the \pkg{enrichplot} package) and CSV tables as side effects to the specified \code{output_dir}.
 #'
 #' @export
 #'
@@ -667,7 +698,15 @@ run_global_gsea <- function(GSEA_df,
                             gseaplot_width      = 8,
                             gseaplot_height     = 6,
                             top_n_overall       = 5,
-                            variable_per_clus   = FALSE) {
+                            variable_per_clus   = FALSE,
+                            rank_by             = c("avg_log2FC", "signed_p")) {
+
+  rank_by <- match.arg(rank_by)
+  p_col <- NULL
+  if (rank_by == "signed_p") {
+    p_col <- intersect(c("p_val", "p_val_adj"), colnames(GSEA_df))[1]
+    if (is.na(p_col)) stop("rank_by = \"signed_p\" needs a `p_val` or `p_val_adj` column in GSEA_df.")
+  }
 
   # -- 1. Fix Windows parallel connection error -------------------
   BiocParallel::register(BiocParallel::SerialParam())
@@ -677,6 +716,8 @@ run_global_gsea <- function(GSEA_df,
   if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
   ts <- format(Sys.time(), "%Y%m%d_%H%M%S") # Global timestamp for this run
+  plots <- list()                           # every saved plot, returned as attribute "plots"
+  keep  <- function(name, p) plots[[name]] <<- p
 
   all_clusters <- unique(GSEA_df$cluster)
 
@@ -707,8 +748,15 @@ run_global_gsea <- function(GSEA_df,
       distinct(gene, .keep_all = TRUE) %>%
       arrange(desc(avg_log2FC))
 
-    ranked_genes <- sort(setNames(cluster_df$avg_log2FC, cluster_df$gene),
-                         decreasing = TRUE)
+    rank_stat <- if (rank_by == "signed_p") {
+      p <- cluster_df[[p_col]]
+      p_floor <- suppressWarnings(min(p[p > 0], na.rm = TRUE))
+      if (!is.finite(p_floor)) p_floor <- .Machine$double.xmin
+      sign(cluster_df$avg_log2FC) * -log10(pmax(p, p_floor))
+    } else {
+      cluster_df$avg_log2FC
+    }
+    ranked_genes <- sort(setNames(rank_stat, cluster_df$gene), decreasing = TRUE)
 
     gsea_res <- tryCatch({
       clusterProfiler::GSEA(
@@ -864,6 +912,7 @@ run_global_gsea <- function(GSEA_df,
 
       dotplot_path <- paste0(output_dir, title_prefix, "_", current_cluster, "_GSEA_NES_Dotplot_", ts, ".jpg")
       ggsave(filename = dotplot_path, plot = p_dot, width = dotplot_width, height = dotplot_height, dpi = 300 , limitsize = FALSE)
+      keep(paste0(current_cluster, "_nes_dotplot"), p_dot)
 
     }, error = function(e) { print(paste("  [ERROR] Dotplot failed:", e$message)) })
 
@@ -883,6 +932,7 @@ run_global_gsea <- function(GSEA_df,
       safe_pathway_name <- gsub("[^A-Za-z0-9_]", "_", top_pathway)
       gseaplot_path <- paste0(output_dir, title_prefix, "_", current_cluster, "_", safe_pathway_name, "_Gseaplot_", ts, ".jpg")
       ggsave(filename = gseaplot_path, plot = p_classic, width = gseaplot_width, height = gseaplot_height, dpi = 300, limitsize = FALSE)
+      keep(paste0(current_cluster, "_gseaplot"), p_classic)
 
     }, error = function(e) { print(paste("  [ERROR] GSEAplot failed:", e$message)) })
   }
@@ -942,6 +992,7 @@ run_global_gsea <- function(GSEA_df,
 
       overall_plot_path <- paste0(output_dir, title_prefix, "_GSEA_Overall_Dotplot_", ts, ".jpg")
       ggsave(filename = overall_plot_path, plot = p_overall, width = dyn_width, height = dyn_height, dpi = 300, limitsize = FALSE)
+      keep("overall", p_overall)
     }, error = function(e) { print(paste("  [ERROR] Overall dotplot failed:", e$message)) })
 
     # =============================================================
@@ -997,6 +1048,7 @@ run_global_gsea <- function(GSEA_df,
 
       clustered_plot_path <- paste0(output_dir, title_prefix, "_GSEA_Clustered_Dendro_Dotplot_", ts, ".jpg")
       ggsave(filename = clustered_plot_path, plot = p_combined, width = dyn_width, height = dyn_height + 1, dpi = 300, limitsize = FALSE)
+      keep("clustered", p_combined)
 
     }, error = function(e) { print(paste("  [ERROR] Clustered dotplot failed:", e$message)) })
 
@@ -1050,6 +1102,7 @@ run_global_gsea <- function(GSEA_df,
 
       signed_plot_path <- paste0(output_dir, title_prefix, "_GSEA_Signed_Significance_Dotplot_", ts, ".jpg")
       ggsave(filename = signed_plot_path, plot = p_signed, width = dyn_width, height = dyn_height + 0.5, dpi = 300, limitsize = FALSE)
+      keep("signed_significance", p_signed)
 
       if (file.exists(signed_plot_path)) print(paste("  [OK] Signed Significance dotplot saved"))
 
@@ -1113,6 +1166,7 @@ run_global_gsea <- function(GSEA_df,
 
           ct_plot_path <- paste0(output_dir, title_prefix, "_GSEA_Signed_Sig_CT_", safe_c_type, "_", ts, ".jpg")
           ggsave(filename = ct_plot_path, plot = p_ct, width = 12, height = ct_dyn_height, dpi = 300, limitsize = FALSE)
+          keep(paste0("signed_", c_type), p_ct)
 
           if (file.exists(ct_plot_path)) print(paste("  [OK] Per-cell-type Signed Significance dotplot saved for", c_type))
 
@@ -1124,6 +1178,7 @@ run_global_gsea <- function(GSEA_df,
   print("==================================================")
   print(paste("Finished!", title_prefix, "GSEA completed. Output saved to:", output_dir))
 
+  attr(combined_df, "plots") <- plots
   return(combined_df)
 }
 # -------------------------------------------------------------
@@ -1199,7 +1254,7 @@ get_top_mixed_genes <- function(res_obj, n_padj = 40, n_lfc = 40) {
 #' @param ts Character. A timestamp string appended to the filename for version control.
 #' @param clus Character. An optional identifier (e.g., "CD8_T_Cells") used in the filename if looping across multiple subsets or clusters. Default is "all".
 #'
-#' @return Invisibly returns the path of the saved PNG, or \code{NULL} when fewer than two significant genes are available (genes with constant expression across the samples are dropped first, with a message). The function is called for its side effect of saving the combined plot to disk.
+#' @return Invisibly returns the path of the saved PNG, or \code{NULL} when fewer than two significant genes are available (genes with constant expression across the samples are dropped first, with a message). The combined heatmap (a \code{gtable}) is attached as attribute \code{"plot"}; draw it with \code{grid::grid.draw(attr(res, "plot"))}. The function is called for its side effect of saving the combined plot to disk.
 #'
 #' @export
 #'
@@ -1307,5 +1362,6 @@ generate_and_save_heatmap <- function(res_obj, comp_name, comp_title, vsd_data, 
          limitsize = FALSE) # Required if height exceeds standard ggplot limits
 
   message("  Saved Heatmap: ", heatmap_filename)
+  attr(heatmap_filename, "plot") <- combined_heatmaps
   invisible(heatmap_filename)
 }

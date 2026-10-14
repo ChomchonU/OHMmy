@@ -229,7 +229,7 @@ plot_vizdimloadings <- function(seurat_obj,
 #' @param n_top_genes Integer. The total number of top-loading genes to evaluate per PC. This is split evenly, meaning a value of 500 evaluates the top 250 positive and top 250 negative features. Default is 500.
 #' @param cutoff Numeric. The threshold percentage used to draw a dashed horizontal warning line on the plot. Default is 15.
 #'
-#' @return A character vector containing the names of any samples that failed to process (e.g., due to missing reductions). Returns an empty character vector (\code{character(0)}) if successful.
+#' @return A character vector containing the names of any samples that failed to process (e.g., due to missing reductions); an empty character vector (\code{character(0)}) if successful. When the plot was drawn, the vector is returned invisibly with the \code{ggplot} attached as attribute \code{"plot"} (\code{attr(res, "plot")}).
 #'
 #' @export
 #'
@@ -344,14 +344,16 @@ plot_technical_contribution <- function(seurat_obj,
   safe_reduction_name <- gsub("\\.", "_", reduction)
   filename <- file.path(output_dir, paste0("tech_contrib_", safe_reduction_name, "_posneg_split_", sample_name, "_", timestamp, ".jpg"))
 
-  tryCatch({
+  failed <- tryCatch({
     ggsave(filename, plot = p, width = 15, height = 10, dpi = 300)
     message("Saved plot: ", filename)
-    return(character(0))  # no failures
+    character(0)  # no failures
   }, error = function(e) {
     message("Failed to save plot for ", sample_name, ": ", e$message)
-    return(c(sample_name))
+    c(sample_name)
   })
+  attr(failed, "plot") <- p
+  invisible(failed)
 }
 
 # --------------------------------------------
@@ -378,7 +380,7 @@ plot_technical_contribution <- function(seurat_obj,
 #' @param plot_height Numeric. The height of the saved JPEG in inches. Default is 15.
 #' @param dpi Numeric. The resolution (dpi) of the saved JPEG. Default is 300.
 #'
-#' @return Invisibly returns a character string containing the exact file path where the plot was saved.
+#' @return Invisibly returns a character string containing the exact file path where the plot was saved, with the \code{ggplot} attached as attribute \code{"plot"} (\code{attr(res, "plot")}).
 #'
 #' @export
 #'
@@ -517,6 +519,7 @@ plot_stacked_technical_contribution <- function(
     message("Failed to save plot for ", sample_name, ": ", e$message)
   })
 
+  attr(filename, "plot") <- p
   invisible(filename)
 }
 
@@ -542,7 +545,7 @@ plot_stacked_technical_contribution <- function(
 #' @param plot_height_in Numeric. The height of the saved JPEG in inches. Default is 7.
 #' @param res_dpi Numeric. The resolution (dpi) of the saved JPEG. Default is 300.
 #'
-#' @return Invisibly returns a character string containing the exact file path where the correlation heatmap was saved.
+#' @return Invisibly returns a character string containing the exact file path where the correlation heatmap was saved. The \code{pheatmap} object is attached as attribute \code{"plot"} (draw it with \code{grid::grid.draw(attr(res, "plot")$gtable)}) and the correlation matrix as attribute \code{"cor_matrix"}.
 #'
 #' @export
 #'
@@ -612,6 +615,7 @@ plot_pc_metadata_correlation <- function(
     stop("Package 'pheatmap' required but not installed.")
   }
 
+  ph <- NULL
   tryCatch({
     # Build the heatmap first (silent = TRUE) and only then open the jpeg device.
     # pheatmap opens and closes a temporary device internally; drawing inside an
@@ -635,5 +639,7 @@ plot_pc_metadata_correlation <- function(
     message("Failed to save correlation heatmap for ", sample_name, ": ", e$message)
   })
 
+  attr(filename, "plot") <- ph
+  attr(filename, "cor_matrix") <- cor_matrix
   invisible(filename)
 }

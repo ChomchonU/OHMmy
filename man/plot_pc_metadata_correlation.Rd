@@ -37,7 +37,7 @@ plot_pc_metadata_correlation(
 \item{res_dpi}{Numeric. The resolution (dpi) of the saved JPEG. Default is 300.}
 }
 \value{
-Invisibly returns a character string containing the exact file path where the correlation heatmap was saved.
+Invisibly returns a character string containing the exact file path where the correlation heatmap was saved. The \code{pheatmap} object is attached as attribute \code{"plot"} (draw it with \code{grid::grid.draw(attr(res, "plot")$gtable)}) and the correlation matrix as attribute \code{"cor_matrix"}.
 }
 \description{
 Extracts dimensional reduction embeddings (e.g., PCA cell scores) from a Seurat object

@@ -4,7 +4,8 @@ An end-to-end pipeline for performing Gene Set Enrichment Analysis
 (GSEA) on differential expression results across multiple clusters or
 cell types. Unlike ORA, which relies on strict significance thresholds,
 this function ranks all available genes by their average log2 fold
-change and evaluates the entire spectrum using
+change (or, with `rank_by = "signed_p"`, by a signed significance score)
+and evaluates the entire spectrum using
 [`clusterProfiler::GSEA`](https://rdrr.io/pkg/clusterProfiler/man/GSEA.html).
 It performs a "pre-pass" calculation to establish a global Normalized
 Enrichment Score (NES) range, ensuring all subsequent per-cluster
@@ -27,7 +28,8 @@ run_global_gsea(
   gseaplot_width = 8,
   gseaplot_height = 6,
   top_n_overall = 5,
-  variable_per_clus = FALSE
+  variable_per_clus = FALSE,
+  rank_by = c("avg_log2FC", "signed_p")
 )
 ```
 
@@ -97,13 +99,24 @@ run_global_gsea(
   pipeline compatibility with the ORA function framework). Default is
   FALSE.
 
+- rank_by:
+
+  Character. The statistic used to rank the genes. `"avg_log2FC"`
+  (default) ranks by fold change, as in earlier versions. `"signed_p"`
+  ranks by `sign(avg_log2FC) * -log10(p)`, using `p_val` (or `p_val_adj`
+  if `p_val` is absent). This combines direction and significance and
+  gives far fewer ties, which makes the enrichment scores more stable;
+  it is the usual choice for marker tables. p-values of 0 are set to the
+  smallest non-zero p-value in the cluster.
+
 ## Value
 
 A data frame (`combined_df`) containing the concatenated GSEA results
 across all evaluated clusters, or `NULL` if no pathway was significant.
-Outputs multiple JPEG plots (the classic enrichment plots require the
-enrichplot package) and CSV tables as side effects to the specified
-`output_dir`.
+The saved plots are attached as attribute `"plots"`, a named list (e.g.
+`attr(res, "plots")$overall`, `"<cluster>_nes_dotplot"`). Outputs
+multiple JPEG plots (the classic enrichment plots require the enrichplot
+package) and CSV tables as side effects to the specified `output_dir`.
 
 ## Note
 

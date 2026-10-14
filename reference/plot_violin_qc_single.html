@@ -117,7 +117,7 @@ combined via <code>patchwork</code> and safely saved to disk with an automatic P
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Invisibly returns <code>NULL</code>. The primary purpose of this function is its side effect of saving combined plots to the specified output directory.</p>
+    <p>Invisibly returns a list with <code>qc</code> and <code>genes</code>, the combined <code>patchwork</code> plots that were saved (each <code>NULL</code> when there was nothing to plot). Returns <code>NULL</code> with a warning when <code>res_col</code> is not in the metadata.</p>
     </div>
 
     <div class="section level2">

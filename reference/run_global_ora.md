@@ -29,7 +29,8 @@ run_global_ora(
   indiv_height = 8,
   global_width = 15,
   global_height = 15,
-  variable_per_clus = FALSE
+  variable_per_clus = FALSE,
+  universe = NULL
 )
 ```
 
@@ -104,12 +105,24 @@ run_global_ora(
   generates separate signed significance dotplots for each cell type.
   Default is FALSE.
 
+- universe:
+
+  Character vector or `NULL`. The background genes for the enrichment
+  test, ideally every gene that was tested (e.g. `rownames(seurat_obj)`
+  or the genes passing the `min.pct` filter of `FindMarkers`). If `NULL`
+  (default), the genes in `ORA_df` are used. That is only an appropriate
+  background when `ORA_df` contains every tested gene, not just the
+  significant ones (e.g. use `return.thresh = 1` in `FindAllMarkers`); a
+  background of significant genes only hides real enrichments.
+
 ## Value
 
 A data frame (`combined_df`) containing the concatenated enrichment
 results across all clusters and directions, or `NULL` if no pathway was
-enriched. Outputs multiple JPEG plots and CSV tables as side effects to
-the specified `output_dir`.
+enriched. The saved `ggplot`s are attached as attribute `"plots"`, a
+named list (e.g. `attr(res, "plots")$global_activated`,
+`"<cluster>_dotplot"`). Outputs multiple JPEG plots and CSV tables as
+side effects to the specified `output_dir`.
 
 ## Examples
 

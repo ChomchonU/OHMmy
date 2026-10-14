@@ -71,8 +71,10 @@ plot_technical_contribution(
 ## Value
 
 A character vector containing the names of any samples that failed to
-process (e.g., due to missing reductions). Returns an empty character
-vector (`character(0)`) if successful.
+process (e.g., due to missing reductions); an empty character vector
+(`character(0)`) if successful. When the plot was drawn, the vector is
+returned invisibly with the `ggplot` attached as attribute `"plot"`
+(`attr(res, "plot")`).
 
 ## Examples
 

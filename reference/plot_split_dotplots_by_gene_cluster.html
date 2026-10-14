@@ -122,7 +122,7 @@ All plots are automatically sized and saved directly to the specified output dir
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Invisibly returns <code>NULL</code>. Plots are directly written to disk. When no gene matches, a message is shown and nothing is written. With a single condition, the dot plots are saved but no dendrogram is drawn.</p>
+    <p>Invisibly returns a list with <code>dendrogram</code> (the global dendrogram <code>ggplot</code>, or <code>NULL</code> with a single condition) and <code>dotplots</code> (a named list of the dot-plot <code>ggplot</code>s, one per part). The plots are also written to disk. When no gene matches, a message is shown, nothing is written and <code>NULL</code> is returned.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

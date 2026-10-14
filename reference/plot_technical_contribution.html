@@ -105,7 +105,7 @@ which components to exclude or which variables require regression (<code>vars.to
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A character vector containing the names of any samples that failed to process (e.g., due to missing reductions). Returns an empty character vector (<code>character(0)</code>) if successful.</p>
+    <p>A character vector containing the names of any samples that failed to process (e.g., due to missing reductions); an empty character vector (<code>character(0)</code>) if successful. When the plot was drawn, the vector is returned invisibly with the <code>ggplot</code> attached as attribute <code>"plot"</code> (<code>attr(res, "plot")</code>).</p>
     </div>
 
     <div class="section level2">

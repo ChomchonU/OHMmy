@@ -25,7 +25,9 @@ CleanSeuratReductions(seurat_obj)
 
 An updated `Seurat` object where all dimensional reductions have been
 cleanly renamed and rebuilt. The old misnamed reductions are safely
-removed.
+removed. If the clean name is already taken by another reduction, that
+reduction is left untouched and the old one is kept under its original
+name, with a warning.
 
 ## Examples
 

@@ -83,8 +83,9 @@ plot_violin_qc_single(
 
 ## Value
 
-Invisibly returns `NULL`. The primary purpose of this function is its
-side effect of saving combined plots to the specified output directory.
+Invisibly returns a list with `qc` and `genes`, the combined `patchwork`
+plots that were saved (each `NULL` when there was nothing to plot).
+Returns `NULL` with a warning when `res_col` is not in the metadata.
 
 ## Examples
 

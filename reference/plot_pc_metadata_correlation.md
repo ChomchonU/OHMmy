@@ -75,7 +75,10 @@ plot_pc_metadata_correlation(
 ## Value
 
 Invisibly returns a character string containing the exact file path
-where the correlation heatmap was saved.
+where the correlation heatmap was saved. The `pheatmap` object is
+attached as attribute `"plot"` (draw it with
+`grid::grid.draw(attr(res, "plot")$gtable)`) and the correlation matrix
+as attribute `"cor_matrix"`.
 
 ## Examples
 

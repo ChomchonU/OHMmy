@@ -123,7 +123,7 @@ number of genes to ensure row labels remain readable.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Invisibly returns the path of the saved PNG, or <code>NULL</code> when fewer than two significant genes are available (genes with constant expression across the samples are dropped first, with a message). The function is called for its side effect of saving the combined plot to disk.</p>
+    <p>Invisibly returns the path of the saved PNG, or <code>NULL</code> when fewer than two significant genes are available (genes with constant expression across the samples are dropped first, with a message). The combined heatmap (a <code>gtable</code>) is attached as attribute <code>"plot"</code>; draw it with <code>grid::grid.draw(attr(res, "plot"))</code>. The function is called for its side effect of saving the combined plot to disk.</p>
     </div>
 
     <div class="section level2">

@@ -87,7 +87,10 @@ used to generate the plots (useful for custom downstream plotting in
 `ggplot2`). The clustering behind the dendrograms is attached as
 attributes: `"dendro_matrix"` (groups x genes matrix of scaled average
 expression), `"row_hclust"` and `"col_hclust"` (the `hclust` trees for
-groups and genes). Pass the result to
+groups and genes). The plots are attached as attribute `"plots"`: a list
+with `combined`, `dotplot`, `row_dendrogram` and `col_dendrogram`
+(`NULL` for plots not requested in `save_options`), e.g.
+`attr(res, "plots")$combined`. Pass the result to
 [`cluster_dot_dendro()`](https://chomchonu.github.io/OHMmy/reference/cluster_dot_dendro.md)
 to cut these trees into clusters. Returns `NULL` (with a message) when
 fewer than two groups or genes remain after filtering.

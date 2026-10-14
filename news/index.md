@@ -160,6 +160,81 @@
   [`hclust()`](https://rdrr.io/r/stats/hclust.html).
 - For inputs that already worked, output is unchanged.
 
+### Improvements
+
+#### Analysis quality
+
+- [`run_global_gsea()`](https://chomchonu.github.io/OHMmy/reference/run_global_gsea.md)
+  gains `rank_by`. The default `"avg_log2FC"` ranks genes by fold change
+  as before; `"signed_p"` ranks by `sign(avg_log2FC) * -log10(p)` (using
+  `p_val`, or `p_val_adj` if absent), which combines direction and
+  significance and gives far fewer tied ranks.
+- [`run_global_ora()`](https://chomchonu.github.io/OHMmy/reference/run_global_ora.md)
+  gains `universe`, the background gene set for the test. The default
+  `NULL` keeps using the genes in `ORA_df`, which is only a valid
+  background when the table contains every tested gene, not just the
+  significant ones.
+- [`FindTopMarkersAndHeatmap()`](https://chomchonu.github.io/OHMmy/reference/FindTopMarkersAndHeatmap.md)
+  now shows every top marker in the heatmap. Markers missing from
+  `scale.data` (non-variable genes) were silently dropped by
+  [`DoHeatmap()`](https://satijalab.org/seurat/reference/DoHeatmap.html);
+  they are now scaled for the heatmap only (Pearson residuals for SCT),
+  with a message. Genes that were already shown keep the same values.
+
+#### Robustness
+
+- [`CleanSeuratReductions()`](https://chomchonu.github.io/OHMmy/reference/CleanSeuratReductions.md)
+  no longer overwrites a reduction that already has the clean name
+  (e.g. renaming `pca.log` when `pcaLog` exists). It keeps both and
+  warns.
+
+#### Plots are returned consistently
+
+Every plotting function now gives you the plots it saves, without
+changing what it returned before:
+
+- [`plot_split_dotplots_by_gene_cluster()`](https://chomchonu.github.io/OHMmy/reference/plot_split_dotplots_by_gene_cluster.md)
+  returns `list(dendrogram, dotplots)`, and
+  [`plot_violin_qc_single()`](https://chomchonu.github.io/OHMmy/reference/plot_violin_qc_single.md)
+  returns `list(qc, genes)`. Both returned `NULL` before.
+- Functions that return data or file paths attach their plots as an
+  attribute:
+  - `attr(x, "plots")` on the results of
+    [`run_global_ora()`](https://chomchonu.github.io/OHMmy/reference/run_global_ora.md)
+    and
+    [`run_global_gsea()`](https://chomchonu.github.io/OHMmy/reference/run_global_gsea.md)
+    (a named list of every saved plot) and of
+    [`plot_dot_dendro_multi()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_multi.md)
+    (`combined`, `dotplot`, `row_dendrogram`, `col_dendrogram`);
+  - `attr(x, "plot")` on the results of
+    [`plot_technical_contribution()`](https://chomchonu.github.io/OHMmy/reference/plot_technical_contribution.md),
+    [`plot_stacked_technical_contribution()`](https://chomchonu.github.io/OHMmy/reference/plot_stacked_technical_contribution.md),
+    [`plot_pc_metadata_correlation()`](https://chomchonu.github.io/OHMmy/reference/plot_pc_metadata_correlation.md)
+    (a `pheatmap` object, plus the correlation matrix as
+    `attr(x, "cor_matrix")`) and
+    [`generate_and_save_heatmap()`](https://chomchonu.github.io/OHMmy/reference/generate_and_save_heatmap.md)
+    (a `gtable`).
+- [`plot_technical_contribution()`](https://chomchonu.github.io/OHMmy/reference/plot_technical_contribution.md)
+  now returns its value invisibly. Because the value now carries an
+  attribute, compare it with `length(x) == 0` rather than
+  `identical(x, character(0))`.
+
+#### Maintenance
+
+- [`plot_metadata_stats()`](https://chomchonu.github.io/OHMmy/reference/plot_metadata_stats.md)
+  uses
+  [`after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html)
+  instead of the deprecated `..p.format..`; the labels are unchanged.
+  [`plot_cell_abundance()`](https://chomchonu.github.io/OHMmy/reference/plot_cell_abundance.md)
+  keeps `..p..`, which ggpubr (\>= 1.0) converts to
+  [`after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html)
+  itself (an
+  [`after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html)
+  version of that label is mangled by ggpubr and fails).
+- [`.blend_feature_plot_v5()`](https://chomchonu.github.io/OHMmy/reference/dot-blend_feature_plot_v5.md)
+  no longer falls back to Seurat’s deprecated `slot` argument. OHMmy now
+  requires SeuratObject (\>= 5.0.0) and ggplot2 (\>= 3.3.0).
+
 ## OHMmy 1.0.2
 
 ### Bug fixes

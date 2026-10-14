@@ -95,9 +95,11 @@ plot_split_dotplots_by_gene_cluster(
 
 ## Value
 
-Invisibly returns `NULL`. Plots are directly written to disk. When no
-gene matches, a message is shown and nothing is written. With a single
-condition, the dot plots are saved but no dendrogram is drawn.
+Invisibly returns a list with `dendrogram` (the global dendrogram
+`ggplot`, or `NULL` with a single condition) and `dotplots` (a named
+list of the dot-plot `ggplot`s, one per part). The plots are also
+written to disk. When no gene matches, a message is shown, nothing is
+written and `NULL` is returned.
 
 ## Details
 

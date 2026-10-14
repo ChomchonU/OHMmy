@@ -80,7 +80,8 @@ significance plots by cell type.</p>
 <span>  indiv_height <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  global_width <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>  global_height <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>  variable_per_clus <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  variable_per_clus <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  universe <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -139,10 +140,19 @@ significance plots by cell type.</p>
 <dt id="arg-variable-per-clus">variable_per_clus<a class="anchor" aria-label="anchor" href="#arg-variable-per-clus"></a></dt>
 <dd><p>Logical. If <code>TRUE</code> and a cell type column is detected in <code>ORA_df</code>, it generates separate signed significance dotplots for each cell type. Default is FALSE.</p></dd>
 
+
+<dt id="arg-universe">universe<a class="anchor" aria-label="anchor" href="#arg-universe"></a></dt>
+<dd><p>Character vector or <code>NULL</code>. The background genes for the enrichment test,
+ideally every gene that was tested (e.g. <code>rownames(seurat_obj)</code> or the genes passing the
+<code>min.pct</code> filter of <code>FindMarkers</code>). If <code>NULL</code> (default), the genes in
+<code>ORA_df</code> are used. That is only an appropriate background when <code>ORA_df</code> contains
+every tested gene, not just the significant ones (e.g. use <code>return.thresh = 1</code> in
+<code>FindAllMarkers</code>); a background of significant genes only hides real enrichments.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data frame (<code>combined_df</code>) containing the concatenated enrichment results across all clusters and directions, or <code>NULL</code> if no pathway was enriched. Outputs multiple JPEG plots and CSV tables as side effects to the specified <code>output_dir</code>.</p>
+    <p>A data frame (<code>combined_df</code>) containing the concatenated enrichment results across all clusters and directions, or <code>NULL</code> if no pathway was enriched. The saved <code>ggplot</code>s are attached as attribute <code>"plots"</code>, a named list (e.g. <code>attr(res, "plots")$global_activated</code>, <code>"&lt;cluster&gt;_dotplot"</code>). Outputs multiple JPEG plots and CSV tables as side effects to the specified <code>output_dir</code>.</p>
     </div>
 
     <div class="section level2">

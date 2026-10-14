@@ -114,6 +114,44 @@
 <li>For inputs that already worked, output is unchanged.</li>
 </ul></div>
 </div>
+<div class="section level3">
+<h3 id="improvements-development-version">Improvements<a class="anchor" aria-label="anchor" href="#improvements-development-version"></a></h3>
+<div class="section level4">
+<h4 id="analysis-quality-development-version">Analysis quality<a class="anchor" aria-label="anchor" href="#analysis-quality-development-version"></a></h4>
+<ul><li>
+<code><a href="../reference/run_global_gsea.html">run_global_gsea()</a></code> gains <code>rank_by</code>. The default <code>"avg_log2FC"</code> ranks genes by fold change as before; <code>"signed_p"</code> ranks by <code>sign(avg_log2FC) * -log10(p)</code> (using <code>p_val</code>, or <code>p_val_adj</code> if absent), which combines direction and significance and gives far fewer tied ranks.</li>
+<li>
+<code><a href="../reference/run_global_ora.html">run_global_ora()</a></code> gains <code>universe</code>, the background gene set for the test. The default <code>NULL</code> keeps using the genes in <code>ORA_df</code>, which is only a valid background when the table contains every tested gene, not just the significant ones.</li>
+<li>
+<code><a href="../reference/FindTopMarkersAndHeatmap.html">FindTopMarkersAndHeatmap()</a></code> now shows every top marker in the heatmap. Markers missing from <code>scale.data</code> (non-variable genes) were silently dropped by <code><a href="https://satijalab.org/seurat/reference/DoHeatmap.html" class="external-link">DoHeatmap()</a></code>; they are now scaled for the heatmap only (Pearson residuals for SCT), with a message. Genes that were already shown keep the same values.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="robustness-development-version">Robustness<a class="anchor" aria-label="anchor" href="#robustness-development-version"></a></h4>
+<ul><li>
+<code><a href="../reference/CleanSeuratReductions.html">CleanSeuratReductions()</a></code> no longer overwrites a reduction that already has the clean name (e.g. renaming <code>pca.log</code> when <code>pcaLog</code> exists). It keeps both and warns.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="plots-are-returned-consistently-development-version">Plots are returned consistently<a class="anchor" aria-label="anchor" href="#plots-are-returned-consistently-development-version"></a></h4>
+<p>Every plotting function now gives you the plots it saves, without changing what it returned before:</p>
+<ul><li>
+<code><a href="../reference/plot_split_dotplots_by_gene_cluster.html">plot_split_dotplots_by_gene_cluster()</a></code> returns <code>list(dendrogram, dotplots)</code>, and <code><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single()</a></code> returns <code>list(qc, genes)</code>. Both returned <code>NULL</code> before.</li>
+<li>Functions that return data or file paths attach their plots as an attribute:
+<ul><li>
+<code>attr(x, "plots")</code> on the results of <code><a href="../reference/run_global_ora.html">run_global_ora()</a></code> and <code><a href="../reference/run_global_gsea.html">run_global_gsea()</a></code> (a named list of every saved plot) and of <code><a href="../reference/plot_dot_dendro_multi.html">plot_dot_dendro_multi()</a></code> (<code>combined</code>, <code>dotplot</code>, <code>row_dendrogram</code>, <code>col_dendrogram</code>);</li>
+<li>
+<code>attr(x, "plot")</code> on the results of <code><a href="../reference/plot_technical_contribution.html">plot_technical_contribution()</a></code>, <code><a href="../reference/plot_stacked_technical_contribution.html">plot_stacked_technical_contribution()</a></code>, <code><a href="../reference/plot_pc_metadata_correlation.html">plot_pc_metadata_correlation()</a></code> (a <code>pheatmap</code> object, plus the correlation matrix as <code>attr(x, "cor_matrix")</code>) and <code><a href="../reference/generate_and_save_heatmap.html">generate_and_save_heatmap()</a></code> (a <code>gtable</code>).</li>
+</ul></li>
+<li>
+<code><a href="../reference/plot_technical_contribution.html">plot_technical_contribution()</a></code> now returns its value invisibly. Because the value now carries an attribute, compare it with <code>length(x) == 0</code> rather than <code>identical(x, character(0))</code>.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="maintenance-development-version">Maintenance<a class="anchor" aria-label="anchor" href="#maintenance-development-version"></a></h4>
+<ul><li>
+<code><a href="../reference/plot_metadata_stats.html">plot_metadata_stats()</a></code> uses <code><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html" class="external-link">after_stat()</a></code> instead of the deprecated <code>..p.format..</code>; the labels are unchanged. <code><a href="../reference/plot_cell_abundance.html">plot_cell_abundance()</a></code> keeps <code>..p..</code>, which ggpubr (&gt;= 1.0) converts to <code><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html" class="external-link">after_stat()</a></code> itself (an <code><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html" class="external-link">after_stat()</a></code> version of that label is mangled by ggpubr and fails).</li>
+<li>
+<code><a href="../reference/dot-blend_feature_plot_v5.html">.blend_feature_plot_v5()</a></code> no longer falls back to Seurat’s deprecated <code>slot</code> argument. OHMmy now requires SeuratObject (&gt;= 5.0.0) and ggplot2 (&gt;= 3.3.0).</li>
+</ul></div>
+</div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.2" id="ohmmy-102">OHMmy 1.0.2<a class="anchor" aria-label="anchor" href="#ohmmy-102"></a></h2>

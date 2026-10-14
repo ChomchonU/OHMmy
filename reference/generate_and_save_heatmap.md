@@ -92,8 +92,10 @@ generate_and_save_heatmap(
 
 Invisibly returns the path of the saved PNG, or `NULL` when fewer than
 two significant genes are available (genes with constant expression
-across the samples are dropped first, with a message). The function is
-called for its side effect of saving the combined plot to disk.
+across the samples are dropped first, with a message). The combined
+heatmap (a `gtable`) is attached as attribute `"plot"`; draw it with
+`grid::grid.draw(attr(res, "plot"))`. The function is called for its
+side effect of saving the combined plot to disk.
 
 ## Examples
 

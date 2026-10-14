@@ -68,7 +68,7 @@ and the column names of both the embeddings and loadings correctly match the new
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An updated <code>Seurat</code> object where all dimensional reductions have been cleanly renamed and rebuilt. The old misnamed reductions are safely removed.</p>
+    <p>An updated <code>Seurat</code> object where all dimensional reductions have been cleanly renamed and rebuilt. The old misnamed reductions are safely removed. If the clean name is already taken by another reduction, that reduction is left untouched and the old one is kept under its original name, with a warning.</p>
     </div>
 
     <div class="section level2">

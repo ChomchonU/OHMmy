@@ -86,7 +86,8 @@ plot_stacked_technical_contribution(
 ## Value
 
 Invisibly returns a character string containing the exact file path
-where the plot was saved.
+where the plot was saved, with the `ggplot` attached as attribute
+`"plot"` (`attr(res, "plot")`).
 
 ## Examples
 

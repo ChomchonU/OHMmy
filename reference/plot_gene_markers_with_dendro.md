@@ -33,13 +33,15 @@ plot_gene_markers_with_dendro(
 
   A data frame containing differential expression results. Must contain
   `gene`, `cluster`, `avg_log2FC`, `diff`, and the column specified in
-  `id_col`.
+  `id_col`. Rows with a missing `id_col` value are dropped.
 
 - genes:
 
-  Character vector or string. Can be a specific vector of gene names
-  (e.g., `c("CD4", "CD8A")`) or a single regular expression string
-  (e.g., `"^TR[AB][VD]"`).
+  Character vector or string. Either a vector of gene names, matched
+  exactly (e.g., `c("CD4", "CD8A")`), or a single regular expression,
+  matched case-insensitively (e.g., `"^TR[AB][VD]"`, `"GZM"` or
+  `"HLA-D[PQR]"`). A single string is used as a regular expression
+  unless it is itself a gene name in `df`.
 
 - id_col:
 
@@ -59,8 +61,8 @@ plot_gene_markers_with_dendro(
 
 - dendro_side:
 
-  Character. Which side of the dot plot to attach the dendrogram.
-  Options are "left" or "right". Default is "right".
+  Character. Which side of the dot plot to attach the dendrogram:
+  `"right"` (default) or `"left"`.
 
 - label_space:
 
@@ -89,7 +91,10 @@ plot_gene_markers_with_dendro(
 
 ## Value
 
-Invisibly returns a list containing three `patchwork`/`ggplot` objects:
+Invisibly returns a list containing three `patchwork`/`ggplot` objects
+(`NULL`, with a message, when no gene matches; with a single condition,
+only the dot plot is drawn and saved, and `dendrogram` and `combined`
+are `NULL`):
 
 - `dotplot`: The gene expression dot plot.
 

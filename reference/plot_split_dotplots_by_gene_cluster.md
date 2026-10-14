@@ -33,7 +33,8 @@ plot_split_dotplots_by_gene_cluster(
 
   A data frame of differential expression results. Must contain the
   columns `gene`, `cluster`, `avg_log2FC`, `diff`, and the column
-  specified in `id_col`.
+  specified in `id_col`. Rows with a missing `id_col` value are dropped,
+  and duplicated gene x cluster x condition rows are averaged.
 
 - gene_list:
 
@@ -59,7 +60,8 @@ plot_split_dotplots_by_gene_cluster(
 - n_splits:
 
   Integer. The number of parts to split the horizontal axis
-  (gene-cluster pairs) into. Default is 4.
+  (gene-cluster pairs) into. If there are fewer gene-cluster pairs than
+  `n_splits`, one plot per pair is made instead. Default is 4.
 
 - plot_title_prefix:
 
@@ -93,7 +95,16 @@ plot_split_dotplots_by_gene_cluster(
 
 ## Value
 
-Invisibly returns `NULL`. Plots are directly written to disk.
+Invisibly returns `NULL`. Plots are directly written to disk. When no
+gene matches, a message is shown and nothing is written. With a single
+condition, the dot plots are saved but no dendrogram is drawn.
+
+## Details
+
+Numeric cluster ids are labelled `"gene (C<cluster>)"` and ordered
+numerically; other cluster labels (e.g. cell type names) are shown as
+`"gene (<cluster>)"` and ordered alphabetically. Genes are ordered by
+their mean `avg_log2FC`.
 
 ## Examples
 

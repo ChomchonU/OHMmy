@@ -73,7 +73,7 @@ All plots are automatically sized and saved directly to the specified output dir
 
 
 <dl><dt id="arg-df">df<a class="anchor" aria-label="anchor" href="#arg-df"></a></dt>
-<dd><p>A data frame of differential expression results. Must contain the columns <code>gene</code>, <code>cluster</code>, <code>avg_log2FC</code>, <code>diff</code>, and the column specified in <code>id_col</code>.</p></dd>
+<dd><p>A data frame of differential expression results. Must contain the columns <code>gene</code>, <code>cluster</code>, <code>avg_log2FC</code>, <code>diff</code>, and the column specified in <code>id_col</code>. Rows with a missing <code>id_col</code> value are dropped, and duplicated gene x cluster x condition rows are averaged.</p></dd>
 
 
 <dt id="arg-gene-list">gene_list<a class="anchor" aria-label="anchor" href="#arg-gene-list"></a></dt>
@@ -93,7 +93,7 @@ All plots are automatically sized and saved directly to the specified output dir
 
 
 <dt id="arg-n-splits">n_splits<a class="anchor" aria-label="anchor" href="#arg-n-splits"></a></dt>
-<dd><p>Integer. The number of parts to split the horizontal axis (gene-cluster pairs) into. Default is 4.</p></dd>
+<dd><p>Integer. The number of parts to split the horizontal axis (gene-cluster pairs) into. If there are fewer gene-cluster pairs than <code>n_splits</code>, one plot per pair is made instead. Default is 4.</p></dd>
 
 
 <dt id="arg-plot-title-prefix">plot_title_prefix<a class="anchor" aria-label="anchor" href="#arg-plot-title-prefix"></a></dt>
@@ -122,7 +122,11 @@ All plots are automatically sized and saved directly to the specified output dir
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Invisibly returns <code>NULL</code>. Plots are directly written to disk.</p>
+    <p>Invisibly returns <code>NULL</code>. Plots are directly written to disk. When no gene matches, a message is shown and nothing is written. With a single condition, the dot plots are saved but no dendrogram is drawn.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Numeric cluster ids are labelled <code>"gene (C&lt;cluster&gt;)"</code> and ordered numerically; other cluster labels (e.g. cell type names) are shown as <code>"gene (&lt;cluster&gt;)"</code> and ordered alphabetically. Genes are ordered by their mean <code>avg_log2FC</code>.</p>
     </div>
 
     <div class="section level2">

@@ -30,6 +30,31 @@
 
 ### Bug fixes
 
+- [`plot_split_dotplots_by_gene_cluster()`](https://chomchonu.github.io/OHMmy/reference/plot_split_dotplots_by_gene_cluster.md):
+  - non-numeric cluster labels (e.g. cell type names) no longer lose the
+    gene ordering or produce coercion warnings; they are labelled
+    `gene (<cluster>)`;
+  - `n_splits = 1` no longer fails, and no empty plots are written when
+    there are fewer gene-cluster combinations than `n_splits`;
+  - a single condition no longer fails (dot plots are saved without a
+    dendrogram);
+  - duplicated gene x cluster x condition rows are averaged instead of
+    failing;
+  - rows with a missing `id_col` value are dropped instead of failing.
+- [`plot_gene_markers_with_dendro()`](https://chomchonu.github.io/OHMmy/reference/plot_gene_markers_with_dendro.md):
+  - returns `NULL` with a message when no gene matches, instead of
+    failing;
+  - with a single condition, saves and returns the dot plot without a
+    dendrogram;
+  - a single string that is not a gene name is now always used as a
+    regular expression (previously only strings containing `^`, `$` or
+    `|` were, so e.g. `"GZM"` or `"HLA-D[PQR]"` matched nothing);
+  - the dendrogram leaves now line up exactly with the dot-plot rows in
+    the combined figure;
+  - an invalid `dendro_side` gives an error instead of silently using
+    `"right"`.
+- Both functions give a clear error naming any missing required column.
+  Output for inputs that already worked is unchanged.
 - `FindTopMarkersAndHeatmap(use_sct = TRUE)` now works on SCT objects
   that were subset after
   [`SCTransform()`](https://satijalab.org/seurat/reference/SCTransform.html)/[`PrepSCTFindMarkers()`](https://satijalab.org/seurat/reference/PrepSCTFindMarkers.html).

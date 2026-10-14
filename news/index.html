@@ -46,6 +46,24 @@
 <div class="section level3">
 <h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
 <ul><li>
+<code><a href="../reference/plot_split_dotplots_by_gene_cluster.html">plot_split_dotplots_by_gene_cluster()</a></code>:
+<ul><li>non-numeric cluster labels (e.g. cell type names) no longer lose the gene ordering or produce coercion warnings; they are labelled <code>gene (&lt;cluster&gt;)</code>;</li>
+<li>
+<code>n_splits = 1</code> no longer fails, and no empty plots are written when there are fewer gene-cluster combinations than <code>n_splits</code>;</li>
+<li>a single condition no longer fails (dot plots are saved without a dendrogram);</li>
+<li>duplicated gene x cluster x condition rows are averaged instead of failing;</li>
+<li>rows with a missing <code>id_col</code> value are dropped instead of failing.</li>
+</ul></li>
+<li>
+<code><a href="../reference/plot_gene_markers_with_dendro.html">plot_gene_markers_with_dendro()</a></code>:
+<ul><li>returns <code>NULL</code> with a message when no gene matches, instead of failing;</li>
+<li>with a single condition, saves and returns the dot plot without a dendrogram;</li>
+<li>a single string that is not a gene name is now always used as a regular expression (previously only strings containing <code>^</code>, <code>$</code> or <code>|</code> were, so e.g. <code>"GZM"</code> or <code>"HLA-D[PQR]"</code> matched nothing);</li>
+<li>the dendrogram leaves now line up exactly with the dot-plot rows in the combined figure;</li>
+<li>an invalid <code>dendro_side</code> gives an error instead of silently using <code>"right"</code>.</li>
+</ul></li>
+<li>Both functions give a clear error naming any missing required column. Output for inputs that already worked is unchanged.</li>
+<li>
 <code>FindTopMarkersAndHeatmap(use_sct = TRUE)</code> now works on SCT objects that were subset after <code><a href="https://satijalab.org/seurat/reference/SCTransform.html" class="external-link">SCTransform()</a></code>/<code><a href="https://satijalab.org/seurat/reference/PrepSCTFindMarkers.html" class="external-link">PrepSCTFindMarkers()</a></code>. In that situation <code><a href="https://satijalab.org/seurat/reference/PrepSCTFindMarkers.html" class="external-link">PrepSCTFindMarkers()</a></code> skips re-correction and every <code><a href="https://satijalab.org/seurat/reference/FindMarkers.html" class="external-link">FindMarkers()</a></code> test failed with “Object contains multiple models with unequal library sizes”, followed by “object ‘pct.1’ not found”. The function now detects this and uses the existing corrected counts (<code>recorrect_umi = FALSE</code>), as Seurat recommends for subsets.</li>
 <li>
 <code><a href="../reference/FindTopMarkersAndHeatmap.html">FindTopMarkersAndHeatmap()</a></code> warns and returns without writing files when Seurat finds no markers at all, instead of failing with “object ‘pct.1’ not found”.</li>

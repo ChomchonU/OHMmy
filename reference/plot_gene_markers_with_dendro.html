@@ -75,11 +75,11 @@ The individual components and the combined layout are automatically saved to dis
 
 
 <dl><dt id="arg-df">df<a class="anchor" aria-label="anchor" href="#arg-df"></a></dt>
-<dd><p>A data frame containing differential expression results. Must contain <code>gene</code>, <code>cluster</code>, <code>avg_log2FC</code>, <code>diff</code>, and the column specified in <code>id_col</code>.</p></dd>
+<dd><p>A data frame containing differential expression results. Must contain <code>gene</code>, <code>cluster</code>, <code>avg_log2FC</code>, <code>diff</code>, and the column specified in <code>id_col</code>. Rows with a missing <code>id_col</code> value are dropped.</p></dd>
 
 
 <dt id="arg-genes">genes<a class="anchor" aria-label="anchor" href="#arg-genes"></a></dt>
-<dd><p>Character vector or string. Can be a specific vector of gene names (e.g., <code>c("CD4", "CD8A")</code>) or a single regular expression string (e.g., <code>"^TR[AB][VD]"</code>).</p></dd>
+<dd><p>Character vector or string. Either a vector of gene names, matched exactly (e.g., <code>c("CD4", "CD8A")</code>), or a single regular expression, matched case-insensitively (e.g., <code>"^TR[AB][VD]"</code>, <code>"GZM"</code> or <code>"HLA-D[PQR]"</code>). A single string is used as a regular expression unless it is itself a gene name in <code>df</code>.</p></dd>
 
 
 <dt id="arg-id-col">id_col<a class="anchor" aria-label="anchor" href="#arg-id-col"></a></dt>
@@ -95,7 +95,7 @@ The individual components and the combined layout are automatically saved to dis
 
 
 <dt id="arg-dendro-side">dendro_side<a class="anchor" aria-label="anchor" href="#arg-dendro-side"></a></dt>
-<dd><p>Character. Which side of the dot plot to attach the dendrogram. Options are "left" or "right". Default is "right".</p></dd>
+<dd><p>Character. Which side of the dot plot to attach the dendrogram: <code>"right"</code> (default) or <code>"left"</code>.</p></dd>
 
 
 <dt id="arg-label-space">label_space<a class="anchor" aria-label="anchor" href="#arg-label-space"></a></dt>
@@ -120,7 +120,7 @@ The individual components and the combined layout are automatically saved to dis
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Invisibly returns a list containing three <code>patchwork</code>/<code>ggplot</code> objects:</p><ul><li><p><code>dotplot</code>: The gene expression dot plot.</p></li>
+    <p>Invisibly returns a list containing three <code>patchwork</code>/<code>ggplot</code> objects (<code>NULL</code>, with a message, when no gene matches; with a single condition, only the dot plot is drawn and saved, and <code>dendrogram</code> and <code>combined</code> are <code>NULL</code>):</p><ul><li><p><code>dotplot</code>: The gene expression dot plot.</p></li>
 <li><p><code>dendrogram</code>: The hierarchical clustering dendrogram.</p></li>
 <li><p><code>combined</code>: The side-by-side aligned layout of both plots.</p></li>
 </ul></div>

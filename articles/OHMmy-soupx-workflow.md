@@ -238,14 +238,14 @@ raw_umis <- sapply(counts$filtered, sum)
 sweep$pct_removed <- 100 * (1 - sweep$umis / raw_umis[sweep$sample])
 sweep
 #>         multiFac sample   rho    umis pct_removed
-#> PBMC_A         0 PBMC_A 0.061 2998411    6.226660
-#> PBMC_B         0 PBMC_B 0.055 3013068    5.638807
-#> PBMC_A1        5 PBMC_A 0.111 2838180   11.237779
-#> PBMC_B1        5 PBMC_B 0.105 2853238   10.644253
-#> PBMC_A2       10 PBMC_A 0.161 2678340   16.236670
-#> PBMC_B2       10 PBMC_B 0.155 2693719   15.639960
-#> PBMC_A3       20 PBMC_A 0.261 2358124   26.251216
-#> PBMC_B3       20 PBMC_B 0.255 2372919   25.686554
+#> PBMC_A         0 PBMC_A 0.061 2998574    6.221562
+#> PBMC_B         0 PBMC_B 0.055 3012519    5.656001
+#> PBMC_A1        5 PBMC_A 0.111 2838224   11.236403
+#> PBMC_B1        5 PBMC_B 0.105 2852899   10.654870
+#> PBMC_A2       10 PBMC_A 0.161 2678323   16.237202
+#> PBMC_B2       10 PBMC_B 0.155 2692632   15.674002
+#> PBMC_A3       20 PBMC_A 0.261 2358145   26.250559
+#> PBMC_B3       20 PBMC_B 0.255 2373682   25.662659
 
 ggplot(sweep, aes(rho, pct_removed, colour = sample)) +
   geom_line() + geom_point(size = 2.5) +
@@ -344,8 +344,8 @@ corrected <- addSoupXMetaToSeurat(
 
 corrected
 #> An object of class Seurat 
-#> 12997 features across 2699 samples within 1 assay 
-#> Active assay: RNA (12997 features, 0 variable features)
+#> 13003 features across 2699 samples within 1 assay 
+#> Active assay: RNA (13003 features, 0 variable features)
 #>  1 layer present: counts
 ```
 
@@ -373,10 +373,10 @@ data.frame(gene = ambient_genes,
            pct_nonmono_before = round(detect(before), 1),
            pct_nonmono_after  = round(detect(after), 1))
 #>          gene pct_nonmono_before pct_nonmono_after
-#> LYZ       LYZ               43.4               4.6
-#> S100A8 S100A8                9.4               0.6
+#> LYZ       LYZ               43.4               4.4
+#> S100A8 S100A8                9.4               0.7
 #> S100A9 S100A9               16.4               1.1
-#> FTL       FTL               98.3              90.7
+#> FTL       FTL               98.3              90.9
 
 plot_df <- data.frame(
   nCount = c(original$nCount_RNA[cells], corrected$nCount_RNA),

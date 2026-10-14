@@ -11,7 +11,7 @@ downstream quality control.
 ## Usage
 
 ``` r
-create_final_seurat(soup_list_all, sample_names)
+create_final_seurat(soup_list_all, sample_names, corrected_list = NULL)
 ```
 
 ## Arguments
@@ -27,6 +27,15 @@ create_final_seurat(soup_list_all, sample_names)
 
   Character vector. A list of sample identifiers used to match the list
   elements and assign the `project` name to each Seurat object.
+
+- corrected_list:
+
+  Optional named list of corrected count matrices, typically the
+  `corrected_list` element returned by
+  [`estimate_contamination()`](https://chomchonu.github.io/OHMmy/reference/estimate_contamination.md).
+  When given, these matrices (corrected with the method and `pCut`
+  chosen there) are used; otherwise the counts are corrected with
+  SoupX's default method. Default is `NULL`.
 
 ## Value
 

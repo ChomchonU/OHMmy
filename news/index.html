@@ -66,8 +66,54 @@
 <li>
 <code>FindTopMarkersAndHeatmap(use_sct = TRUE)</code> now works on SCT objects that were subset after <code><a href="https://satijalab.org/seurat/reference/SCTransform.html" class="external-link">SCTransform()</a></code>/<code><a href="https://satijalab.org/seurat/reference/PrepSCTFindMarkers.html" class="external-link">PrepSCTFindMarkers()</a></code>. In that situation <code><a href="https://satijalab.org/seurat/reference/PrepSCTFindMarkers.html" class="external-link">PrepSCTFindMarkers()</a></code> skips re-correction and every <code><a href="https://satijalab.org/seurat/reference/FindMarkers.html" class="external-link">FindMarkers()</a></code> test failed with “Object contains multiple models with unequal library sizes”, followed by “object ‘pct.1’ not found”. The function now detects this and uses the existing corrected counts (<code>recorrect_umi = FALSE</code>), as Seurat recommends for subsets.</li>
 <li>
-<code><a href="../reference/FindTopMarkersAndHeatmap.html">FindTopMarkersAndHeatmap()</a></code> warns and returns without writing files when Seurat finds no markers at all, instead of failing with “object ‘pct.1’ not found”.</li>
+<code><a href="../reference/FindTopMarkersAndHeatmap.html">FindTopMarkersAndHeatmap()</a></code> warns and returns without writing files when Seurat finds no markers at all, instead of failing with “object ‘pct.1’ not found”. When markers are found but none passes the thresholds, it now warns, returns <code>heatmap = NULL</code> and still writes the marker tables (previously it failed with “‘names’ attribute [3] must be the same length as the vector [0]”).</li>
+</ul><div class="section level4">
+<h4 id="ambient-rna-soupx-development-version">Ambient RNA (SoupX)<a class="anchor" aria-label="anchor" href="#ambient-rna-soupx-development-version"></a></h4>
+<ul><li>
+<code><a href="../reference/run_soupx_post_clustering.html">run_soupx_post_clustering()</a></code> now builds the final Seurat objects from the counts corrected with the requested <code>methods</code> and <code>pCut</code>. Before, these were computed and then discarded, and the final objects always used SoupX’s default method. <code><a href="../reference/create_final_seurat.html">create_final_seurat()</a></code> gains an optional <code>corrected_list</code> argument for this (default <code>NULL</code>, which keeps the previous behaviour).</li>
+<li>
+<code><a href="../reference/estimate_contamination.html">estimate_contamination()</a></code>: if <code><a href="https://rdrr.io/pkg/SoupX/man/autoEstCont.html" class="external-link">SoupX::autoEstCont()</a></code> fails for one sample, a warning is issued and that sample continues with an estimated <code>rho</code> of 0, instead of stopping the whole run. A final contamination fraction above 0.5 (from a large <code>mulFac</code>) is applied with a warning instead of being refused by SoupX; above 1 is a clear error.</li>
+<li>
+<code><a href="../reference/load_counts.html">load_counts()</a></code> also reads Cell Ranger v2 directories (<code>genes.tsv</code>) and uncompressed files.</li>
+<li>
+<code><a href="../reference/create_seurat_for_clustering.html">create_seurat_for_clustering()</a></code> (and so <code><a href="../reference/prepare_soupx_inputs.html">prepare_soupx_inputs()</a></code>) no longer fails on samples with 50 or fewer cells or variable features: the number of PCs and UMAP neighbours is capped to what the sample supports.</li>
 </ul></div>
+<div class="section level4">
+<h4 id="clustering-development-version">Clustering<a class="anchor" aria-label="anchor" href="#clustering-development-version"></a></h4>
+<ul><li>
+<code><a href="../reference/ClusterAndUMAP.html">ClusterAndUMAP()</a></code>:
+<ul><li>
+<code>algorithm</code> is now also used for the final clustering (it was only used for the resolution sweep);</li>
+<li>when the UMAP already exists, <code>final_resolution</code> is now made the active clustering (<code>seurat_clusters</code> and <code>Idents</code>); before, whichever resolution the sweep ran last stayed active;</li>
+<li>resolutions with different numbers of decimals (e.g. <code>c(0.25, 0.5, 1)</code>) are now matched to the column names Seurat creates (<code>RNA_snn_res.0.5</code>, not <code>RNA_snn_res.0.50</code>), so they are no longer re-computed on every run.</li>
+</ul></li>
+</ul></div>
+<div class="section level4">
+<h4 id="statistics-development-version">Statistics<a class="anchor" aria-label="anchor" href="#statistics-development-version"></a></h4>
+<ul><li>
+<code><a href="../reference/plot_metadata_stats.html">plot_metadata_stats()</a></code> counts every sample once. When a metadata value varies within a sample, the sample was counted once per distinct value; it now uses the first value and warns.</li>
+<li>
+<code><a href="../reference/plot_cell_abundance.html">plot_cell_abundance()</a></code>: when a sample appears under more than one condition, its proportions are computed within each sample x condition (so they sum to 1 in each), with a warning. Before, they were split across conditions.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="visualisation-and-diagnostics-development-version">Visualisation and diagnostics<a class="anchor" aria-label="anchor" href="#visualisation-and-diagnostics-development-version"></a></h4>
+<ul><li>
+<code><a href="../reference/make_cluster_palette.html">make_cluster_palette()</a></code>: the <code>"kelly"</code> palette no longer repeats colours or includes a near-white colour above 20 clusters, and <code>"polychrome"</code> no longer repeats colours above 17 clusters. Colours for smaller numbers of clusters are unchanged.</li>
+<li>
+<code><a href="../reference/plot_gene_pair_correlations.html">plot_gene_pair_correlations()</a></code> gains <code>min_cells</code> (default 3). Clusters with fewer cells get an <code>NA</code> correlation; before, a cluster with two cells always showed a correlation of +/-1.</li>
+<li>
+<code><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa()</a></code> works on Seurat v5 objects with split layers (it failed with “GetAssayData doesn’t work for multiple layers”), and a numeric <code>min_cutoff</code> is now applied as an expression value (it was silently ignored).</li>
+<li>
+<code><a href="../reference/plot_technical_contribution.html">plot_technical_contribution()</a></code> and <code><a href="../reference/plot_stacked_technical_contribution.html">plot_stacked_technical_contribution()</a></code> no longer fail when <code>n_top_genes</code> / <code>gene_depths</code> ask for more genes than the PCA loadings contain.</li>
+<li>
+<code><a href="../reference/plot_pc_metadata_correlation.html">plot_pc_metadata_correlation()</a></code> skips non-numeric metadata columns with a warning (it failed with “‘y’ must be numeric”).</li>
+<li>
+<code><a href="../reference/generate_and_save_heatmap.html">generate_and_save_heatmap()</a></code> drops genes with constant expression across the samples (with a message) instead of failing during row scaling.</li>
+<li>
+<code><a href="../reference/plot_dot_dendro_split.html">plot_dot_dendro_split()</a></code> and <code><a href="../reference/plot_dot_dendro_multi.html">plot_dot_dendro_multi()</a></code> return <code>NULL</code> with a message when fewer than two genes or groups remain, instead of failing in <code><a href="https://rdrr.io/r/stats/hclust.html" class="external-link">hclust()</a></code>.</li>
+<li>For inputs that already worked, output is unchanged.</li>
+</ul></div>
+</div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.2" id="ohmmy-102">OHMmy 1.0.2<a class="anchor" aria-label="anchor" href="#ohmmy-102"></a></h2>

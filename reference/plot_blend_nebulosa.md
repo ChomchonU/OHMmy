@@ -67,8 +67,9 @@ plot_blend_nebulosa(
 
 - min_cutoff:
 
-  Character or Numeric. The lowest expression cutoff before scaling
-  (e.g., "q10"). Default is "q10".
+  Character or Numeric. The lowest expression cutoff before scaling: a
+  quantile such as "q10" or a numeric expression value. Default is
+  "q10".
 
 - output_dir:
 

@@ -118,7 +118,7 @@ dendrograms, or the clustered gene list.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Invisibly returns a <code>tibble</code> containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in <code>ggplot2</code>). The clustering behind the dendrograms is attached as attributes: <code>"dendro_matrix"</code> (groups x genes matrix of scaled average expression), <code>"row_hclust"</code> and <code>"col_hclust"</code> (the <code>hclust</code> trees for groups and genes). Pass the result to <code><a href="cluster_dot_dendro.html">cluster_dot_dendro()</a></code> to cut these trees into clusters.</p>
+    <p>Invisibly returns a <code>tibble</code> containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in <code>ggplot2</code>). The clustering behind the dendrograms is attached as attributes: <code>"dendro_matrix"</code> (groups x genes matrix of scaled average expression), <code>"row_hclust"</code> and <code>"col_hclust"</code> (the <code>hclust</code> trees for groups and genes). Pass the result to <code><a href="cluster_dot_dendro.html">cluster_dot_dendro()</a></code> to cut these trees into clusters. Returns <code>NULL</code> (with a message) when fewer than two groups or genes remain after filtering.</p>
     </div>
 
     <div class="section level2">

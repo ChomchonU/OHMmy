@@ -141,7 +141,7 @@ CSV tables containing both the filtered and unfiltered marker lists (ready for G
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list containing four elements (returned invisibly, with <code>heatmap</code> and <code>output_dir</code> set to <code>NULL</code> and a warning, when Seurat finds no markers at all):</p><ul><li><p><code>top_markers</code>: A <code>tibble</code> of the highly filtered, top-scoring marker genes used for the heatmap.</p></li>
-<li><p><code>heatmap</code>: The <code>ggplot</code> object of the generated <code>DoHeatmap</code>.</p></li>
+<li><p><code>heatmap</code>: The <code>ggplot</code> object of the generated <code>DoHeatmap</code>, or <code>NULL</code> (with a warning) when no marker passes the thresholds.</p></li>
 <li><p><code>markers</code>: A data frame of the full, unfiltered differential expression results.</p></li>
 <li><p><code>output_dir</code>: A character string of the specific path where the files were saved.</p></li>
 </ul></div>

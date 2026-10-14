@@ -68,7 +68,97 @@
   (`recorrect_umi = FALSE`), as Seurat recommends for subsets.
 - [`FindTopMarkersAndHeatmap()`](https://chomchonu.github.io/OHMmy/reference/FindTopMarkersAndHeatmap.md)
   warns and returns without writing files when Seurat finds no markers
-  at all, instead of failing with “object ‘pct.1’ not found”.
+  at all, instead of failing with “object ‘pct.1’ not found”. When
+  markers are found but none passes the thresholds, it now warns,
+  returns `heatmap = NULL` and still writes the marker tables
+  (previously it failed with “‘names’ attribute \[3\] must be the same
+  length as the vector \[0\]”).
+
+#### Ambient RNA (SoupX)
+
+- [`run_soupx_post_clustering()`](https://chomchonu.github.io/OHMmy/reference/run_soupx_post_clustering.md)
+  now builds the final Seurat objects from the counts corrected with the
+  requested `methods` and `pCut`. Before, these were computed and then
+  discarded, and the final objects always used SoupX’s default method.
+  [`create_final_seurat()`](https://chomchonu.github.io/OHMmy/reference/create_final_seurat.md)
+  gains an optional `corrected_list` argument for this (default `NULL`,
+  which keeps the previous behaviour).
+- [`estimate_contamination()`](https://chomchonu.github.io/OHMmy/reference/estimate_contamination.md):
+  if
+  [`SoupX::autoEstCont()`](https://rdrr.io/pkg/SoupX/man/autoEstCont.html)
+  fails for one sample, a warning is issued and that sample continues
+  with an estimated `rho` of 0, instead of stopping the whole run. A
+  final contamination fraction above 0.5 (from a large `mulFac`) is
+  applied with a warning instead of being refused by SoupX; above 1 is a
+  clear error.
+- [`load_counts()`](https://chomchonu.github.io/OHMmy/reference/load_counts.md)
+  also reads Cell Ranger v2 directories (`genes.tsv`) and uncompressed
+  files.
+- [`create_seurat_for_clustering()`](https://chomchonu.github.io/OHMmy/reference/create_seurat_for_clustering.md)
+  (and so
+  [`prepare_soupx_inputs()`](https://chomchonu.github.io/OHMmy/reference/prepare_soupx_inputs.md))
+  no longer fails on samples with 50 or fewer cells or variable
+  features: the number of PCs and UMAP neighbours is capped to what the
+  sample supports.
+
+#### Clustering
+
+- [`ClusterAndUMAP()`](https://chomchonu.github.io/OHMmy/reference/ClusterAndUMAP.md):
+  - `algorithm` is now also used for the final clustering (it was only
+    used for the resolution sweep);
+  - when the UMAP already exists, `final_resolution` is now made the
+    active clustering (`seurat_clusters` and `Idents`); before,
+    whichever resolution the sweep ran last stayed active;
+  - resolutions with different numbers of decimals
+    (e.g. `c(0.25, 0.5, 1)`) are now matched to the column names Seurat
+    creates (`RNA_snn_res.0.5`, not `RNA_snn_res.0.50`), so they are no
+    longer re-computed on every run.
+
+#### Statistics
+
+- [`plot_metadata_stats()`](https://chomchonu.github.io/OHMmy/reference/plot_metadata_stats.md)
+  counts every sample once. When a metadata value varies within a
+  sample, the sample was counted once per distinct value; it now uses
+  the first value and warns.
+- [`plot_cell_abundance()`](https://chomchonu.github.io/OHMmy/reference/plot_cell_abundance.md):
+  when a sample appears under more than one condition, its proportions
+  are computed within each sample x condition (so they sum to 1 in
+  each), with a warning. Before, they were split across conditions.
+
+#### Visualisation and diagnostics
+
+- [`make_cluster_palette()`](https://chomchonu.github.io/OHMmy/reference/make_cluster_palette.md):
+  the `"kelly"` palette no longer repeats colours or includes a
+  near-white colour above 20 clusters, and `"polychrome"` no longer
+  repeats colours above 17 clusters. Colours for smaller numbers of
+  clusters are unchanged.
+- [`plot_gene_pair_correlations()`](https://chomchonu.github.io/OHMmy/reference/plot_gene_pair_correlations.md)
+  gains `min_cells` (default 3). Clusters with fewer cells get an `NA`
+  correlation; before, a cluster with two cells always showed a
+  correlation of +/-1.
+- [`plot_blend_nebulosa()`](https://chomchonu.github.io/OHMmy/reference/plot_blend_nebulosa.md)
+  works on Seurat v5 objects with split layers (it failed with
+  “GetAssayData doesn’t work for multiple layers”), and a numeric
+  `min_cutoff` is now applied as an expression value (it was silently
+  ignored).
+- [`plot_technical_contribution()`](https://chomchonu.github.io/OHMmy/reference/plot_technical_contribution.md)
+  and
+  [`plot_stacked_technical_contribution()`](https://chomchonu.github.io/OHMmy/reference/plot_stacked_technical_contribution.md)
+  no longer fail when `n_top_genes` / `gene_depths` ask for more genes
+  than the PCA loadings contain.
+- [`plot_pc_metadata_correlation()`](https://chomchonu.github.io/OHMmy/reference/plot_pc_metadata_correlation.md)
+  skips non-numeric metadata columns with a warning (it failed with “‘y’
+  must be numeric”).
+- [`generate_and_save_heatmap()`](https://chomchonu.github.io/OHMmy/reference/generate_and_save_heatmap.md)
+  drops genes with constant expression across the samples (with a
+  message) instead of failing during row scaling.
+- [`plot_dot_dendro_split()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_split.md)
+  and
+  [`plot_dot_dendro_multi()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_multi.md)
+  return `NULL` with a message when fewer than two genes or groups
+  remain, instead of failing in
+  [`hclust()`](https://rdrr.io/r/stats/hclust.html).
+- For inputs that already worked, output is unchanged.
 
 ## OHMmy 1.0.2
 

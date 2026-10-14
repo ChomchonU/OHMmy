@@ -122,7 +122,8 @@ at all):
 - `top_markers`: A `tibble` of the highly filtered, top-scoring marker
   genes used for the heatmap.
 
-- `heatmap`: The `ggplot` object of the generated `DoHeatmap`.
+- `heatmap`: The `ggplot` object of the generated `DoHeatmap`, or `NULL`
+  (with a warning) when no marker passes the thresholds.
 
 - `markers`: A data frame of the full, unfiltered differential
   expression results.

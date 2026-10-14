@@ -54,7 +54,9 @@ estimate_contamination(
 - mulFac:
 
   Numeric. Percentage points to add to the auto-estimated contamination
-  fraction (e.g., `mulFac = 5` adds `0.05` to `rho`). Default is 0.
+  fraction (e.g., `mulFac = 5` adds `0.05` to `rho`). A final fraction
+  above 0.5 is applied with a warning; above 1 is an error. Default is
+  0.
 
 - manual_contam:
 
@@ -91,6 +93,14 @@ A named list containing two elements:
 - `corrected_list`: A list of the final, decontaminated sparse count
   matrices (rounded to integers), ready to be used to create your final
   Seurat objects.
+
+## Details
+
+If
+[`SoupX::autoEstCont()`](https://rdrr.io/pkg/SoupX/man/autoEstCont.html)
+fails for a sample (e.g. no suitable marker genes), a warning is issued
+and an estimated `rho` of 0 is used for that sample, so the remaining
+samples are still processed.
 
 ## Examples
 

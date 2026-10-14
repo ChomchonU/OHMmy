@@ -72,7 +72,8 @@ plot_dot_dendro_split(
 
 A list of `patchwork` objects, where each element represents a specific
 chunk of the x-axis (dot plot) combined with the global row (cluster)
-dendrogram.
+dendrogram, or `NULL` (with a message) when fewer than two clusters or
+genes remain after filtering.
 
 ## Examples
 

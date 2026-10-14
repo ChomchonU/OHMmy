@@ -55,7 +55,7 @@ immediate use in downstream quality control.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_final_seurat</span><span class="op">(</span><span class="va">soup_list_all</span>, <span class="va">sample_names</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_final_seurat</span><span class="op">(</span><span class="va">soup_list_all</span>, <span class="va">sample_names</span>, corrected_list <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -68,6 +68,10 @@ immediate use in downstream quality control.</p>
 
 <dt id="arg-sample-names">sample_names<a class="anchor" aria-label="anchor" href="#arg-sample-names"></a></dt>
 <dd><p>Character vector. A list of sample identifiers used to match the list elements and assign the <code>project</code> name to each Seurat object.</p></dd>
+
+
+<dt id="arg-corrected-list">corrected_list<a class="anchor" aria-label="anchor" href="#arg-corrected-list"></a></dt>
+<dd><p>Optional named list of corrected count matrices, typically the <code>corrected_list</code> element returned by <code><a href="estimate_contamination.html">estimate_contamination()</a></code>. When given, these matrices (corrected with the method and <code>pCut</code> chosen there) are used; otherwise the counts are corrected with SoupX's default method. Default is <code>NULL</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -66,7 +66,8 @@ and automatically saved to disk.</p>
 <span>  height <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  dpi <span class="op">=</span> <span class="fl">300</span>,</span>
 <span>  add_timestamp <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  min_cells <span class="op">=</span> <span class="fl">3</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -128,6 +129,12 @@ and automatically saved to disk.</p>
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Logical. Whether to print progress messages and display a progress bar. Default is TRUE.</p></dd>
+
+
+<dt id="arg-min-cells">min_cells<a class="anchor" aria-label="anchor" href="#arg-min-cells"></a></dt>
+<dd><p>Integer. Minimum number of cells (after quantile filtering) a cluster
+needs for its correlation to be reported. Clusters with fewer cells get an <code>NA</code>
+correlation (two cells always correlate at +/-1). Default is 3.</p></dd>
 
 </dl></div>
     <div class="section level2">

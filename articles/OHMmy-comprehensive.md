@@ -160,7 +160,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261014_062643.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261014_133709.jpg)
 
 ## 4. Visualise markers
 
@@ -240,7 +240,7 @@ if (!is.null(hallmark)) {
 }
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261014_063443.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261014_134516.jpg)
 
 ## Where to go next
 

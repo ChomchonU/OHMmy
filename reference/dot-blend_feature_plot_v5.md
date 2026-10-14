@@ -58,9 +58,9 @@ co-expression on the embedding, and a customized 2D color threshold key.
 
 - min_cutoff:
 
-  Character or Numeric. The lowest expression cutoff (e.g., "q10" for
-  the 10th quantile). Values below this are set to zero before scaling.
-  Default is "q10".
+  Character or Numeric. The lowest expression cutoff: a quantile such as
+  "q10" (10th quantile) or a numeric expression value. Values below this
+  are set to zero before scaling. Default is "q10".
 
 - gamma:
 

@@ -24,7 +24,8 @@ plot_gene_pair_correlations(
   height = 8,
   dpi = 300,
   add_timestamp = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  min_cells = 3
 )
 ```
 
@@ -98,6 +99,13 @@ plot_gene_pair_correlations(
 
   Logical. Whether to print progress messages and display a progress
   bar. Default is TRUE.
+
+- min_cells:
+
+  Integer. Minimum number of cells (after quantile filtering) a cluster
+  needs for its correlation to be reported. Clusters with fewer cells
+  get an `NA` correlation (two cells always correlate at +/-1). Default
+  is 3.
 
 ## Value
 

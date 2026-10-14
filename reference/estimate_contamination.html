@@ -92,7 +92,7 @@ correction method to remove the background noise and returns the cleaned count m
 
 
 <dt id="arg-mulfac">mulFac<a class="anchor" aria-label="anchor" href="#arg-mulfac"></a></dt>
-<dd><p>Numeric. Percentage points to add to the auto-estimated contamination fraction (e.g., <code>mulFac = 5</code> adds <code>0.05</code> to <code>rho</code>). Default is 0.</p></dd>
+<dd><p>Numeric. Percentage points to add to the auto-estimated contamination fraction (e.g., <code>mulFac = 5</code> adds <code>0.05</code> to <code>rho</code>). A final fraction above 0.5 is applied with a warning; above 1 is an error. Default is 0.</p></dd>
 
 
 <dt id="arg-manual-contam">manual_contam<a class="anchor" aria-label="anchor" href="#arg-manual-contam"></a></dt>
@@ -116,6 +116,10 @@ correction method to remove the background noise and returns the cleaned count m
     <p>A named list containing two elements:</p><ul><li><p><code>soup_list_all</code>: A list of the updated <code>SoupChannel</code> objects with their final <code>rho</code> values calculated and set.</p></li>
 <li><p><code>corrected_list</code>: A list of the final, decontaminated sparse count matrices (rounded to integers), ready to be used to create your final Seurat objects.</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>If <code><a href="https://rdrr.io/pkg/SoupX/man/autoEstCont.html" class="external-link">SoupX::autoEstCont()</a></code> fails for a sample (e.g. no suitable marker genes), a warning is issued and an estimated <code>rho</code> of 0 is used for that sample, so the remaining samples are still processed.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

@@ -91,8 +91,9 @@ generate_and_save_heatmap(
 ## Value
 
 Invisibly returns the path of the saved PNG, or `NULL` when fewer than
-two significant genes are available. The function is called for its side
-effect of saving the combined plot to disk.
+two significant genes are available (genes with constant expression
+across the samples are dropped first, with a message). The function is
+called for its side effect of saving the combined plot to disk.
 
 ## Examples
 

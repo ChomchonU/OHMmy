@@ -19,9 +19,9 @@ plot_gene_markers_with_dendro(
 )
 }
 \arguments{
-\item{df}{A data frame containing differential expression results. Must contain \code{gene}, \code{cluster}, \code{avg_log2FC}, \code{diff}, and the column specified in \code{id_col}.}
+\item{df}{A data frame containing differential expression results. Must contain \code{gene}, \code{cluster}, \code{avg_log2FC}, \code{diff}, and the column specified in \code{id_col}. Rows with a missing \code{id_col} value are dropped.}
 
-\item{genes}{Character vector or string. Can be a specific vector of gene names (e.g., \code{c("CD4", "CD8A")}) or a single regular expression string (e.g., \code{"^TR[AB][VD]"}).}
+\item{genes}{Character vector or string. Either a vector of gene names, matched exactly (e.g., \code{c("CD4", "CD8A")}), or a single regular expression, matched case-insensitively (e.g., \code{"^TR[AB][VD]"}, \code{"GZM"} or \code{"HLA-D[PQR]"}). A single string is used as a regular expression unless it is itself a gene name in \code{df}.}
 
 \item{id_col}{Character. The name of the column in \code{df} representing the experimental condition or identity to cluster on the y-axis. Default is "short_id".}
 
@@ -29,7 +29,7 @@ plot_gene_markers_with_dendro(
 
 \item{plot_title}{Character. The title displayed at the top of the dot plot. Default is "Marker Genes Plot".}
 
-\item{dendro_side}{Character. Which side of the dot plot to attach the dendrogram. Options are "left" or "right". Default is "right".}
+\item{dendro_side}{Character. Which side of the dot plot to attach the dendrogram: \code{"right"} (default) or \code{"left"}.}
 
 \item{label_space}{Numeric. The horizontal padding multiplier for the text labels on the dendrogram to prevent truncation. Default is 1.}
 
@@ -42,7 +42,7 @@ plot_gene_markers_with_dendro(
 \item{min_height}{Numeric. The absolute minimum height (in inches) for the saved plots. Default is 4.}
 }
 \value{
-Invisibly returns a list containing three \code{patchwork}/\code{ggplot} objects:
+Invisibly returns a list containing three \code{patchwork}/\code{ggplot} objects (\code{NULL}, with a message, when no gene matches; with a single condition, only the dot plot is drawn and saved, and \code{dendrogram} and \code{combined} are \code{NULL}):
 \itemize{
 \item \code{dotplot}: The gene expression dot plot.
 \item \code{dendrogram}: The hierarchical clustering dendrogram.

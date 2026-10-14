@@ -1,3 +1,26 @@
+# Internal: validate a combined marker table and prepare the condition id column
+#' @keywords internal
+#' @noRd
+.prepare_marker_table <- function(df, id_col, fun_name) {
+  if (length(id_col) != 1 || !(id_col %in% colnames(df))) {
+    stop("The specified id_col '", paste(id_col, collapse = ", "), "' does not exist in the data.", call. = FALSE)
+  }
+  required <- c("gene", "cluster", "avg_log2FC", "diff")
+  missing_cols <- setdiff(required, colnames(df))
+  if (length(missing_cols) > 0) {
+    stop(fun_name, "() needs the columns ", paste(required, collapse = ", "), " and '", id_col,
+         "'; missing: ", paste(missing_cols, collapse = ", "), ".", call. = FALSE)
+  }
+  df$gene <- as.character(df$gene)
+  df$y_id <- as.character(df[[id_col]])
+  n_na <- sum(is.na(df$y_id))
+  if (n_na > 0) {
+    message(" Dropping ", n_na, " row(s) with a missing '", id_col, "' value.")
+    df <- df[!is.na(df$y_id), , drop = FALSE]
+  }
+  df
+}
+
 #' Generate Split DotPlots and Global Dendrogram for Marker Genes
 #'
 #' Filters a differential expression results data frame for specific genes (via list or regex),
@@ -6,12 +29,12 @@
 #' gene-cluster combinations are automatically split into multiple chunked dotplots.
 #' All plots are automatically sized and saved directly to the specified output directory.
 #'
-#' @param df A data frame of differential expression results. Must contain the columns \code{gene}, \code{cluster}, \code{avg_log2FC}, \code{diff}, and the column specified in \code{id_col}.
+#' @param df A data frame of differential expression results. Must contain the columns \code{gene}, \code{cluster}, \code{avg_log2FC}, \code{diff}, and the column specified in \code{id_col}. Rows with a missing \code{id_col} value are dropped, and duplicated gene x cluster x condition rows are averaged.
 #' @param gene_list Character vector. A specific list of genes to filter and plot. Default is NULL.
 #' @param gene_regex Character string. A regular expression to match target genes (e.g., \code{"^TR[AB][VD]"} for T cell receptor genes or "^KLR" for Killer-cell receptors). Default is NULL.
 #' @param id_col Character string. The name of the column in \code{df} to map to the y-axis and use for hierarchical clustering. Default is "integration_method".
 #' @param output_dir Character. Directory path where the generated PNGs will be saved. Default is "Markers_Plots/Split".
-#' @param n_splits Integer. The number of parts to split the horizontal axis (gene-cluster pairs) into. Default is 4.
+#' @param n_splits Integer. The number of parts to split the horizontal axis (gene-cluster pairs) into. If there are fewer gene-cluster pairs than \code{n_splits}, one plot per pair is made instead. Default is 4.
 #' @param plot_title_prefix Character. The base string used for the title of each split plot. Default is "Gene DotPlot".
 #' @param width_scale Numeric. A scaling multiplier to dynamically calculate plot width based on the number of x-axis items. Default is 0.3.
 #' @param height_scale Numeric. A scaling multiplier to dynamically calculate plot height based on the number of y-axis items. Default is 0.5.
@@ -19,7 +42,9 @@
 #' @param min_height Numeric. The absolute minimum height (in inches) for the saved plots. Default is 5.
 #' @param label_space Numeric. The spatial padding multiplier for the text labels on the global dendrogram. Default is 1.
 #'
-#' @return Invisibly returns \code{NULL}. Plots are directly written to disk.
+#' @return Invisibly returns \code{NULL}. Plots are directly written to disk. When no gene matches, a message is shown and nothing is written. With a single condition, the dot plots are saved but no dendrogram is drawn.
+#'
+#' @details Numeric cluster ids are labelled \code{"gene (C<cluster>)"} and ordered numerically; other cluster labels (e.g. cell type names) are shown as \code{"gene (<cluster>)"} and ordered alphabetically. Genes are ordered by their mean \code{avg_log2FC}.
 #'
 #' @export
 #'
@@ -58,93 +83,112 @@ plot_split_dotplots_by_gene_cluster <- function(df,
                                                 min_width = 5,
                                                 min_height = 5,
                                                 label_space = 1) {
-  if (!(id_col %in% colnames(df))) {
-    stop("The specified id_col '", id_col, "' does not exist in the data.")
-  }
-
-  # Convert id_col to symbol for tidy evaluation
-  id_sym <- rlang::sym(id_col)
+  df <- .prepare_marker_table(df, id_col, "plot_split_dotplots_by_gene_cluster")
 
   # 1. Filter genes by list or regex
   df_filtered <- df %>%
-    mutate(gene = as.character(gene)) %>%
     filter(
       (if (!is.null(gene_list)) gene %in% gene_list else TRUE) &
         (if (!is.null(gene_regex)) str_detect(gene, stringr::regex(gene_regex, ignore_case = TRUE)) else TRUE)
-    ) %>%
-    dplyr::select(gene, cluster, !!id_sym, avg_log2FC, diff) %>%
-    mutate(
-      across(c(gene), as.character),
-      y_id = as.character(!!id_sym),
-      gene_cluster = paste0(gene, " (C", cluster, ")")
-    ) %>%
-    distinct(gene, cluster, gene_cluster, y_id, avg_log2FC, diff)
+    )
 
   if (nrow(df_filtered) == 0) {
     message(" No genes matched.")
     return(invisible(NULL))
   }
 
-  # 2. Order genes
+  # One value per gene x cluster x condition (duplicated rows are averaged)
+  n_before <- nrow(df_filtered)
+  df_filtered <- df_filtered %>%
+    group_by(gene, cluster, y_id) %>%
+    summarise(avg_log2FC = mean(avg_log2FC, na.rm = TRUE),
+              diff = mean(diff, na.rm = TRUE), .groups = "drop")
+  if (nrow(df_filtered) < n_before) {
+    message(" Averaged ", n_before - nrow(df_filtered),
+            " duplicated gene x cluster x condition row(s).")
+  }
+
+  # 2. Order genes by mean log2FC, then clusters (numerically when they are numbers)
   gene_order_only <- df_filtered %>%
     group_by(gene) %>%
     summarize(avg = mean(avg_log2FC, na.rm = TRUE), .groups = "drop") %>%
     arrange(avg) %>%
     pull(gene)
 
+  cluster_chr <- as.character(df_filtered$cluster)
+  numeric_clusters <- !anyNA(suppressWarnings(as.numeric(cluster_chr)))
+  cluster_rank <- if (numeric_clusters) as.numeric(cluster_chr) else match(cluster_chr, sort(unique(cluster_chr)))
+
   df_filtered <- df_filtered %>%
     mutate(
-      gene_cluster_label = gene_cluster,
-      gene_clean = gsub(" \\(C\\d+\\)$", "", gene_cluster_label),
-      cluster_num = as.integer(gsub("^.*\\(C(\\d+)\\)$", "\\1", gene_cluster_label)),
-      gene_clean = factor(gene_clean, levels = gene_order_only)
+      gene_cluster = if (numeric_clusters) paste0(gene, " (C", cluster_chr, ")") else paste0(gene, " (", cluster_chr, ")"),
+      gene_clean   = factor(gene, levels = gene_order_only),
+      cluster_rank = cluster_rank
     ) %>%
-    arrange(gene_clean, cluster_num)
+    arrange(gene_clean, cluster_rank)
 
-  df_filtered$gene_cluster <- factor(df_filtered$gene_cluster_label, levels = unique(df_filtered$gene_cluster_label))
+  df_filtered$gene_cluster <- factor(df_filtered$gene_cluster, levels = unique(df_filtered$gene_cluster))
 
-  # 3. Global dendrogram
-  mat_all <- df_filtered %>%
-    dplyr::select(y_id, gene_cluster, avg_log2FC) %>%
-    pivot_wider(names_from = gene_cluster, values_from = avg_log2FC, values_fill = 0) %>%
-    column_to_rownames("y_id") %>%
-    as.matrix()
-
-  dendro <- stats::hclust(dist(mat_all), method = "ward.D2")
-  dendro_data <- ggdendro::dendro_data(as.dendrogram(dendro), type = "rectangle")
-  y_order <- dendro$labels[dendro$order]
-
-  # Save global dendrogram
   timestamp <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-  dendro_path <- file.path(output_dir, paste0("Dendrogram_ALL_", timestamp, ".png"))
 
-  p_dendro <- ggplot() +
-    geom_segment(
-      data = ggdendro::segment(dendro_data),
-      aes(x = y, xend = yend, y = x, yend = xend)
-    ) +
-    geom_text(
-      data = ggdendro::label(dendro_data),
-      aes(x = -label_space * 4, y = x, label = label),
-      hjust = 0, size = 2.5
-    ) +
-    scale_x_continuous(expand = expansion(add = c(label_space, 0.5))) +
-    scale_y_continuous(expand = expansion(add = c(0.5, 0.5))) +
-    theme_bw() +
-    theme(
-      axis.text = element_blank(),
-      axis.ticks = element_blank(),
-      axis.title = element_blank(),
-      panel.grid = element_blank()
-    )
+  # 3. Global dendrogram (needs at least two conditions)
+  conditions <- unique(df_filtered$y_id)
+  if (length(conditions) < 2) {
+    message(" Only one condition ('", conditions, "') present: no dendrogram is drawn.")
+    y_order <- conditions
+  } else {
+    mat_all <- df_filtered %>%
+      dplyr::select(y_id, gene_cluster, avg_log2FC) %>%
+      pivot_wider(names_from = gene_cluster, values_from = avg_log2FC, values_fill = 0) %>%
+      column_to_rownames("y_id") %>%
+      as.matrix()
 
-  ggsave(dendro_path, p_dendro, width = 10, height = max(5, height_scale * length(y_order)), dpi = 300)
-  message("Global dendrogram saved: ", dendro_path)
+    dendro <- stats::hclust(dist(mat_all), method = "ward.D2")
+    dendro_data <- ggdendro::dendro_data(as.dendrogram(dendro), type = "rectangle")
+    y_order <- dendro$labels[dendro$order]
 
-  # 4. Split gene-cluster labels into chunks
+    # Save global dendrogram
+    dendro_path <- file.path(output_dir, paste0("Dendrogram_ALL_", timestamp, ".png"))
+
+    p_dendro <- ggplot() +
+      geom_segment(
+        data = ggdendro::segment(dendro_data),
+        aes(x = y, xend = yend, y = x, yend = xend)
+      ) +
+      geom_text(
+        data = ggdendro::label(dendro_data),
+        aes(x = -label_space * 4, y = x, label = label),
+        hjust = 0, size = 2.5
+      ) +
+      scale_x_continuous(expand = expansion(add = c(label_space, 0.5))) +
+      scale_y_continuous(expand = expansion(add = c(0.5, 0.5))) +
+      theme_bw() +
+      theme(
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.grid = element_blank()
+      )
+
+    ggsave(dendro_path, p_dendro, width = 10, height = max(5, height_scale * length(y_order)), dpi = 300)
+    message("Global dendrogram saved: ", dendro_path)
+  }
+
+  # 4. Split gene-cluster labels into chunks (never more chunks than labels, no empty chunks)
   gene_cluster_levels <- levels(df_filtered$gene_cluster)
-  chunks <- split(gene_cluster_levels, cut(seq_along(gene_cluster_levels), breaks = n_splits, labels = paste0("Part", 1:n_splits)))
+  n_chunks <- max(1, min(n_splits, length(gene_cluster_levels)))
+  if (n_chunks < n_splits) {
+    message(" Only ", length(gene_cluster_levels), " gene x cluster combination(s): using ",
+            n_chunks, " plot(s) instead of ", n_splits, ".")
+  }
+  chunks <- if (n_chunks == 1) {
+    list(Part1 = gene_cluster_levels)             # cut() cannot make a single interval
+  } else {
+    split(gene_cluster_levels,
+          cut(seq_along(gene_cluster_levels), breaks = n_chunks, labels = paste0("Part", seq_len(n_chunks))))
+  }
+  chunks <- chunks[lengths(chunks) > 0]
 
   # 5. Loop and plot each chunk
   for (part_name in names(chunks)) {
@@ -397,19 +441,19 @@ FindTopMarkersAndHeatmap <- function(
 #' and aligns it side-by-side with the hierarchical dendrogram using \code{patchwork}.
 #' The individual components and the combined layout are automatically saved to disk.
 #'
-#' @param df A data frame containing differential expression results. Must contain \code{gene}, \code{cluster}, \code{avg_log2FC}, \code{diff}, and the column specified in \code{id_col}.
-#' @param genes Character vector or string. Can be a specific vector of gene names (e.g., \code{c("CD4", "CD8A")}) or a single regular expression string (e.g., \code{"^TR[AB][VD]"}).
+#' @param df A data frame containing differential expression results. Must contain \code{gene}, \code{cluster}, \code{avg_log2FC}, \code{diff}, and the column specified in \code{id_col}. Rows with a missing \code{id_col} value are dropped.
+#' @param genes Character vector or string. Either a vector of gene names, matched exactly (e.g., \code{c("CD4", "CD8A")}), or a single regular expression, matched case-insensitively (e.g., \code{"^TR[AB][VD]"}, \code{"GZM"} or \code{"HLA-D[PQR]"}). A single string is used as a regular expression unless it is itself a gene name in \code{df}.
 #' @param id_col Character. The name of the column in \code{df} representing the experimental condition or identity to cluster on the y-axis. Default is "short_id".
 #' @param output_dir Character. Directory path where the generated PNGs will be saved. Default is "Markers_Plots".
 #' @param plot_title Character. The title displayed at the top of the dot plot. Default is "Marker Genes Plot".
-#' @param dendro_side Character. Which side of the dot plot to attach the dendrogram. Options are "left" or "right". Default is "right".
+#' @param dendro_side Character. Which side of the dot plot to attach the dendrogram: \code{"right"} (default) or \code{"left"}.
 #' @param label_space Numeric. The horizontal padding multiplier for the text labels on the dendrogram to prevent truncation. Default is 1.
 #' @param width_scale Numeric. A scaling multiplier to dynamically calculate plot width based on the number of genes. Default is 0.5.
 #' @param height_scale Numeric. A scaling multiplier to dynamically calculate plot height based on the number of conditions (\code{id_col}). Default is 0.5.
 #' @param min_width Numeric. The absolute minimum width (in inches) for the saved plots. Default is 5.
 #' @param min_height Numeric. The absolute minimum height (in inches) for the saved plots. Default is 4.
 #'
-#' @return Invisibly returns a list containing three \code{patchwork}/\code{ggplot} objects:
+#' @return Invisibly returns a list containing three \code{patchwork}/\code{ggplot} objects (\code{NULL}, with a message, when no gene matches; with a single condition, only the dot plot is drawn and saved, and \code{dendrogram} and \code{combined} are \code{NULL}):
 #' \itemize{
 #'   \item \code{dotplot}: The gene expression dot plot.
 #'   \item \code{dendrogram}: The hierarchical clustering dendrogram.
@@ -450,28 +494,25 @@ plot_gene_markers_with_dendro <- function(df, genes,
                                           height_scale = 0.5,
                                           min_width = 5,
                                           min_height = 4) {
-  # Check if id_col exists
-  if (!(id_col %in% colnames(df))) {
-    stop("The specified id_col '", id_col, "' does not exist in the data.")
-  }
+  dendro_side <- match.arg(tolower(dendro_side), c("right", "left"))
+  df <- .prepare_marker_table(df, id_col, "plot_gene_markers_with_dendro")
 
-  # Determine if genes is a regex
-  is_regex <- is.character(genes) && length(genes) == 1 && grepl("[\\^\\$|]", genes)
+  # A single string that is not itself a gene name is used as a regular expression
+  # (e.g. "^KIR", "GZM", "HLA-D[PQR]"); otherwise genes are matched exactly.
+  is_regex <- is.character(genes) && length(genes) == 1 && !(genes %in% df$gene)
 
   # 1. Filter and prepare
   df_igh <- if (is_regex) {
-    df %>%
-      filter(grepl(genes, gene, ignore.case = TRUE)) %>%
-      dplyr::select(gene, cluster, !!rlang::sym(id_col), avg_log2FC, diff)
+    df %>% filter(grepl(genes, gene, ignore.case = TRUE))
   } else {
-    df %>%
-      filter(gene %in% genes) %>%
-      dplyr::select(gene, cluster, !!rlang::sym(id_col), avg_log2FC, diff)
+    df %>% filter(gene %in% genes)
   }
+  df_igh <- df_igh %>% dplyr::select(gene, cluster, y_id, avg_log2FC, diff)
 
-  df_igh <- df_igh %>%
-    mutate(across(c(gene, !!rlang::sym(id_col)), as.character)) %>%
-    rename(y_id = !!rlang::sym(id_col))
+  if (nrow(df_igh) == 0) {
+    message(" No genes matched.")
+    return(invisible(NULL))
+  }
 
   # 2. Aggregate per gene and y_id
   df_igh <- df_igh %>%
@@ -483,15 +524,22 @@ plot_gene_markers_with_dendro <- function(df, genes,
       .groups = "drop"
     )
 
-  # 3. Hierarchical clustering on y_id
-  mat <- df_igh %>%
-    dplyr::select(y_id, gene, avg_log2FC) %>%
-    pivot_wider(names_from = gene, values_from = avg_log2FC, values_fill = 0) %>%
-    column_to_rownames("y_id") %>%
-    as.matrix()
+  # 3. Hierarchical clustering on y_id (needs at least two conditions)
+  conditions <- unique(df_igh$y_id)
+  has_dendro <- length(conditions) >= 2
+  if (has_dendro) {
+    mat <- df_igh %>%
+      dplyr::select(y_id, gene, avg_log2FC) %>%
+      pivot_wider(names_from = gene, values_from = avg_log2FC, values_fill = 0) %>%
+      column_to_rownames("y_id") %>%
+      as.matrix()
 
-  dendro <- stats::hclust(dist(mat), method = "ward.D2")
-  ordered_y <- dendro$labels[dendro$order]
+    dendro <- stats::hclust(dist(mat), method = "ward.D2")
+    ordered_y <- dendro$labels[dendro$order]
+  } else {
+    message(" Only one condition ('", conditions, "') present: no dendrogram is drawn.")
+    ordered_y <- conditions
+  }
   df_igh$y_id <- factor(df_igh$y_id, levels = ordered_y)
 
   # 4. Order genes by avg expression
@@ -530,6 +578,17 @@ plot_gene_markers_with_dendro <- function(df, genes,
       plot.title = element_text(face = "bold")
     )
 
+  # 9. Save the dot plot
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  timestamp <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
+  dot_path <- file.path(output_dir, paste0("DotPlot_", timestamp, ".png"))
+  ggsave(dot_path, p_dot, width = plot_width, height = plot_height, dpi = 300, limitsize = FALSE)
+  message("Dot plot saved: ", dot_path)
+
+  if (!has_dendro) {
+    return(invisible(list(dotplot = p_dot, dendrogram = NULL, combined = NULL)))
+  }
+
   # 7. Dendrogram
   dendro_data <- ggdendro::dendro_data(as.dendrogram(dendro), type = "rectangle")
 
@@ -545,7 +604,8 @@ plot_gene_markers_with_dendro <- function(df, genes,
       size = 2.5
     ) +
     scale_x_continuous(expand = expansion(add = c(label_space, 0.5))) +
-    scale_y_continuous(expand = expansion(add = c(0.5, 0.5))) +
+    # same span as the discrete y axis of the dot plot, so leaves line up with its rows
+    scale_y_continuous(limits = c(1, length(ordered_y)), expand = expansion(add = 0.6)) +
     theme_bw() +
     theme(
       axis.text = element_blank(),
@@ -555,25 +615,19 @@ plot_gene_markers_with_dendro <- function(df, genes,
     )
 
   # 8. Combine
-  if (tolower(dendro_side) == "left") {
+  if (dendro_side == "left") {
     combined_plot <- p_dendro + p_dot + patchwork::plot_layout(widths = c(1, 5))
   } else {
     combined_plot <- p_dot + p_dendro + patchwork::plot_layout(widths = c(5, 1))
   }
 
-  # 9. Save
-  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-  timestamp <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
-
-  dot_path <- file.path(output_dir, paste0("DotPlot_", timestamp, ".png"))
+  # 10. Save the dendrogram and the combined figure
   dendro_path <- file.path(output_dir, paste0("Dendrogram_", timestamp, ".png"))
   combined_path <- file.path(output_dir, paste0("DotPlot_with_Dendrogram_", timestamp, ".png"))
 
-  ggsave(dot_path, p_dot, width = plot_width, height = plot_height, dpi = 300, limitsize = FALSE)
   ggsave(dendro_path, p_dendro, width = 10, height = plot_height, dpi = 300)
   ggsave(combined_path, combined_plot, width = plot_width + 10, height = plot_height, dpi = 300, limitsize = FALSE)
 
-  message("Dot plot saved: ", dot_path)
   message("Dendrogram saved: ", dendro_path)
   message("Combined plot saved: ", combined_path)
 

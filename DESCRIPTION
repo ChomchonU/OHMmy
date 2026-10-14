@@ -32,7 +32,6 @@ Imports:
     pheatmap,
     progress,
     RColorBrewer,
-    rlang,
     rstatix,
     scales,
     Seurat,

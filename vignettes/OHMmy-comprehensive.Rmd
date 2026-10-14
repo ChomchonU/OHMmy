@@ -28,19 +28,12 @@ knitr::opts_chunk$set(
 
 ## Introduction
 
-**OHMmy** provides reproducible wrappers for a complete Seurat v5 scRNA-seq
-analysis: ambient-RNA removal with SoupX, normalisation and batch integration,
-diagnostics of technical noise, publication-ready visualisation, donor-aware
-statistics, and pathway enrichment. Every plotting function saves a
-timestamped, high-resolution file **and** returns the underlying ggplot or
-data, so OHMmy fits both batch scripts on an HPC cluster and interactive
-analysis.
+**OHMmy** provides reproducible wrappers for a complete Seurat v5 scRNA-seq analysis: ambient-RNA removal with SoupX, normalisation and batch integration, diagnostics of technical noise, publication-ready visualisation, donor-aware statistics, and pathway enrichment. Every plotting function saves a timestamped, high-resolution file **and** returns the underlying ggplot or data, so OHMmy fits both batch scripts on an HPC cluster and interactive analysis.
 
-This article gives a short, runnable tour of the main steps on one dataset. The
-other articles cover each module in depth:
+This article gives a short, runnable tour of the main steps on one dataset. The other articles cover each module in depth:
 
 | Article | Covers |
-|---------|--------|
+|----|----|
 | [Ambient RNA Decontamination with SoupX](OHMmy-soupx-workflow.html) | Reading Cell Ranger output, estimating and removing ambient RNA |
 | [Data Processing, Integration, and Clustering](OHMmy-processing-clustering.html) | LogNormalize / SCTransform pipelines, integration, resolution sweeps |
 | [Diagnostic and Variable Evaluation](OHMmy-diagnostics-evaluation.html) | PC heatmaps and loadings, technical-gene contribution, PC-covariate correlation |
@@ -90,12 +83,7 @@ knitr::kable(idx, row.names = FALSE)
 
 ## The example dataset
 
-All articles use the 10x Genomics **3k PBMC** dataset (pbmc3k). It is
-downloaded once and cached. The helper file `ohmmy-vignette-helpers.R` also
-spreads the cells across a **simulated cohort of 12 donors** (Healthy, Mild and
-Severe, in two sequencing batches), so that the cohort-level functions can be
-demonstrated. Monocyte-like cells were deliberately over-assigned to Mild and
-Severe donors. *The donor, severity, batch, age and sex columns are synthetic.*
+All articles use the 10x Genomics **3k PBMC** dataset (pbmc3k). It is downloaded once and cached. The helper file `ohmmy-vignette-helpers.R` also spreads the cells across a **simulated cohort of 12 donors** (Healthy, Mild and Severe, in two sequencing batches), so that the cohort-level functions can be demonstrated. Monocyte-like cells were deliberately over-assigned to Mild and Severe donors. *The donor, severity, batch, age and sex columns are synthetic.*
 
 ```{r libraries}
 library(Seurat)
@@ -109,8 +97,7 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
 ## 1. Load, QC and annotate the cohort
 
-Ambient-RNA removal with SoupX would normally come first. It needs the raw
-droplet matrices, so it is demonstrated separately in the SoupX article.
+Ambient-RNA removal with SoupX would normally come first. It needs the raw droplet matrices, so it is demonstrated separately in the SoupX article.
 
 ```{r load}
 pbmc <- CreateSeuratObject(pbmc3k_counts(), project = "pbmc3k", min.cells = 3, min.features = 200)
@@ -245,10 +232,9 @@ hallmark_unavailable_note()
 
 ## Where to go next
 
-* Clean your raw Cell Ranger output first: see the SoupX article.
-* Validate your PC choice before clustering: see the Diagnostics article.
-* For donor-aware differential expression, pseudo-bulk DESeq2 and its
-  visualisations are covered in the Differential Expression article.
+-   Clean your raw Cell Ranger output first: see the SoupX article.
+-   Validate your PC choice before clustering: see the Diagnostics article.
+-   For donor-aware differential expression, pseudo-bulk DESeq2 and its visualisations are covered in the Differential Expression article.
 
 ## Session information
 

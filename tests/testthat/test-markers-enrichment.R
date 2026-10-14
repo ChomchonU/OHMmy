@@ -203,3 +203,116 @@ test_that("FindTopMarkersAndHeatmap warns instead of failing when no markers are
   expect_equal(nrow(res$markers), 0)
   expect_length(written_files(out, recursive = TRUE), 0)
 })
+
+# Edge cases of the two marker-table plots ---------------------------------------
+
+toy_marker_table <- function() {
+  set.seed(1)
+  df <- expand.grid(gene = c("GZMB", "NKG7", "LYZ", "MS4A1"), cluster = c(0, 1, 2),
+                    cond = c("A", "B", "C"), stringsAsFactors = FALSE)
+  df$avg_log2FC <- stats::runif(nrow(df), 0.3, 3)
+  df$diff <- stats::runif(nrow(df), 0, 0.5)
+  df
+}
+
+capture_saved_plots <- function(expr) {
+  plots <- list()
+  testthat::with_mocked_bindings(
+    force(expr),
+    ggsave = function(filename, plot, ...) { plots[[basename(filename)]] <<- plot; invisible(filename) },
+    .package = "OHMmy"
+  )
+  plots
+}
+
+test_that("split dot plots order genes and label clusters when cluster names are not numbers", {
+  df <- toy_marker_table()
+  df$cluster <- c("CD4 T", "NK", "B")[match(df$cluster, 0:2)]
+
+  plots <- capture_saved_plots(expect_no_warning(suppressMessages(
+    plot_split_dotplots_by_gene_cluster(df, id_col = "cond", n_splits = 1, output_dir = tempfile()))))
+  labels <- levels(plots[[grep("^DotPlot_Part1", names(plots))]]$data$gene_cluster)
+
+  expect_true(all(grepl("^(GZMB|NKG7|LYZ|MS4A1) \\((CD4 T|NK|B)\\)$", labels)))   # no "C" prefix
+  gene_means <- sort(tapply(df$avg_log2FC, df$gene, mean))
+  expect_equal(unique(sub(" \\(.*$", "", labels)), names(gene_means))                # ordered by mean log2FC
+})
+
+test_that("split dot plots never write more (or empty) plots than gene x cluster combinations", {
+  df <- toy_marker_table()
+  df <- df[df$gene == "GZMB" & df$cluster %in% 0:1, ]
+  out <- test_out_dir("split_small")
+
+  expect_message(plot_split_dotplots_by_gene_cluster(df, id_col = "cond", n_splits = 4, output_dir = out),
+                 "instead of 4")
+  expect_length(written_files(out, "^DotPlot_Part"), 2)
+})
+
+test_that("split dot plots handle one condition, duplicated rows and missing ids", {
+  df <- toy_marker_table()
+  out <- test_out_dir("split_edge")
+
+  expect_message(plot_split_dotplots_by_gene_cluster(df[df$cond == "A", ], id_col = "cond", output_dir = out),
+                 "Only one condition")
+  expect_length(written_files(out, "^Dendrogram_ALL_"), 0)
+  expect_gt(length(written_files(out, "^DotPlot_Part")), 0)
+
+  dup <- rbind(df, transform(df, avg_log2FC = avg_log2FC + 1))
+  plots <- capture_saved_plots(expect_message(
+    plot_split_dotplots_by_gene_cluster(dup, id_col = "cond", n_splits = 1, output_dir = tempfile()),
+    "Averaged"))
+  part <- plots[[grep("^DotPlot_Part1", names(plots))]]$data
+  expect_equal(nrow(part), nrow(df))                                       # one row per combination
+  expect_equal(sort(part$avg_log2FC), sort(df$avg_log2FC + 0.5))           # duplicates averaged
+
+  na_id <- df; na_id$cond[1:3] <- NA
+  expect_message(plot_split_dotplots_by_gene_cluster(na_id, id_col = "cond", output_dir = tempfile()),
+                 "Dropping 3 row")
+  expect_error(plot_split_dotplots_by_gene_cluster(df[, names(df) != "diff"], id_col = "cond"),
+               "missing: diff")
+})
+
+test_that("marker dendro plot handles no matches, one condition, missing ids and bad input", {
+  df <- toy_marker_table()
+  out <- test_out_dir("marker_edge")
+
+  expect_message(res <- plot_gene_markers_with_dendro(df, genes = "NOT_A_GENE", id_col = "cond", output_dir = out),
+                 "No genes matched")
+  expect_null(res)
+
+  expect_message(res <- plot_gene_markers_with_dendro(df[df$cond == "A", ], genes = c("GZMB", "LYZ"),
+                                                      id_col = "cond", output_dir = out),
+                 "Only one condition")
+  expect_s3_class(res$dotplot, "ggplot")
+  expect_null(res$dendrogram)
+  expect_null(res$combined)
+
+  na_id <- df; na_id$cond[1:3] <- NA
+  expect_message(plot_gene_markers_with_dendro(na_id, genes = c("GZMB", "LYZ"), id_col = "cond", output_dir = out),
+                 "Dropping 3 row")
+  expect_error(plot_gene_markers_with_dendro(df[, names(df) != "diff"], genes = "LYZ", id_col = "cond"),
+               "missing: diff")
+  expect_error(plot_gene_markers_with_dendro(df, genes = "LYZ", id_col = "cond", dendro_side = "top"),
+               "should be one of")
+})
+
+test_that("marker dendro plot treats a single non-gene string as a regular expression", {
+  df <- toy_marker_table()
+  out <- test_out_dir("marker_regex")
+  genes_of <- function(genes) {
+    levels(suppressMessages(plot_gene_markers_with_dendro(df, genes = genes, id_col = "cond",
+                                                          output_dir = out))$dotplot$data$gene)
+  }
+  expect_setequal(genes_of("GZM|NKG"), c("GZMB", "NKG7"))       # regex with |
+  expect_equal(genes_of("GZM"), "GZMB")                          # plain prefix
+  expect_setequal(genes_of("[GL][ZY]"), c("GZMB", "LYZ"))        # character class
+  expect_equal(genes_of("LYZ"), "LYZ")                           # exact gene name stays exact
+})
+
+test_that("dendrogram leaves line up with the dot-plot rows in the combined figure", {
+  res <- suppressMessages(plot_gene_markers_with_dendro(toy_marker_table(), genes = c("GZMB", "LYZ", "NKG7"),
+                                                        id_col = "cond", output_dir = tempfile()))
+  dot_range <- ggplot2::ggplot_build(res$dotplot)$layout$panel_params[[1]]$y.range
+  den_range <- ggplot2::ggplot_build(res$dendrogram)$layout$panel_params[[1]]$y.range
+  expect_equal(den_range, dot_range)
+})

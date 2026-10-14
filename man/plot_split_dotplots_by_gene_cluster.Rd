@@ -20,7 +20,7 @@ plot_split_dotplots_by_gene_cluster(
 )
 }
 \arguments{
-\item{df}{A data frame of differential expression results. Must contain the columns \code{gene}, \code{cluster}, \code{avg_log2FC}, \code{diff}, and the column specified in \code{id_col}.}
+\item{df}{A data frame of differential expression results. Must contain the columns \code{gene}, \code{cluster}, \code{avg_log2FC}, \code{diff}, and the column specified in \code{id_col}. Rows with a missing \code{id_col} value are dropped, and duplicated gene x cluster x condition rows are averaged.}
 
 \item{gene_list}{Character vector. A specific list of genes to filter and plot. Default is NULL.}
 
@@ -30,7 +30,7 @@ plot_split_dotplots_by_gene_cluster(
 
 \item{output_dir}{Character. Directory path where the generated PNGs will be saved. Default is "Markers_Plots/Split".}
 
-\item{n_splits}{Integer. The number of parts to split the horizontal axis (gene-cluster pairs) into. Default is 4.}
+\item{n_splits}{Integer. The number of parts to split the horizontal axis (gene-cluster pairs) into. If there are fewer gene-cluster pairs than \code{n_splits}, one plot per pair is made instead. Default is 4.}
 
 \item{plot_title_prefix}{Character. The base string used for the title of each split plot. Default is "Gene DotPlot".}
 
@@ -45,7 +45,7 @@ plot_split_dotplots_by_gene_cluster(
 \item{label_space}{Numeric. The spatial padding multiplier for the text labels on the global dendrogram. Default is 1.}
 }
 \value{
-Invisibly returns \code{NULL}. Plots are directly written to disk.
+Invisibly returns \code{NULL}. Plots are directly written to disk. When no gene matches, a message is shown and nothing is written. With a single condition, the dot plots are saved but no dendrogram is drawn.
 }
 \description{
 Filters a differential expression results data frame for specific genes (via list or regex),
@@ -53,6 +53,9 @@ performs hierarchical clustering on the specified identity column based on avera
 and generates a global dendrogram. To prevent unreadable, overcrowded x-axes, the target
 gene-cluster combinations are automatically split into multiple chunked dotplots.
 All plots are automatically sized and saved directly to the specified output directory.
+}
+\details{
+Numeric cluster ids are labelled \code{"gene (C<cluster>)"} and ordered numerically; other cluster labels (e.g. cell type names) are shown as \code{"gene (<cluster>)"} and ordered alphabetically. Genes are ordered by their mean \code{avg_log2FC}.
 }
 \examples{
 \dontrun{

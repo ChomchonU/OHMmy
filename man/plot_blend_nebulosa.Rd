@@ -36,7 +36,7 @@ plot_blend_nebulosa(
 
 \item{blend_threshold}{Numeric. The scaling threshold (0 to 1) for the blended feature plot. Default is 0.1.}
 
-\item{min_cutoff}{Character or Numeric. The lowest expression cutoff before scaling (e.g., "q10"). Default is "q10".}
+\item{min_cutoff}{Character or Numeric. The lowest expression cutoff before scaling: a quantile such as "q10" or a numeric expression value. Default is "q10".}
 
 \item{output_dir}{Character. Directory path where the generated plots will be saved. Default is "Plots_blend_nebulosa".}
 

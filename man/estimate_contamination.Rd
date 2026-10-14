@@ -25,7 +25,7 @@ estimate_contamination(
 
 \item{sample_names}{Character vector. A list of sample identifiers corresponding to the names in the input lists.}
 
-\item{mulFac}{Numeric. Percentage points to add to the auto-estimated contamination fraction (e.g., \code{mulFac = 5} adds \code{0.05} to \code{rho}). Default is 0.}
+\item{mulFac}{Numeric. Percentage points to add to the auto-estimated contamination fraction (e.g., \code{mulFac = 5} adds \code{0.05} to \code{rho}). A final fraction above 0.5 is applied with a warning; above 1 is an error. Default is 0.}
 
 \item{manual_contam}{Character vector. Sample names to which the \code{mulFac} adjustment is applied. Only evaluated if \code{manual = TRUE}. Default is an empty list.}
 
@@ -50,6 +50,9 @@ allowing you to artificially increase the estimated contamination fraction
 (e.g., adding 5\% extra background removal) either globally across all samples
 or selectively for specific noisy samples. Finally, it applies the chosen
 correction method to remove the background noise and returns the cleaned count matrices.
+}
+\details{
+If \code{SoupX::autoEstCont()} fails for a sample (e.g. no suitable marker genes), a warning is issued and an estimated \code{rho} of 0 is used for that sample, so the remaining samples are still processed.
 }
 \examples{
 \dontrun{

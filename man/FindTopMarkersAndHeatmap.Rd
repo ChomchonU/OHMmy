@@ -57,7 +57,7 @@ FindTopMarkersAndHeatmap(
 A list containing four elements (returned invisibly, with \code{heatmap} and \code{output_dir} set to \code{NULL} and a warning, when Seurat finds no markers at all):
 \itemize{
 \item \code{top_markers}: A \code{tibble} of the highly filtered, top-scoring marker genes used for the heatmap.
-\item \code{heatmap}: The \code{ggplot} object of the generated \code{DoHeatmap}.
+\item \code{heatmap}: The \code{ggplot} object of the generated \code{DoHeatmap}, or \code{NULL} (with a warning) when no marker passes the thresholds.
 \item \code{markers}: A data frame of the full, unfiltered differential expression results.
 \item \code{output_dir}: A character string of the specific path where the files were saved.
 }

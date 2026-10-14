@@ -310,7 +310,7 @@ plot_dot_dendro <- function(
 #' @param prefix Character. A string used to filter the \code{group} column in \code{feature_df}. If \code{NULL}, it automatically derives the prefix by removing "label_" from \code{meta_col}. Default is NULL.
 #' @param max_genes_per_plot Integer. The maximum number of genes to display per plot. If the filtered gene list exceeds this number, the output is split into multiple chunked plots. Default is NULL (no splitting).
 #'
-#' @return A list of \code{patchwork} objects, where each element represents a specific chunk of the x-axis (dot plot) combined with the global row (cluster) dendrogram.
+#' @return A list of \code{patchwork} objects, where each element represents a specific chunk of the x-axis (dot plot) combined with the global row (cluster) dendrogram, or \code{NULL} (with a message) when fewer than two clusters or genes remain after filtering.
 #'
 #' @export
 #'
@@ -431,6 +431,10 @@ plot_dot_dendro_split <- function(
     as.matrix()
 
   # --- Hierarchical clustering ---
+  if (nrow(mat_avg_filt) < 2 || ncol(mat_avg_filt) < 2) {
+    message(" Not enough clusters or genes left after filtering. Skipping plot.")
+    return(NULL)
+  }
   row_hc <- hclust(dist(mat_avg_filt))
   col_hc <- hclust(dist(t(mat_avg_filt)))
 
@@ -541,7 +545,7 @@ plot_dot_dendro_split <- function(
 #' @param range Numeric vector of length 2. The minimum and maximum point sizes for the dots (\code{scale_radius}). Default is \code{c(0.25, 6)}.
 #' @param save_options Character vector. Defines which specific outputs to generate and save. Options include "combined", "col_dend", "row_dend", and "gene_list". Default includes all four.
 #'
-#' @return Invisibly returns a \code{tibble} containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in \code{ggplot2}). The clustering behind the dendrograms is attached as attributes: \code{"dendro_matrix"} (groups x genes matrix of scaled average expression), \code{"row_hclust"} and \code{"col_hclust"} (the \code{hclust} trees for groups and genes). Pass the result to \code{\link{cluster_dot_dendro}()} to cut these trees into clusters.
+#' @return Invisibly returns a \code{tibble} containing the filtered, long-format data used to generate the plots (useful for custom downstream plotting in \code{ggplot2}). The clustering behind the dendrograms is attached as attributes: \code{"dendro_matrix"} (groups x genes matrix of scaled average expression), \code{"row_hclust"} and \code{"col_hclust"} (the \code{hclust} trees for groups and genes). Pass the result to \code{\link{cluster_dot_dendro}()} to cut these trees into clusters. Returns \code{NULL} (with a message) when fewer than two groups or genes remain after filtering.
 #'
 #' @export
 #'
@@ -625,6 +629,10 @@ plot_dot_dendro_multi <- function(
     tibble::column_to_rownames("cluster_var") %>%
     as.matrix()
 
+  if (nrow(mat_avg) < 2 || ncol(mat_avg) < 2) {
+    message(" Not enough groups or genes left after filtering. Skipping plot.")
+    return(NULL)
+  }
   row_hc <- hclust(dist(mat_avg))
   col_hc <- hclust(dist(t(mat_avg)))
 

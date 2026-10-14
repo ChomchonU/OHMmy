@@ -87,12 +87,21 @@ plot_cell_abundance <- function(seurat_obj, sample_col, condition_col, celltype_
     ) %>%
     tidyr::drop_na()
 
-  # Calculate proportions
+  # Each sample should belong to one condition; otherwise its proportions would be
+  # split across conditions and no longer sum to 1 within either
+  multi <- md %>% distinct(Sample, Condition) %>% count(Sample) %>% filter(n > 1) %>% pull(Sample)
+  if (length(multi) > 0) {
+    warning("Sample(s) assigned to more than one condition: ", paste(multi, collapse = ", "),
+            ". Proportions are computed separately for each sample x condition combination.",
+            call. = FALSE)
+  }
+
+  # Calculate proportions (per sample, within its condition)
   abundance_df <- md %>%
     group_by(Sample, Condition, CellType) %>%
     summarise(Count = n(), .groups = 'drop') %>%
     tidyr::complete(tidyr::nesting(Sample, Condition), CellType, fill = list(Count = 0)) %>%
-    group_by(Sample) %>%
+    group_by(Sample, Condition) %>%
     mutate(Proportion = Count / sum(Count)) %>%
     ungroup()
 
@@ -437,6 +446,16 @@ plot_metadata_stats <- function(seurat_obj,
   patient_md <- seurat_obj@meta.data %>%
     select(all_of(cols_to_keep)) %>%
     distinct()
+
+  # Sample-level values must be constant within a sample; otherwise the sample would
+  # be counted once per distinct value. Keep its first value and warn.
+  dup_samples <- unique(patient_md[[sample_col]][duplicated(patient_md[[sample_col]])])
+  if (length(dup_samples) > 0) {
+    warning("Metadata values are not constant within sample(s): ", paste(dup_samples, collapse = ", "),
+            ". The first value of each sample is used, so every sample is counted once.",
+            call. = FALSE)
+    patient_md <- patient_md[!duplicated(patient_md[[sample_col]]), , drop = FALSE]
+  }
 
   plot_list <- list()
   stat_results <- list()

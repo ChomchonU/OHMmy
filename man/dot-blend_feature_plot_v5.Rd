@@ -29,7 +29,7 @@
 
 \item{blend_threshold}{Numeric. A scaling threshold (0 to 1) below which normalized expression values are visually suppressed to 0. Default is 0.1.}
 
-\item{min_cutoff}{Character or Numeric. The lowest expression cutoff (e.g., "q10" for the 10th quantile). Values below this are set to zero before scaling. Default is "q10".}
+\item{min_cutoff}{Character or Numeric. The lowest expression cutoff: a quantile such as "q10" (10th quantile) or a numeric expression value. Values below this are set to zero before scaling. Default is "q10".}
 
 \item{gamma}{Numeric. The exponent used to adjust the brightness and saturation of the blended colors. Default is 1.}
 

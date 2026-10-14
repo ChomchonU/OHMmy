@@ -50,29 +50,6 @@ test_that("prepare_soupx_inputs bundles counts, channels and clustered objects",
   expect_length(prep$manual_contam, 0)
 })
 
-# estimate_contamination() with SoupX's estimation mocked to a fixed rho = 0.05,
-# so that only OHMmy's adjustment logic is tested.
-mock_contamination_inputs <- function() {
-  samples <- c("S1", "S2")
-  toc <- lapply(1:2, function(i) synthetic_counts(seed = i))
-  names(toc) <- samples
-  tod <- lapply(toc, function(m) {
-    set.seed(10)
-    empty <- Matrix::Matrix(matrix(stats::rpois(nrow(m) * 300, 0.05), nrow(m), 300,
-                                   dimnames = list(rownames(m), paste0("EMPTY", 1:300, "-1"))),
-                            sparse = TRUE)
-    cbind(m, empty)
-  })
-  soup <- lapply(samples, function(s) quietly(SoupX::SoupChannel(tod[[s]], toc[[s]])))
-  names(soup) <- samples
-  seur <- lapply(toc, function(m) {
-    o <- suppressWarnings(SeuratObject::CreateSeuratObject(m))
-    o$seurat_clusters <- factor(rep(0:1, length.out = ncol(o)))
-    o
-  })
-  list(samples = samples, toc = toc, soup = soup, seur = seur)
-}
-
 test_that("estimate_contamination applies mulFac globally or selectively", {
   local_mocked_bindings(
     setClusters  = function(sc, clusters) sc,
@@ -98,7 +75,7 @@ test_that("run_soupx_post_clustering restricts multiFac to manual_contam samples
     setClusters  = function(sc, clusters) sc,
     autoEstCont  = function(sc, ...) { sc$metaData$rho <- 0.05; sc },
     adjustCounts = function(sc, ...) sc$toc,
-    create_final_seurat = function(soup_list_all, sample_names) {
+    create_final_seurat = function(soup_list_all, sample_names, ...) {
       stats::setNames(as.list(sample_names), sample_names)
     }
   )

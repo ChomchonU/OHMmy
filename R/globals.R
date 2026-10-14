@@ -12,7 +12,7 @@ utils::globalVariables(c(
   "facet_max", "..p..", "Batch", "Freq", "prop_batch", "prop_level",
   "group", "feature", "avg.exp.scaled", "pct_exp", "avg_exp", "y", "x",
   "yend", "xend", "label", "var", "cluster_var", "gene", "y_id", "avg",
-  ".data", "Correlation", "..p.format..", "gene_cluster",
+  ".data", "Correlation", "N_Cells", "..p.format..", "gene_cluster",
   "gene_cluster_label", "gene_clean", "cluster_num", "NTopGenes",
   "WeightedPercentTechnical", "Direction", "color_flag", "PC",
   "PercentTechnical", "progress_bar", "core_enrichment", "setSize",

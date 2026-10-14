@@ -33,7 +33,7 @@ plot_dot_dendro_split(
 \item{max_genes_per_plot}{Integer. The maximum number of genes to display per plot. If the filtered gene list exceeds this number, the output is split into multiple chunked plots. Default is NULL (no splitting).}
 }
 \value{
-A list of \code{patchwork} objects, where each element represents a specific chunk of the x-axis (dot plot) combined with the global row (cluster) dendrogram.
+A list of \code{patchwork} objects, where each element represents a specific chunk of the x-axis (dot plot) combined with the global row (cluster) dendrogram, or \code{NULL} (with a message) when fewer than two clusters or genes remain after filtering.
 }
 \description{
 An extension of the bidirectionally clustered DotPlot, specifically designed to handle

@@ -556,7 +556,7 @@ make_cluster_palette <- function(n, palette = "auto") {
     "#F3C300","#875692","#F38400","#A1CAF1","#BE0032","#C2B280",
     "#848482","#008856","#E68FAC","#0067A5","#F99379","#604E97",
     "#F6A600","#B3446C","#DCD300","#882D17","#8DB600","#654522",
-    "#E25822","#2B3D26","#F2F3F4","#222222","#F3C300","#875692"
+    "#E25822","#2B3D26","#7ED7D1","#222222","#FE00FA","#1C7F93"
   )
 
   discrete_palettes <- list(
@@ -570,9 +570,9 @@ make_cluster_palette <- function(n, palette = "auto") {
     "polychrome" = c("#5A5156","#E4E1E3","#F6222E","#FE00FA","#16FF32",
                      "#3283FE","#FEAF16","#B00068","#1CFFCE","#90AD1C",
                      "#2ED9FF","#AA0DFE","#F8A19F","#325A9B","#C4451C",
-                     "#1CBE4F","#DEA0FD","#F6222E","#1C8356","#85660D",
+                     "#1CBE4F","#DEA0FD","#AAF400","#1C8356","#85660D",
                      "#B10DA1","#FBE426","#FA0087","#C075A6","#782AB6",
-                     "#565656","#FC1CBF","#3283FE","#FEAF16","#565656"),
+                     "#565656","#FC1CBF","#822E1C","#1C7F93","#D85FF7"),
     "auto"       = NULL  # triggers the hybrid approach below
   )
 
@@ -621,6 +621,9 @@ make_cluster_palette <- function(n, palette = "auto") {
 #' @param dpi Numeric. The resolution of the saved plots. Default is 300.
 #' @param add_timestamp Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.
 #' @param verbose Logical. Whether to print progress messages and display a progress bar. Default is TRUE.
+#' @param min_cells Integer. Minimum number of cells (after quantile filtering) a cluster
+#'   needs for its correlation to be reported. Clusters with fewer cells get an \code{NA}
+#'   correlation (two cells always correlate at +/-1). Default is 3.
 #'
 #' @return A list containing three elements:
 #' \itemize{
@@ -667,7 +670,8 @@ plot_gene_pair_correlations <- function(seurat_obj,
                                         height = 8,
                                         dpi = 300,
                                         add_timestamp = TRUE,
-                                        verbose = TRUE) {
+                                        verbose = TRUE,
+                                        min_cells = 3) {
 
   # -- Validation ----------------------------------------------------------------
   if (!is.list(gene_pairs) || !all(lengths(gene_pairs) == 2)) {
@@ -732,7 +736,8 @@ plot_gene_pair_correlations <- function(seurat_obj,
         N_Cells     = n(),
         Pair        = pair_name,
         .groups     = "drop"
-      )
+      ) %>%
+      mutate(Correlation = ifelse(N_Cells < min_cells, NA_real_, Correlation))
 
     cor_results[[i]] <- cor_df
     if (verbose) setTxtProgressBar(pb, i)
@@ -815,7 +820,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
 #' @param reduction Character. The dimensionality reduction to visualize (e.g., "umap", "pca").
 #' @param cols Character vector of length 3. Specifies the colors for the background (double-negative), gene 1, and gene 2. Default is c("lightgrey", "#00ff00", "#ff0000").
 #' @param blend_threshold Numeric. A scaling threshold (0 to 1) below which normalized expression values are visually suppressed to 0. Default is 0.1.
-#' @param min_cutoff Character or Numeric. The lowest expression cutoff (e.g., "q10" for the 10th quantile). Values below this are set to zero before scaling. Default is "q10".
+#' @param min_cutoff Character or Numeric. The lowest expression cutoff: a quantile such as "q10" (10th quantile) or a numeric expression value. Values below this are set to zero before scaling. Default is "q10".
 #' @param gamma Numeric. The exponent used to adjust the brightness and saturation of the blended colors. Default is 1.
 #' @param pt_size Numeric. The point size for cells in the scatter plots. Default is 1.
 #'
@@ -852,14 +857,16 @@ plot_gene_pair_correlations <- function(seurat_obj,
   df        <- as.data.frame(emb[, 1:2])
   colnames(df) <- c("DIM1", "DIM2")
 
-  # -- Expression (v5 uses layer=, v4 used slot=) --------------------------------
-  expr_mat <- tryCatch(
-    GetAssayData(seurat_obj, layer = "data"),
-    error = function(e) GetAssayData(seurat_obj, slot = "data")
+  # -- Expression (v5 uses layer=, v4 used slot=; works with split layers) ---------
+  key  <- SeuratObject::Key(seurat_obj[[DefaultAssay(seurat_obj)]])
+  vars <- paste0(key, c(gene1, gene2))
+  expr_df <- tryCatch(
+    FetchData(seurat_obj, vars = vars, cells = rownames(df), layer = "data"),
+    error = function(e) FetchData(seurat_obj, vars = vars, cells = rownames(df), slot = "data")
   )
 
-  e1 <- as.numeric(expr_mat[gene1, rownames(df)])
-  e2 <- as.numeric(expr_mat[gene2, rownames(df)])
+  e1 <- as.numeric(expr_df[rownames(df), vars[1]])
+  e2 <- as.numeric(expr_df[rownames(df), vars[2]])
 
   # -- Apply quantile min-cutoff -------------------------------------------------
   apply_cutoff <- function(x, co) {
@@ -867,6 +874,8 @@ plot_gene_pair_correlations <- function(seurat_obj,
       q      <- as.numeric(sub("q", "", co)) / 100
       thresh <- quantile(x, q, na.rm = TRUE)
       x[x < thresh] <- 0
+    } else if (is.numeric(co) && length(co) == 1 && !is.na(co)) {
+      x[x < co] <- 0
     }
     x
   }
@@ -992,7 +1001,7 @@ plot_gene_pair_correlations <- function(seurat_obj,
 #' @param reduction Character. The dimensionality reduction to visualize (e.g., "umap.cca"). Default is "umap.cca".
 #' @param blend_cols Character vector of length 3. Colors for the background, gene 1, and gene 2 in the blend plot. Default is \code{c("lightgrey", "#00ff00", "#ff0000")}.
 #' @param blend_threshold Numeric. The scaling threshold (0 to 1) for the blended feature plot. Default is 0.1.
-#' @param min_cutoff Character or Numeric. The lowest expression cutoff before scaling (e.g., "q10"). Default is "q10".
+#' @param min_cutoff Character or Numeric. The lowest expression cutoff before scaling: a quantile such as "q10" or a numeric expression value. Default is "q10".
 #' @param output_dir Character. Directory path where the generated plots will be saved. Default is "Plots_blend_nebulosa".
 #' @param save_format Character. The file format for the saved plots ("jpg", "png", or "pdf"). Default is "jpg".
 #' @param width Numeric. The base width of the saved plot. Note: Default is 36 inches to accommodate 6 horizontal panels.
@@ -1066,6 +1075,13 @@ plot_blend_nebulosa <- function(seurat_obj,
 
   valid_pairs <- Filter(function(p) all(p %in% rownames(seurat_obj)), gene_pairs)
   if (length(valid_pairs) == 0) stop("No valid gene pairs after filtering.")
+
+  # Nebulosa reads a single data layer; join split (Seurat v5) layers on this local copy
+  assay <- DefaultAssay(seurat_obj)
+  if (inherits(seurat_obj[[assay]], "Assay5") &&
+      length(SeuratObject::Layers(seurat_obj[[assay]], search = "data")) > 1) {
+    seurat_obj[[assay]] <- SeuratObject::JoinLayers(seurat_obj[[assay]])
+  }
 
   # -- Layout math ---------------------------------------------------------------
   n_panels_per_row <- 6

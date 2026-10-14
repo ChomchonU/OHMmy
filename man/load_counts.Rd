@@ -22,7 +22,8 @@ A named list containing two top-level elements:
 }
 \description{
 Batch loads 10x Genomics formatted sparse matrices (matrix, features, and barcodes)
-for multiple samples. It simultaneously reads both the 'filtered' (cell-containing)
+for multiple samples. Both Cell Ranger v3 (\code{features.tsv.gz}) and v2
+(\code{genes.tsv}, gzipped or not) layouts are supported. It simultaneously reads both the 'filtered' (cell-containing)
 and 'raw' (all droplets) outputs from Cell Ranger using Seurat's \code{ReadMtx}.
 Loading both matrices is highly useful for downstream ambient RNA decontamination
 workflows (such as SoupX) that require the empty droplet background to estimate

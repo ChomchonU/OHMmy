@@ -290,8 +290,10 @@ plot_technical_contribution <- function(seurat_obj,
     pc_name <- actual_pc_names[i]
     pc_load <- pca_loadings[, i]
 
-    pos_genes <- names(sort(pc_load, decreasing = TRUE)[1:(n_top_genes / 2)])
-    neg_genes <- names(sort(pc_load, decreasing = FALSE)[1:(n_top_genes / 2)])
+    # Never ask for more genes than the loadings contain (would give NA gene names)
+    half_n <- min(n_top_genes / 2, length(pc_load))
+    pos_genes <- names(sort(pc_load, decreasing = TRUE)[1:half_n])
+    neg_genes <- names(sort(pc_load, decreasing = FALSE)[1:half_n])
 
     for (direction in c("Positive", "Negative")) {
       genes <- if (direction == "Positive") pos_genes else neg_genes
@@ -427,7 +429,7 @@ plot_stacked_technical_contribution <- function(
   step <- 0
 
   for (n_top in gene_depths) {
-    half_n <- floor(n_top / 2)
+    half_n <- min(floor(n_top / 2), nrow(pca_loadings))
     if (half_n == 0) next
 
     for (i in 1:num_pcs) {
@@ -578,6 +580,12 @@ plot_pc_metadata_correlation <- function(
             ". To test a gene, copy it into the metadata first, e.g. ",
             "seurat_obj$MALAT1_expr <- FetchData(seurat_obj, \"MALAT1\")[, 1].")
     vars_to_test <- setdiff(vars_to_test, missing_vars)
+  }
+  non_numeric <- vars_to_test[!vapply(vars_to_test, function(v) is.numeric(seurat_obj@meta.data[[v]]), logical(1))]
+  if (length(non_numeric) > 0) {
+    warning("Skipping non-numeric metadata columns (a correlation needs numbers): ",
+            paste(non_numeric, collapse = ", "), call. = FALSE)
+    vars_to_test <- setdiff(vars_to_test, non_numeric)
   }
   if (length(vars_to_test) < 2) {
     stop("At least two metadata columns are needed for the clustered correlation heatmap.")

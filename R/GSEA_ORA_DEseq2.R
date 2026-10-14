@@ -1199,7 +1199,7 @@ get_top_mixed_genes <- function(res_obj, n_padj = 40, n_lfc = 40) {
 #' @param ts Character. A timestamp string appended to the filename for version control.
 #' @param clus Character. An optional identifier (e.g., "CD8_T_Cells") used in the filename if looping across multiple subsets or clusters. Default is "all".
 #'
-#' @return Invisibly returns the path of the saved PNG, or \code{NULL} when fewer than two significant genes are available. The function is called for its side effect of saving the combined plot to disk.
+#' @return Invisibly returns the path of the saved PNG, or \code{NULL} when fewer than two significant genes are available (genes with constant expression across the samples are dropped first, with a message). The function is called for its side effect of saving the combined plot to disk.
 #'
 #' @export
 #'
@@ -1246,6 +1246,21 @@ generate_and_save_heatmap <- function(res_obj, comp_name, comp_title, vsd_data, 
   }
   heatmap_data <- expr_mat[target_genes, ordered_samps, drop = FALSE]
 
+  # Row scaling divides by the row SD, so constant genes would become NaN and break
+  # the clustering. Drop them (they carry no pattern to show).
+  row_sd <- apply(heatmap_data, 1, stats::sd, na.rm = TRUE)
+  constant <- is.na(row_sd) | row_sd == 0
+  if (any(constant)) {
+    message("  Dropping ", sum(constant), " gene(s) with constant expression across samples: ",
+            paste(head(rownames(heatmap_data)[constant], 10), collapse = ", "),
+            if (sum(constant) > 10) ", ..." else "")
+    heatmap_data <- heatmap_data[!constant, , drop = FALSE]
+  }
+  if (nrow(heatmap_data) < 2) {
+    message("  Fewer than 2 variable genes left for ", comp_name, "; heatmap skipped.")
+    return(invisible(NULL))
+  }
+
   # 3. Setup Labels & Titles
   custom_row_labels <- rownames(heatmap_data)
   title_A <- paste0(comp_title, "\nTop Padj = ", n_padj, " genes | Top LFC = ", n_lfc, " genes")
@@ -1282,7 +1297,7 @@ generate_and_save_heatmap <- function(res_obj, comp_name, comp_title, vsd_data, 
 
   # DYNAMIC HEIGHT: Roughly 0.15 inches per gene, min 10, max 100
   # This prevents 2000 genes from turning into a black smudge
-  plot_height <- max(10, min(100, length(target_genes) * 0.15))
+  plot_height <- max(10, min(100, nrow(heatmap_data) * 0.15))
 
   ggsave(filename = heatmap_filename,
          plot = combined_heatmaps,

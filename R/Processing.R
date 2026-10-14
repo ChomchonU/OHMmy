@@ -161,7 +161,7 @@ ClusterAndUMAP <- function(seurat_obj,
                            dpi = 300) {
 
   # Metadata column name Seurat uses for a given resolution (e.g. "RNA_snn_res.0.5", "RNA_snn_res.1")
-  res_col_name <- function(res) sub("\\.0$", "", paste0(cluster_prefix, format(res, nsmall = 1)))
+  res_col_name <- function(res) paste0(cluster_prefix, res)
 
   # Step 1: Find Neighbors
   run_neighbors <- force_neighbors || !(graph_name %in% names(seurat_obj@graphs))
@@ -222,10 +222,20 @@ ClusterAndUMAP <- function(seurat_obj,
   if (!umap_name %in% names(seurat_obj@reductions)) {
     message("[", sample_name, "] Running UMAP + clustering at final resolution = ", final_resolution)
     seurat_obj <- seurat_obj %>%
-      FindClusters(resolution = final_resolution, graph.name = graph_name) %>%
+      FindClusters(resolution = final_resolution, graph.name = graph_name, algorithm = algorithm) %>%
       RunUMAP(dims = dims, reduction = reduction, reduction.name = umap_name, return.model = return.model)
   } else {
     message("[", sample_name, "] UMAP '", umap_name, "' already exists.")
+    # Make the final resolution the active clustering (the sweep may have left another one active)
+    final_col <- res_col_name(final_resolution)
+    if (final_col %in% colnames(seurat_obj@meta.data) && !force_clustering) {
+      seurat_obj$seurat_clusters <- seurat_obj@meta.data[[final_col]]
+      Idents(seurat_obj) <- final_col
+    } else {
+      seurat_obj <- FindClusters(seurat_obj, resolution = final_resolution, graph.name = graph_name,
+                                 algorithm = algorithm)
+    }
+    message("[", sample_name, "] Active clusters set to resolution ", final_resolution, ".")
   }
 
   # Step 5: Save Seurat object

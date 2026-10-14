@@ -265,7 +265,7 @@ plot_split_dotplots_by_gene_cluster <- function(df,
 #' @return A list containing four elements (returned invisibly, with \code{heatmap} and \code{output_dir} set to \code{NULL} and a warning, when Seurat finds no markers at all):
 #' \itemize{
 #'   \item \code{top_markers}: A \code{tibble} of the highly filtered, top-scoring marker genes used for the heatmap.
-#'   \item \code{heatmap}: The \code{ggplot} object of the generated \code{DoHeatmap}.
+#'   \item \code{heatmap}: The \code{ggplot} object of the generated \code{DoHeatmap}, or \code{NULL} (with a warning) when no marker passes the thresholds.
 #'   \item \code{markers}: A data frame of the full, unfiltered differential expression results.
 #'   \item \code{output_dir}: A character string of the specific path where the files were saved.
 #' }
@@ -386,10 +386,16 @@ FindTopMarkersAndHeatmap <- function(
     group_by(cluster) %>%
     slice_max(order_by = score, n = top_n)
 
-  message(" [", sample_name, "] Plotting heatmap...")
-
-  heatmap <- DoHeatmap(seurat_obj, features = top_markers$gene, assay = active_assay) +
-    ggtitle(paste0("Top Markers - ", sample_name))
+  # No marker passed the thresholds: still save the marker tables, but no heatmap
+  if (nrow(top_markers) == 0) {
+    warning("[", sample_name, "] No markers passed the thresholds, so no heatmap was drawn. ",
+            "The marker tables are still written.", call. = FALSE)
+    heatmap <- NULL
+  } else {
+    message(" [", sample_name, "] Plotting heatmap...")
+    heatmap <- DoHeatmap(seurat_obj, features = top_markers$gene, assay = active_assay) +
+      ggtitle(paste0("Top Markers - ", sample_name))
+  }
 
   # Prepare output path
   sample_path <- gsub("\\|", "/", sample_name)
@@ -414,12 +420,14 @@ FindTopMarkersAndHeatmap <- function(
   top_markers_file <- file.path(output_dir, paste0(file_base, "_top_markers_",onlyPos,".csv"))
 
   # --- Save outputs ---
-  ggsave(heatmap_file, plot = heatmap, width = width, height = height, dpi = dpi)
+  if (!is.null(heatmap)) {
+    ggsave(heatmap_file, plot = heatmap, width = width, height = height, dpi = dpi)
+  }
   write.csv(markers, markers_file, row.names = FALSE)
   write.csv(markers, markers_GSEA_file, row.names = FALSE)
   write.csv(top_markers, top_markers_file, row.names = FALSE)
 
-  message("[", sample_name, "] Heatmap saved to: ", heatmap_file)
+  if (!is.null(heatmap)) message("[", sample_name, "] Heatmap saved to: ", heatmap_file)
   message("[", sample_name, "] Marker tables saved to: ", output_dir)
 
   return(list(

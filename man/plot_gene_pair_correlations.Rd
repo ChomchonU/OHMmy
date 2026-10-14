@@ -18,7 +18,8 @@ plot_gene_pair_correlations(
   height = 8,
   dpi = 300,
   add_timestamp = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  min_cells = 3
 )
 }
 \arguments{
@@ -49,6 +50,10 @@ plot_gene_pair_correlations(
 \item{add_timestamp}{Logical. Whether to append the current date and time to the saved filenames. Default is TRUE.}
 
 \item{verbose}{Logical. Whether to print progress messages and display a progress bar. Default is TRUE.}
+
+\item{min_cells}{Integer. Minimum number of cells (after quantile filtering) a cluster
+needs for its correlation to be reported. Clusters with fewer cells get an \code{NA}
+correlation (two cells always correlate at +/-1). Default is 3.}
 }
 \value{
 A list containing three elements:

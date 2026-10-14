@@ -4,12 +4,14 @@
 \alias{create_final_seurat}
 \title{Initialize Final Seurat Objects from Decontaminated Counts}
 \usage{
-create_final_seurat(soup_list_all, sample_names)
+create_final_seurat(soup_list_all, sample_names, corrected_list = NULL)
 }
 \arguments{
 \item{soup_list_all}{A named list of \code{SoupChannel} objects that have their contamination fraction (\code{rho}) set. Typically the \code{soup_list_all} element returned by \code{estimate_contamination()}.}
 
 \item{sample_names}{Character vector. A list of sample identifiers used to match the list elements and assign the \code{project} name to each Seurat object.}
+
+\item{corrected_list}{Optional named list of corrected count matrices, typically the \code{corrected_list} element returned by \code{estimate_contamination()}. When given, these matrices (corrected with the method and \code{pCut} chosen there) are used; otherwise the counts are corrected with SoupX's default method. Default is \code{NULL}.}
 }
 \value{
 A named list of initialized \code{Seurat} objects containing the decontaminated count matrices and a newly appended \code{mitoPercent} metadata column.

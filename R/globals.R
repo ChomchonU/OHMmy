@@ -21,5 +21,7 @@ utils::globalVariables(c(
   "g1", "g2", "Cluster",
   # score_consensus() plotting columns
   "sc_Class", "Score_Type", "Score_Value", "cell_id", "Variant_1", "Variant_2",
-  "Agreement", "Confirm", "Primary", "variant", "ci_lo", "ci_hi", "observed"
+  "Agreement", "Confirm", "Primary", "variant", "ci_lo", "ci_hi", "observed",
+  # analyze_and_save_clusters() summary columns
+  "Pipeline", "Resolution", "Num_Clusters", "Full_Column", "Min_Cluster_Size"
 ))

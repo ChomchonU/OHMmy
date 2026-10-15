@@ -47,7 +47,7 @@ This article gives a short, runnable tour of the main steps on one dataset. The 
 idx <- data.frame(
   Module = c(
     rep("Ambient RNA (SoupX)", 10),
-    rep("Processing", 4),
+    rep("Processing", 5),
     rep("Diagnostics", 5),
     rep("Visualization", 12),
     rep("Lineage resolution", 1),
@@ -58,7 +58,8 @@ idx <- data.frame(
     "get_sample_names", "load_counts", "create_soup_channels", "create_seurat_for_clustering",
     "estimate_contamination", "create_final_seurat", "prepare_soupx_inputs",
     "run_soupx_post_clustering", "process_soupx_samples", "addSoupXMetaToSeurat",
-    "ProcessSeuratLOG", "ProcessSeuratSCT", "ClusterAndUMAP", "CleanSeuratReductions",
+    "ProcessSeuratLOG", "ProcessSeuratSCT", "ClusterAndUMAP", "analyze_and_save_clusters",
+    "CleanSeuratReductions",
     "generate_dimheatmaps", "plot_vizdimloadings", "plot_technical_contribution",
     "plot_stacked_technical_contribution", "plot_pc_metadata_correlation",
     "make_cluster_palette", "PlotDimByFactors", "plot_combined", "plot_violin_qc_single",
@@ -72,7 +73,7 @@ idx <- data.frame(
     "generate_volcano_trio", "get_top_mixed_genes", "generate_and_save_heatmap"
   ),
   Article = c(
-    rep("SoupX", 10), rep("Processing", 4), rep("Diagnostics", 5),
+    rep("SoupX", 10), rep("Processing", 5), rep("Diagnostics", 5),
     rep("Advanced visualization", 10), rep("Differential expression", 2),
     "Advanced visualization", rep("Statistics", 4), rep("Differential expression", 6)
   )

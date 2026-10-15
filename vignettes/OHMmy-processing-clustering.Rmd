@@ -37,6 +37,7 @@ OHMmy processing wrappers:
 | QC inspection | `plot_violin_qc_single()` | Jittered violin plots of QC metrics, saved to disk |
 | Normalisation + integration | `ProcessSeuratLOG()` / `ProcessSeuratSCT()` | Layer splitting, HVG selection, TCR/BCR exclusion, regression, PCA, `IntegrateLayers()` with batch-size-aware `k` parameters, elbow plot |
 | Clustering + UMAP | `ClusterAndUMAP()` | Neighbour graph, resolution sweep, `clustree` stability plot, final clustering and UMAP |
+| Choosing a resolution | `analyze_and_save_clusters()` | Compares methods at the numbers of clusters they all produce; smallest-cluster-size plot |
 | Housekeeping | `CleanSeuratReductions()` | Renames reductions such as `pca.log` to Seurat-safe camelCase keys |
 
 The object produced here is the one used by all other OHMmy articles.
@@ -255,6 +256,48 @@ where the major PBMC lineages are already resolved, as the working resolution.
 ```{r final-clusters}
 pbmc$seurat_clusters <- pbmc$har_snn_res.0.6
 table(pbmc$seurat_clusters)
+```
+
+### Comparing methods at the same number of clusters
+
+The same resolution value gives different numbers of clusters with different
+methods, so methods are easier to compare at the same *number* of clusters.
+`analyze_and_save_clusters()` finds the numbers of clusters that every method
+produced in its sweep, takes the highest resolution giving each number, and
+plots the size of the smallest cluster: a method whose smallest cluster drops
+below about 30 cells is splitting off clusters that are hard to interpret.
+
+Here the Harmony graph is compared with the unintegrated PCA graph, on a copy
+of the object. Methods are named after their graph (`har_snn`, `pca_snn`); the
+OHMmy naming `log.fastmnn.log_snn_res.1` gives `log.fastmnn`.
+
+```{r cluster-choice, results = "hide"}
+pbmc_cmp <- FindNeighbors(pbmc, reduction = "pca.log", dims = 1:20,
+                          graph.name = c("pca_nn", "pca_snn"), verbose = FALSE)
+for (graph in c("har_snn", "pca_snn")) {
+  pbmc_cmp <- FindClusters(pbmc_cmp, graph.name = graph, resolution = seq(0.2, 1.6, by = 0.1),
+                           verbose = FALSE)
+}
+
+cluster_choice <- analyze_and_save_clusters(
+  pbmc_cmp,
+  output_dir = out_dir,
+  pipelines  = c("har_snn", "pca_snn")
+  # target_cluster_num = 10   # choose a shared number; in an interactive session you are asked
+)
+```
+
+Without `target_cluster_num`, a non-interactive run reports the highest shared
+number of clusters. The returned table gives the resolution of each method for
+that number, and the plot covers every shared number:
+
+```{r cluster-choice-show, fig.width = 8, fig.height = 6}
+cluster_choice
+attr(cluster_choice, "plot")
+```
+
+```{r cleanup-cmp, include = FALSE}
+rm(pbmc_cmp); invisible(gc())
 ```
 
 ## 4. Annotation

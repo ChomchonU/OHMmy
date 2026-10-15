@@ -774,3 +774,216 @@ ProcessSeuratLOG <- function(
   DefaultAssay(seurat_obj) <- "RNA"
   seurat_obj
 }
+
+#' Method name from a resolution column name
+#'
+#' Seurat names cluster columns \code{<graph>_res.<resolution>}. The OHMmy naming
+#' \code{<norm>.<integration>.<norm>_snn} keeps the \code{<norm>.<integration>}
+#' part (\code{"log.fastmnn.log_snn_res.1"} -> \code{"log.fastmnn"}); any other
+#' graph keeps its graph name (\code{"RNA_snn_res.0.5"} -> \code{"RNA_snn"}).
+#' @keywords internal
+#' @noRd
+.pipeline_from_res_col <- function(res_cols) {
+  graph <- sub("_res\\.[0-9.]+$", "", res_cols)
+  sub("\\.(sct|log)_snn$", "", graph)
+}
+
+#' Number of cells in the smallest non-empty cluster
+#'
+#' \code{as.character()} drops unused factor levels (left behind by \code{subset()}),
+#' which \code{table()} would otherwise count as clusters of size 0.
+#' @keywords internal
+#' @noRd
+.min_cluster_size <- function(clusters) {
+  sizes <- table(as.character(clusters))
+  if (length(sizes) == 0) return(NA_integer_)
+  as.integer(min(sizes))
+}
+
+#' Pick the target number of clusters (argument, prompt, or the largest common one)
+#' @keywords internal
+#' @noRd
+.choose_target_clusters <- function(target_cluster_num, common_clusters) {
+  if (!is.null(target_cluster_num)) {
+    if (!target_cluster_num %in% common_clusters) {
+      stop("The provided target_cluster_num (", target_cluster_num, ") is not among the common ",
+           "cluster numbers: ", paste(common_clusters, collapse = ", "), call. = FALSE)
+    }
+    return(target_cluster_num)
+  }
+
+  highest <- max(common_clusters)
+  if (!interactive()) {
+    message("No target_cluster_num given: using the highest common cluster number, ", highest, ".")
+    return(highest)
+  }
+
+  answer <- readline(prompt = paste0("Enter the target number of clusters from the list above (",
+                                     paste(common_clusters, collapse = "/"), "): "))
+  choice <- suppressWarnings(as.numeric(answer))   # text that is not a number becomes NA
+  if (is.na(choice)) {
+    message("No valid input. Defaulting to the highest common cluster number: ", highest)
+    return(highest)
+  }
+  if (!choice %in% common_clusters) {
+    message("Invalid input. Defaulting to the highest common cluster number: ", highest)
+    return(highest)
+  }
+  choice
+}
+
+#' Compare Clustering Methods at a Shared Number of Clusters
+#'
+#' Finds the numbers of clusters that \emph{every} clustering method (pipeline)
+#' produced somewhere in its resolution sweep, so methods can be compared at the
+#' same number of clusters rather than at the same resolution value. For each
+#' method and each shared cluster number it takes the highest resolution giving
+#' that number, plots the size of the smallest cluster against the number of
+#' clusters, saves the plot, and returns the resolutions for one target number.
+#'
+#' Resolution columns are recognised by Seurat's naming,
+#' \code{<graph>_res.<resolution>} (e.g. from \code{\link{ClusterAndUMAP}()} or
+#' \code{Seurat::FindClusters()}). The method name is the part before
+#' \code{.log_snn}/\code{.sct_snn} for the OHMmy naming
+#' (\code{"log.fastmnn.log_snn_res.1"} -> \code{"log.fastmnn"},
+#' \code{"sct.fastmnn.sct_snn_res.1"} -> \code{"sct.fastmnn"}), and the graph name
+#' otherwise (\code{"RNA_snn_res.0.5"} -> \code{"RNA_snn"}).
+#'
+#' @param seurat_obj A \code{Seurat} object whose metadata holds the cluster columns of
+#'   one or more resolution sweeps.
+#' @param output_dir Character. Directory where the plot is saved (created if missing).
+#'   Default is \code{"."}.
+#' @param plot_prefix Character. File-name prefix of the saved PNG; a timestamp is
+#'   appended. Default is \code{"min_cluster_size_plot"}.
+#' @param target_cluster_num Numeric or \code{NULL}. The number of clusters to report.
+#'   Must be one of the shared cluster numbers. If \code{NULL} (default), you are asked
+#'   in an interactive session; otherwise (or on invalid input) the highest shared
+#'   number is used.
+#' @param pipelines Character vector or \code{NULL}. Only compare these methods (names
+#'   as described above). \code{NULL} (default) uses every method found.
+#' @param min_cells_line Numeric. Height of the dashed red reference line on the plot,
+#'   a warning level for clusters that are too small to interpret. Default is 30.
+#'
+#' @return Invisibly, a tibble with one row per method for the target number of
+#'   clusters: \code{Pipeline}, \code{Resolution} (the highest resolution giving that
+#'   number), \code{Num_Clusters} and \code{Min_Cluster_Size}. It is also printed.
+#'   Attributes: \code{"plot"} (the \code{ggplot}), \code{"plot_data"} (the values for
+#'   every shared cluster number) and \code{"file"} (path of the saved PNG). The plot is
+#'   also printed in interactive sessions.
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Two resolution sweeps, e.g. LogNormalize and SCTransform with FastMNN
+#' res <- analyze_and_save_clusters(
+#'   seurat_obj         = my_seurat,     # has log.fastmnn.log_snn_res.* and sct.fastmnn.sct_snn_res.*
+#'   output_dir         = "Plots_cluster_choice",
+#'   target_cluster_num = 12
+#' )
+#' res                       # resolution of each method that gives 12 clusters
+#' attr(res, "plot")         # smallest cluster size vs number of clusters
+#'
+#' # Compare only some of the methods
+#' analyze_and_save_clusters(my_seurat, pipelines = c("log.fastmnn", "log.har"))
+#' }
+analyze_and_save_clusters <- function(seurat_obj,
+                                      output_dir = ".",
+                                      plot_prefix = "min_cluster_size_plot",
+                                      target_cluster_num = NULL,
+                                      pipelines = NULL,
+                                      min_cells_line = 30) {
+  if (!inherits(seurat_obj, "Seurat")) stop("`seurat_obj` must be a Seurat object.", call. = FALSE)
+  md <- seurat_obj@meta.data
+
+  # 1. Resolution columns (<graph>_res.<number>) and their number of clusters
+  res_cols <- grep("_res\\.[0-9.]+$", colnames(md), value = TRUE)
+  summary_df <- data.frame(
+    Full_Column  = res_cols,
+    Pipeline     = .pipeline_from_res_col(res_cols),
+    Resolution   = suppressWarnings(as.numeric(sub(".*_res\\.", "", res_cols))),
+    Num_Clusters = vapply(res_cols, function(col) length(unique(stats::na.omit(md[[col]]))), integer(1),
+                          USE.NAMES = FALSE),
+    row.names    = NULL
+  )
+  summary_df <- summary_df[!is.na(summary_df$Resolution), , drop = FALSE]
+
+  if (!is.null(pipelines)) {
+    unknown <- setdiff(pipelines, summary_df$Pipeline)
+    if (length(unknown) > 0) {
+      stop("Unknown pipeline(s): ", paste(unknown, collapse = ", "), ". Available: ",
+           paste(unique(summary_df$Pipeline), collapse = ", "), call. = FALSE)
+    }
+    summary_df <- summary_df[summary_df$Pipeline %in% pipelines, , drop = FALSE]
+  }
+  if (nrow(summary_df) == 0) {
+    stop("No cluster resolution columns (named <graph>_res.<resolution>) found in the metadata.",
+         call. = FALSE)
+  }
+
+  # 2. Cluster numbers produced by EVERY method
+  per_pipeline <- lapply(split(summary_df$Num_Clusters, summary_df$Pipeline), unique)
+  common_clusters <- sort(Reduce(intersect, per_pipeline))
+  if (length(common_clusters) == 0) {
+    stop("There is no number of clusters that every pipeline produced (",
+         paste(names(per_pipeline), collapse = ", "), ").", call. = FALSE)
+  }
+  message("Cluster numbers produced by every pipeline (", paste(names(per_pipeline), collapse = ", "),
+          "): ", paste(common_clusters, collapse = ", "))
+
+  # 3. For each method and shared number, the highest resolution and its smallest cluster
+  plot_df <- summary_df %>%
+    filter(Num_Clusters %in% common_clusters) %>%
+    group_by(Pipeline, Num_Clusters) %>%
+    slice_max(order_by = Resolution, n = 1) %>%
+    ungroup() %>%
+    mutate(Min_Cluster_Size = vapply(Full_Column, function(col) .min_cluster_size(md[[col]]), integer(1),
+                                     USE.NAMES = FALSE))
+
+  # 4. Plot how the smallest cluster shrinks as the number of clusters grows
+  message("Plotting the smallest cluster size for every shared cluster number...")
+  min_cluster_plot <- ggplot(plot_df, aes(x = Num_Clusters, y = Min_Cluster_Size,
+                                          color = Pipeline, group = Pipeline)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 3) +
+    geom_hline(yintercept = min_cells_line, linetype = "dashed", color = "red", alpha = 0.7) +
+    scale_x_continuous(breaks = common_clusters) +   # only cluster numbers that every method has
+    labs(
+      title    = "Smallest Cluster Size vs. Total Number of Clusters",
+      subtitle = paste0("Tracking how minimum cluster size drops as total clusters increase. Red line = ",
+                        min_cells_line, " cell threshold."),
+      x        = "Total Number of Clusters (Shared across all methods)",
+      y        = "Number of Cells in the Smallest Cluster",
+      color    = "Method"
+    ) +
+    theme_bw() +
+    theme(
+      plot.title         = element_text(face = "bold", size = 14),
+      axis.title         = element_text(face = "bold"),
+      panel.grid.minor.x = element_blank()
+    )
+
+  # Printing in a script or batch job would only write a stray Rplots.pdf
+  if (interactive()) print(min_cluster_plot)
+
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+  filename <- file.path(output_dir, paste0(plot_prefix, "_", timestamp, ".png"))
+  ggsave(filename = filename, plot = min_cluster_plot, width = 8, height = 6, dpi = 300, bg = "white")
+  message("Plot saved to: ", filename)
+
+  # 5. Resolutions of every method at the target number of clusters
+  target_cluster_num <- .choose_target_clusters(target_cluster_num, common_clusters)
+  message("Showing the matches for the target of ", target_cluster_num, " clusters.")
+
+  exact_match_resolutions <- plot_df %>%
+    filter(Num_Clusters == target_cluster_num) %>%
+    select(Pipeline, Resolution, Num_Clusters, Min_Cluster_Size) %>%
+    arrange(Pipeline)
+  print(exact_match_resolutions)
+
+  attr(exact_match_resolutions, "plot") <- min_cluster_plot
+  attr(exact_match_resolutions, "plot_data") <- plot_df
+  attr(exact_match_resolutions, "file") <- filename
+  invisible(exact_match_resolutions)
+}

@@ -267,3 +267,88 @@ test_that("ProcessSeuratSCT runs SCTransform when force_norm = FALSE but no SCT 
   expect_match(res$messages, "Running SCTransform")
   expect_true("SCT" %in% SeuratObject::Assays(res$obj))
 })
+
+# analyze_and_save_clusters() ------------------------------------------------------
+
+# pbmc_small with two resolution sweeps in the OHMmy naming. Clusters are assigned
+# in turn, so k clusters of 80 cells have a smallest size of floor(80 / k).
+#   log.fastmnn: res 0.5 -> 4, 1 -> 6, 1.5 -> 8 clusters
+#   sct.fastmnn: res 0.4 -> 4, 0.8 -> 6, 1.2 -> 6, 2 -> 10 clusters
+# Shared cluster numbers: 4 and 6.
+sweep_object <- function(drop_rna = TRUE) {
+  obj <- SeuratObject::pbmc_small
+  if (drop_rna) obj@meta.data <- obj@meta.data[, !grepl("_res\\.", colnames(obj@meta.data))]
+  add <- function(col, k) obj@meta.data[[col]] <<- factor(rep(seq_len(k), length.out = ncol(obj)))
+  add("log.fastmnn.log_snn_res.0.5", 4); add("log.fastmnn.log_snn_res.1", 6)
+  add("log.fastmnn.log_snn_res.1.5", 8)
+  add("sct.fastmnn.sct_snn_res.0.4", 4); add("sct.fastmnn.sct_snn_res.0.8", 6)
+  add("sct.fastmnn.sct_snn_res.1.2", 6); add("sct.fastmnn.sct_snn_res.2", 10)
+  obj
+}
+
+test_that("analyze_and_save_clusters compares methods at a shared number of clusters", {
+  out <- test_out_dir("cluster_choice")
+  res <- quietly(analyze_and_save_clusters(sweep_object(), output_dir = out, target_cluster_num = 6))
+
+  expect_equal(res$Pipeline, c("log.fastmnn", "sct.fastmnn"))
+  expect_equal(res$Resolution, c(1, 1.2))          # highest resolution giving 6 clusters
+  expect_equal(res$Num_Clusters, c(6L, 6L))
+  expect_equal(res$Min_Cluster_Size, c(13L, 13L))   # floor(80 / 6)
+  expect_s3_class(attr(res, "plot"), "ggplot")
+  expect_setequal(attr(res, "plot_data")$Num_Clusters, c(4, 6))
+  expect_true(file.exists(attr(res, "file")))
+  expect_length(written_files(out, "^min_cluster_size_plot_.*png$"), 1)
+})
+
+test_that("analyze_and_save_clusters defaults to the highest shared number when not interactive", {
+  expect_message(
+    res <- quietly_output(analyze_and_save_clusters(sweep_object(), output_dir = test_out_dir("cluster_choice2"))),
+    "highest common cluster number, 6"
+  )
+  expect_equal(unique(res$Num_Clusters), 6L)
+})
+
+test_that("analyze_and_save_clusters names methods for any graph and can filter them", {
+  obj <- sweep_object(drop_rna = FALSE)            # also has pbmc_small's RNA_snn_res.* columns
+  plot_methods <- function(r) unique(attr(r, "plot_data")$Pipeline)
+
+  only_rna <- quietly(analyze_and_save_clusters(obj, output_dir = test_out_dir("cluster_choice3"),
+                                                pipelines = "RNA_snn"))
+  expect_equal(plot_methods(only_rna), "RNA_snn")  # one method, not one per resolution
+
+  two <- quietly(analyze_and_save_clusters(obj, output_dir = test_out_dir("cluster_choice4"),
+                                           pipelines = c("log.fastmnn", "sct.fastmnn"), target_cluster_num = 4))
+  expect_setequal(two$Pipeline, c("log.fastmnn", "sct.fastmnn"))
+  expect_error(analyze_and_save_clusters(obj, pipelines = "nope"), "Unknown pipeline")
+})
+
+test_that("analyze_and_save_clusters ignores empty factor levels and non-resolution columns", {
+  obj <- sweep_object()
+  col <- "log.fastmnn.log_snn_res.1"
+  obj@meta.data[[col]] <- factor(obj@meta.data[[col]], levels = 1:7)   # level 7 has no cells
+  obj$log.fastmnn.log_snn_res.1_celltype <- "T"                       # not a resolution column
+
+  res <- quietly(analyze_and_save_clusters(obj, output_dir = test_out_dir("cluster_choice5"),
+                                           target_cluster_num = 6))
+  expect_equal(res$Min_Cluster_Size, c(13L, 13L))   # not 0 from the empty level
+  expect_false(any(grepl("celltype", attr(res, "plot_data")$Full_Column)))
+})
+
+test_that("analyze_and_save_clusters gives clear errors", {
+  obj <- sweep_object()
+  out <- test_out_dir("cluster_choice6")
+  expect_error(quietly_output(analyze_and_save_clusters(obj, output_dir = out, target_cluster_num = 5)),
+               "not among the common")
+  expect_error(analyze_and_save_clusters(SeuratObject::pbmc_small@meta.data), "must be a Seurat object")
+
+  none <- obj
+  none@meta.data <- none@meta.data[, !grepl("_res\\.", colnames(none@meta.data))]
+  expect_error(analyze_and_save_clusters(none, output_dir = out), "No cluster resolution columns")
+
+  disjoint <- obj
+  disjoint$sct.fastmnn.sct_snn_res.0.4 <- factor(rep(1:3, length.out = ncol(obj)))
+  disjoint$sct.fastmnn.sct_snn_res.0.8 <- factor(rep(1:5, length.out = ncol(obj)))
+  disjoint$sct.fastmnn.sct_snn_res.1.2 <- factor(rep(1:5, length.out = ncol(obj)))
+  expect_error(quietly_output(analyze_and_save_clusters(disjoint, output_dir = out)),
+               "no number of clusters that every pipeline produced")
+})

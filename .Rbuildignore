@@ -16,3 +16,4 @@
 ^filtered_gene_bc_matrices$
 ^README\.html$
 ^CITATION\.cff$
+^CLAUDE\.md$

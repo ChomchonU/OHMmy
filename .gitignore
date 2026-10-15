@@ -18,3 +18,6 @@ Rplots.pdf
 filtered_gene_bc_matrices/
 vignettes/results/
 vignettes/*_files/
+
+# Windows folder settings
+desktop.ini

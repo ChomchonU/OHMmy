@@ -49,7 +49,7 @@ idx <- data.frame(
     rep("Ambient RNA (SoupX)", 10),
     rep("Processing", 5),
     rep("Diagnostics", 5),
-    rep("Visualization", 12),
+    rep("Visualization", 13),
     rep("Lineage resolution", 1),
     rep("Statistics", 4),
     rep("Markers & DE", 6)
@@ -64,7 +64,7 @@ idx <- data.frame(
     "plot_stacked_technical_contribution", "plot_pc_metadata_correlation",
     "make_cluster_palette", "PlotDimByFactors", "plot_combined", "plot_violin_qc_single",
     "extract_binned_expression", "plot_dot_dendro", "plot_dot_dendro_split",
-    "plot_dot_dendro_multi", "plot_blend_nebulosa", ".blend_feature_plot_v5",
+    "plot_dot_dendro_multi", "cluster_dot_dendro", "plot_blend_nebulosa", ".blend_feature_plot_v5",
     "plot_gene_markers_with_dendro", "plot_split_dotplots_by_gene_cluster",
     "score_consensus",
     "plot_metadata_stats", "plot_cell_abundance", "plot_cluster_distributions",
@@ -74,7 +74,7 @@ idx <- data.frame(
   ),
   Article = c(
     rep("SoupX", 10), rep("Processing", 5), rep("Diagnostics", 5),
-    rep("Advanced visualization", 10), rep("Differential expression", 2),
+    rep("Advanced visualization", 11), rep("Differential expression", 2),
     "Advanced visualization", rep("Statistics", 4), rep("Differential expression", 6)
   )
 )

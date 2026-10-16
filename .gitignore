@@ -21,3 +21,7 @@ vignettes/*_files/
 
 # Windows folder settings
 desktop.ini
+
+# Claude session files (kept local, never committed)
+CLAUDE.md
+.claude/

@@ -73,7 +73,7 @@ generate_dimheatmaps(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_DimHeatmap_pca.log_PC1-9_20261014_150608.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_DimHeatmap_pca.log_PC1-9_20261016_130618.jpg)
 
 PC 1 separates myeloid genes (*LYZ*, *FCN1*, *CST3*) from lymphoid genes
 (*IL7R*, *LTB*). Note that *MALAT1* is among its top lymphoid loadings,
@@ -111,7 +111,7 @@ failed
 #> character(0)
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_VizDimLoadings_PC1-6_20261014_150609.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_VizDimLoadings_PC1-6_20261016_130619.jpg)
 
 ## 2. Quantifying technical gene contributions
 
@@ -140,7 +140,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261014_150610.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261016_130621.jpg)
 
 In pbmc3k every PC stays well below the 15 % cutoff. The largest value
 is a few percent on the negative side of PC 1. This is expected, because
@@ -172,7 +172,7 @@ plot_stacked_technical_contribution(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-stacked_technical_contrib_posneg_pbmc3k_20261014_150613.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-stacked_technical_contrib_posneg_pbmc3k_20261016_130624.jpg)
 
 ## 3. Correlating PCs with QC covariates
 
@@ -204,7 +204,7 @@ plot_pc_metadata_correlation(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-corr_pc_pbmc3k_20261014_150615.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-corr_pc_pbmc3k_20261016_130625.jpg)
 
 ## Interpreting the diagnostics
 
@@ -263,7 +263,7 @@ sessionInfo()
 #>  [28] zoo_1.9-1              cachem_1.1.0           igraph_2.3.4          
 #>  [31] mime_0.13              lifecycle_1.0.5        pkgconfig_2.0.3       
 #>  [34] Matrix_1.7-5           R6_2.6.1               fastmap_1.2.0         
-#>  [37] fitdistrplus_1.2-6     future_1.76.0          shiny_1.14.0          
+#>  [37] fitdistrplus_1.2-6     future_1.80.0          shiny_1.14.0          
 #>  [40] digest_0.6.39          patchwork_1.3.2        tensor_1.5.1          
 #>  [43] RSpectra_0.16-2        irlba_2.4.1            textshaping_1.0.5     
 #>  [46] ggpubr_1.0.0           labeling_0.4.3         progressr_1.0.0       

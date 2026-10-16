@@ -202,7 +202,7 @@ plot_split_dotplots_by_gene_cluster(
 )
 ```
 
-![](OHMmy-differential-expression_files/figure-html/saved-DotPlot_Part1_2026-10-14_15-11-04.png)![](OHMmy-differential-expression_files/figure-html/saved-Dendrogram_ALL_2026-10-14_15-11-04.png)
+![](OHMmy-differential-expression_files/figure-html/saved-DotPlot_Part1_2026-10-16_13-11-12.png)![](OHMmy-differential-expression_files/figure-html/saved-Dendrogram_ALL_2026-10-16_13-11-12.png)
 
 ## 3. Pathway enrichment
 
@@ -308,17 +308,17 @@ activated inflammatory and TNF-alpha signalling, and cluster 8 has
 activated coagulation. Clusters without significant pathways, here the
 small DC cluster 7, are left out.
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261014_151959.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261016_132001.jpg)
 
 The signed-significance view puts direction and significance on one
 axis:
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Signed_Significance_Dotplot_20261014_151959.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Signed_Significance_Dotplot_20261016_132001.jpg)
 
 Per-cluster outputs for cluster 2 (CD14 monocytes): the NES dot plot and
 the running enrichment score of its top pathway.
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_GSEA_NES_Dotplot_20261014_151959.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20261014_151959.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_GSEA_NES_Dotplot_20261016_132001.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20261016_132001.jpg)
 
 ### Over-Representation Analysis: `run_global_ora()`
 
@@ -373,11 +373,11 @@ ora_res %>%
 #> 15       7          DC Suppressed 1
 ```
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_Global_Activated_Clustered_Dendro_20261014_152019.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_ORA_Signed_Significance_Dotplot_20261014_152019.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_Global_Activated_Clustered_Dendro_20261016_132020.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_ORA_Signed_Significance_Dotplot_20261016_132020.jpg)
 
 Per-cluster ORA outputs (cluster 2, CD14 monocytes):
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Dotplot_20261014_152019.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Barplot_20261014_152019.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Dotplot_20261016_132020.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Barplot_20261016_132020.jpg)
 
 ## 4. Pseudo-bulk differential expression with DESeq2
 
@@ -486,7 +486,7 @@ generate_and_save_heatmap(
 )
 ```
 
-![](OHMmy-differential-expression_files/figure-html/saved-Heatmap_FCGR3A_vs_CD14_Monocytes_topP_25_topLFC_25_20261014_152041.png)
+![](OHMmy-differential-expression_files/figure-html/saved-Heatmap_FCGR3A_vs_CD14_Monocytes_topP_25_topLFC_25_20261016_132042.png)
 
 In the unordered (right) heatmap the samples split by monocyte subset,
 not by the simulated severity. This is expected, because severity was
@@ -519,7 +519,7 @@ sessionInfo()
 #> [8] base     
 #> 
 #> other attached packages:
-#>  [1] future_1.76.0               DESeq2_1.52.0              
+#>  [1] future_1.80.0               DESeq2_1.52.0              
 #>  [3] SummarizedExperiment_1.42.0 Biobase_2.72.0             
 #>  [5] MatrixGenerics_1.24.0       matrixStats_1.5.0          
 #>  [7] GenomicRanges_1.64.0        Seqinfo_1.2.0              
@@ -575,7 +575,7 @@ sessionInfo()
 #> [124] zoo_1.9-1               jsonlite_2.0.0          BiocParallel_1.46.0    
 #> [127] GOSemSim_2.38.3         magrittr_2.0.5          Formula_1.2-6          
 #> [130] ggplotify_0.1.4         dotCall64_1.2           patchwork_1.3.2        
-#> [133] Rcpp_1.1.2              gdtools_0.5.1           ape_5.8-1              
+#> [133] Rcpp_1.1.2              gdtools_0.5.2           ape_5.8-1              
 #> [136] ggnewscale_0.5.2        viridis_0.6.5           reticulate_1.47.0      
 #> [139] stringi_1.8.9           ggraph_2.2.2            MASS_7.3-65            
 #> [142] plyr_1.8.9              parallel_4.6.1          listenv_1.1.0          

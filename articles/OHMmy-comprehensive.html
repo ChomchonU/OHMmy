@@ -56,7 +56,7 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
-            <h4 data-toc-skip class="date">2026-10-14</h4>
+            <h4 data-toc-skip class="date">2026-10-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/vignettes/OHMmy-comprehensive.Rmd" class="external-link"><code>vignettes/OHMmy-comprehensive.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-comprehensive.Rmd</code></div>
@@ -206,72 +206,82 @@ and Pathway Enrichment</a></td>
 </tr>
 <tr class="even">
 <td align="left">Processing</td>
-<td align="left"><code><a href="../reference/CleanSeuratReductions.html">CleanSeuratReductions()</a></code></td>
+<td align="left"><code><a href="../reference/analyze_and_save_clusters.html">analyze_and_save_clusters()</a></code></td>
 <td align="left">Processing</td>
 </tr>
 <tr class="odd">
+<td align="left">Processing</td>
+<td align="left"><code><a href="../reference/CleanSeuratReductions.html">CleanSeuratReductions()</a></code></td>
+<td align="left">Processing</td>
+</tr>
+<tr class="even">
 <td align="left">Diagnostics</td>
 <td align="left"><code><a href="../reference/generate_dimheatmaps.html">generate_dimheatmaps()</a></code></td>
 <td align="left">Diagnostics</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Diagnostics</td>
 <td align="left"><code><a href="../reference/plot_vizdimloadings.html">plot_vizdimloadings()</a></code></td>
 <td align="left">Diagnostics</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Diagnostics</td>
 <td align="left"><code><a href="../reference/plot_technical_contribution.html">plot_technical_contribution()</a></code></td>
 <td align="left">Diagnostics</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Diagnostics</td>
 <td align="left"><code><a href="../reference/plot_stacked_technical_contribution.html">plot_stacked_technical_contribution()</a></code></td>
 <td align="left">Diagnostics</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Diagnostics</td>
 <td align="left"><code><a href="../reference/plot_pc_metadata_correlation.html">plot_pc_metadata_correlation()</a></code></td>
 <td align="left">Diagnostics</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Visualization</td>
 <td align="left"><code><a href="../reference/make_cluster_palette.html">make_cluster_palette()</a></code></td>
 <td align="left">Advanced visualization</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Visualization</td>
 <td align="left"><code><a href="../reference/PlotDimByFactors.html">PlotDimByFactors()</a></code></td>
 <td align="left">Advanced visualization</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Visualization</td>
 <td align="left"><code><a href="../reference/plot_combined.html">plot_combined()</a></code></td>
 <td align="left">Advanced visualization</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Visualization</td>
 <td align="left"><code><a href="../reference/plot_violin_qc_single.html">plot_violin_qc_single()</a></code></td>
 <td align="left">Advanced visualization</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Visualization</td>
 <td align="left"><code><a href="../reference/extract_binned_expression.html">extract_binned_expression()</a></code></td>
 <td align="left">Advanced visualization</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Visualization</td>
 <td align="left"><code><a href="../reference/plot_dot_dendro.html">plot_dot_dendro()</a></code></td>
 <td align="left">Advanced visualization</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Visualization</td>
 <td align="left"><code><a href="../reference/plot_dot_dendro_split.html">plot_dot_dendro_split()</a></code></td>
 <td align="left">Advanced visualization</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Visualization</td>
 <td align="left"><code><a href="../reference/plot_dot_dendro_multi.html">plot_dot_dendro_multi()</a></code></td>
+<td align="left">Advanced visualization</td>
+</tr>
+<tr class="odd">
+<td align="left">Visualization</td>
+<td align="left"><code><a href="../reference/cluster_dot_dendro.html">cluster_dot_dendro()</a></code></td>
 <td align="left">Advanced visualization</td>
 </tr>
 <tr class="even">
@@ -433,7 +443,7 @@ article.</p>
 <span>  <span class="va">pbmc</span>, sample_name <span class="op">=</span> <span class="st">"pbmc3k"</span>, reduction <span class="op">=</span> <span class="st">"pca.log"</span>,</span>
 <span>  max_pcs <span class="op">=</span> <span class="fl">20</span>, n_top_genes <span class="op">=</span> <span class="fl">200</span>, output_dir <span class="op">=</span> <span class="va">out_dir</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261014_145734.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261016_125801.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="visualise-markers">4. Visualise markers<a class="anchor" aria-label="anchor" href="#visualise-markers"></a>
@@ -493,7 +503,7 @@ severity.</p>
 <span>    title_prefix <span class="op">=</span> <span class="st">"Hallmark"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p><img src="OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261014_150549.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261016_130559.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="where-to-go-next">Where to go next<a class="anchor" aria-label="anchor" href="#where-to-go-next"></a>
@@ -613,7 +623,7 @@ visualisations are covered in the Differential Expression article.</li>
 <span><span class="co">#&gt; [149] GOSemSim_2.38.3             R.oo_1.27.1                </span></span>
 <span><span class="co">#&gt; [151] magrittr_2.0.5              ggplotify_0.1.4            </span></span>
 <span><span class="co">#&gt; [153] Formula_1.2-6               dotCall64_1.2              </span></span>
-<span><span class="co">#&gt; [155] Rcpp_1.1.2                  gdtools_0.5.1              </span></span>
+<span><span class="co">#&gt; [155] Rcpp_1.1.2                  gdtools_0.5.2              </span></span>
 <span><span class="co">#&gt; [157] ape_5.8-1                   ggnewscale_0.5.2           </span></span>
 <span><span class="co">#&gt; [159] viridis_0.6.5               reticulate_1.47.0          </span></span>
 <span><span class="co">#&gt; [161] stringi_1.8.9               MASS_7.3-65                </span></span>
@@ -630,7 +640,7 @@ visualisations are covered in the Differential Expression article.</li>
 <span><span class="co">#&gt; [183] Nebulosa_1.22.0             tweenr_2.0.3               </span></span>
 <span><span class="co">#&gt; [185] httpuv_1.6.17               RANN_2.6.3                 </span></span>
 <span><span class="co">#&gt; [187] tidyr_1.3.2                 purrr_1.2.2                </span></span>
-<span><span class="co">#&gt; [189] polyclip_1.10-7             future_1.76.0              </span></span>
+<span><span class="co">#&gt; [189] polyclip_1.10-7             future_1.80.0              </span></span>
 <span><span class="co">#&gt; [191] scattermore_1.2             ggplot2_4.0.3              </span></span>
 <span><span class="co">#&gt; [193] ggforce_0.5.0               broom_1.0.13               </span></span>
 <span><span class="co">#&gt; [195] xtable_1.8-8                tidytree_0.4.8             </span></span>

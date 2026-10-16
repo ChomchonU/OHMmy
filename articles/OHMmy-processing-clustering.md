@@ -11,6 +11,7 @@ object using the OHMmy processing wrappers:
 | QC inspection | [`plot_violin_qc_single()`](https://chomchonu.github.io/OHMmy/reference/plot_violin_qc_single.md) | Jittered violin plots of QC metrics, saved to disk |
 | Normalisation + integration | [`ProcessSeuratLOG()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratLOG.md) / [`ProcessSeuratSCT()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratSCT.md) | Layer splitting, HVG selection, TCR/BCR exclusion, regression, PCA, [`IntegrateLayers()`](https://satijalab.org/seurat/reference/IntegrateLayers.html) with batch-size-aware `k` parameters, elbow plot |
 | Clustering + UMAP | [`ClusterAndUMAP()`](https://chomchonu.github.io/OHMmy/reference/ClusterAndUMAP.md) | Neighbour graph, resolution sweep, `clustree` stability plot, final clustering and UMAP |
+| Choosing a resolution | [`analyze_and_save_clusters()`](https://chomchonu.github.io/OHMmy/reference/analyze_and_save_clusters.md) | Compares methods at the numbers of clusters they all produce; smallest-cluster-size plot |
 | Housekeeping | [`CleanSeuratReductions()`](https://chomchonu.github.io/OHMmy/reference/CleanSeuratReductions.md) | Renames reductions such as `pca.log` to Seurat-safe camelCase keys |
 
 The object produced here is the one used by all other OHMmy articles.
@@ -68,7 +69,7 @@ plot_violin_qc_single(
 )
 ```
 
-![](OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-14_15-20-57.jpg)
+![](OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-16_13-20-57.jpg)
 
 Based on these distributions we apply the standard pbmc3k thresholds.
 
@@ -146,7 +147,7 @@ pbmc <- ProcessSeuratLOG(
 )
 ```
 
-![](OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261014_152110.jpg)
+![](OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261016_132110.jpg)
 
 ``` r
 
@@ -278,6 +279,56 @@ table(pbmc$seurat_clusters)
 #> 614 554 478 341 298 178 141  34
 ```
 
+### Comparing methods at the same number of clusters
+
+The same resolution value gives different numbers of clusters with
+different methods, so methods are easier to compare at the same *number*
+of clusters.
+[`analyze_and_save_clusters()`](https://chomchonu.github.io/OHMmy/reference/analyze_and_save_clusters.md)
+finds the numbers of clusters that every method produced in its sweep,
+takes the highest resolution giving each number, and plots the size of
+the smallest cluster: a method whose smallest cluster drops below about
+30 cells is splitting off clusters that are hard to interpret.
+
+Here the Harmony graph is compared with the unintegrated PCA graph, on a
+copy of the object. Methods are named after their graph (`har_snn`,
+`pca_snn`); the OHMmy naming `log.fastmnn.log_snn_res.1` gives
+`log.fastmnn`.
+
+``` r
+
+pbmc_cmp <- FindNeighbors(pbmc, reduction = "pca.log", dims = 1:20,
+                          graph.name = c("pca_nn", "pca_snn"), verbose = FALSE)
+for (graph in c("har_snn", "pca_snn")) {
+  pbmc_cmp <- FindClusters(pbmc_cmp, graph.name = graph, resolution = seq(0.2, 1.6, by = 0.1),
+                           verbose = FALSE)
+}
+
+cluster_choice <- analyze_and_save_clusters(
+  pbmc_cmp,
+  output_dir = out_dir,
+  pipelines  = c("har_snn", "pca_snn")
+  # target_cluster_num = 10   # choose a shared number; in an interactive session you are asked
+)
+```
+
+Without `target_cluster_num`, a non-interactive run reports the highest
+shared number of clusters. The returned table gives the resolution of
+each method for that number, and the plot covers every shared number:
+
+``` r
+
+cluster_choice
+#> # A tibble: 2 × 4
+#>   Pipeline Resolution Num_Clusters Min_Cluster_Size
+#>   <chr>         <dbl>        <int>            <int>
+#> 1 har_snn         1.5           12               18
+#> 2 pca_snn         1.6           12               13
+attr(cluster_choice, "plot")
+```
+
+![](OHMmy-processing-clustering_files/figure-html/cluster-choice-show-1.png)
+
 ## 4. Annotation
 
 For a self-contained tutorial, clusters are labelled from canonical PBMC
@@ -387,7 +438,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ggraph_2.2.2       future_1.76.0      patchwork_1.3.2    OHMmy_1.0.2.9000  
+#> [1] ggraph_2.2.2       future_1.80.0      patchwork_1.3.2    OHMmy_1.0.2.9000  
 #> [5] Seurat_5.6.0       SeuratObject_5.4.0 sp_2.2-4          
 #> 
 #> loaded via a namespace (and not attached):
@@ -419,24 +470,25 @@ sessionInfo()
 #>  [76] Rtsne_0.17             cluster_2.1.8.2        reshape2_1.4.5        
 #>  [79] generics_0.1.4         clustree_0.5.1         gtable_0.3.6          
 #>  [82] spatstat.data_3.1-9    R.methodsS3_1.8.2      tidyr_1.3.2           
-#>  [85] data.table_1.18.6.1    tidygraph_1.3.1        car_3.1-5             
-#>  [88] spatstat.geom_3.8-3    RcppAnnoy_0.0.23       ggrepel_0.9.8         
-#>  [91] RANN_2.6.3             pillar_1.11.1          stringr_1.6.0         
-#>  [94] spam_2.11-4            RcppHNSW_0.7.0         later_1.4.8           
-#>  [97] splines_4.6.1          tweenr_2.0.3           dplyr_1.2.1           
-#> [100] lattice_0.22-9         survival_3.8-6         deldir_2.0-4          
-#> [103] tidyselect_1.2.1       miniUI_0.1.2           pbapply_1.7-5         
-#> [106] knitr_1.52             gridExtra_2.3.1        SoupX_1.6.2           
-#> [109] scattermore_1.2        RhpcBLASctl_0.23-42    xfun_0.61             
-#> [112] graphlayouts_1.2.5     matrixStats_1.5.0      leidenbase_0.1.37     
-#> [115] stringi_1.8.9          yaml_2.3.12            evaluate_1.0.5        
-#> [118] codetools_0.2-20       tibble_3.3.1           cli_3.6.6             
-#> [121] uwot_0.2.5             xtable_1.8-8           reticulate_1.47.0     
-#> [124] systemfonts_1.3.2      jquerylib_0.1.4        harmony_2.0.5         
-#> [127] Rcpp_1.1.2             globals_0.20.0         spatstat.random_3.5-2 
-#> [130] png_0.1-9              ggrastr_1.0.2          spatstat.univar_3.2-0 
-#> [133] parallel_4.6.1         pkgdown_2.2.1          ggplot2_4.0.3         
-#> [136] dotCall64_1.2          jpeg_0.1-11            listenv_1.1.0         
-#> [139] viridisLite_0.4.3      scales_1.4.0           ggridges_0.5.7        
-#> [142] purrr_1.2.2            rlang_1.3.0            cowplot_1.2.0
+#>  [85] data.table_1.18.6.1    utf8_1.2.6             tidygraph_1.3.1       
+#>  [88] car_3.1-5              spatstat.geom_3.8-3    RcppAnnoy_0.0.23      
+#>  [91] ggrepel_0.9.8          RANN_2.6.3             pillar_1.11.1         
+#>  [94] stringr_1.6.0          spam_2.11-4            RcppHNSW_0.7.0        
+#>  [97] later_1.4.8            splines_4.6.1          tweenr_2.0.3          
+#> [100] dplyr_1.2.1            lattice_0.22-9         survival_3.8-6        
+#> [103] deldir_2.0-4           tidyselect_1.2.1       miniUI_0.1.2          
+#> [106] pbapply_1.7-5          knitr_1.52             gridExtra_2.3.1       
+#> [109] SoupX_1.6.2            scattermore_1.2        RhpcBLASctl_0.23-42   
+#> [112] xfun_0.61              graphlayouts_1.2.5     matrixStats_1.5.0     
+#> [115] leidenbase_0.1.37      stringi_1.8.9          yaml_2.3.12           
+#> [118] evaluate_1.0.5         codetools_0.2-20       tibble_3.3.1          
+#> [121] cli_3.6.6              uwot_0.2.5             xtable_1.8-8          
+#> [124] reticulate_1.47.0      systemfonts_1.3.2      jquerylib_0.1.4       
+#> [127] harmony_2.0.5          Rcpp_1.1.2             globals_0.20.0        
+#> [130] spatstat.random_3.5-2  png_0.1-9              ggrastr_1.0.2         
+#> [133] spatstat.univar_3.2-0  parallel_4.6.1         pkgdown_2.2.1         
+#> [136] ggplot2_4.0.3          dotCall64_1.2          jpeg_0.1-11           
+#> [139] listenv_1.1.0          viridisLite_0.4.3      scales_1.4.0          
+#> [142] ggridges_0.5.7         purrr_1.2.2            rlang_1.3.0           
+#> [145] cowplot_1.2.0
 ```

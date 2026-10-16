@@ -1,5 +1,6 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://chomchonu.github.io/OHMmy/404.html</loc></url>
+<url><loc>https://chomchonu.github.io/OHMmy/CLAUDE.html</loc></url>
 <url><loc>https://chomchonu.github.io/OHMmy/LICENSE-text.html</loc></url>
 <url><loc>https://chomchonu.github.io/OHMmy/LICENSE.html</loc></url>
 <url><loc>https://chomchonu.github.io/OHMmy/articles/OHMmy-advanced-visualization.html</loc></url>
@@ -20,6 +21,7 @@
 <url><loc>https://chomchonu.github.io/OHMmy/reference/ProcessSeuratLOG.html</loc></url>
 <url><loc>https://chomchonu.github.io/OHMmy/reference/ProcessSeuratSCT.html</loc></url>
 <url><loc>https://chomchonu.github.io/OHMmy/reference/addSoupXMetaToSeurat.html</loc></url>
+<url><loc>https://chomchonu.github.io/OHMmy/reference/analyze_and_save_clusters.html</loc></url>
 <url><loc>https://chomchonu.github.io/OHMmy/reference/cluster_dot_dendro.html</loc></url>
 <url><loc>https://chomchonu.github.io/OHMmy/reference/create_final_seurat.html</loc></url>
 <url><loc>https://chomchonu.github.io/OHMmy/reference/create_seurat_for_clustering.html</loc></url>

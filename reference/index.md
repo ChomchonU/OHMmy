@@ -26,6 +26,9 @@
 - [`addSoupXMetaToSeurat()`](https://chomchonu.github.io/OHMmy/reference/addSoupXMetaToSeurat.md)
   : Update Seurat Object with SoupX-Corrected Counts and Metadata
 
+- [`analyze_and_save_clusters()`](https://chomchonu.github.io/OHMmy/reference/analyze_and_save_clusters.md)
+  : Compare Clustering Methods at a Shared Number of Clusters
+
 - [`cluster_dot_dendro()`](https://chomchonu.github.io/OHMmy/reference/cluster_dot_dendro.md)
   :
 

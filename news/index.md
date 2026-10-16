@@ -5,6 +5,30 @@
 ### New features
 
 - New
+  [`analyze_and_save_clusters()`](https://chomchonu.github.io/OHMmy/reference/analyze_and_save_clusters.md)
+  compares clustering methods at the same number of clusters instead of
+  the same resolution value. It finds the cluster numbers that every
+  method produced in its resolution sweep, plots the size of the
+  smallest cluster against the number of clusters (saved as PNG), and
+  returns, for a target number, the highest resolution of each method
+  that gives it. Compared with the first draft of this function:
+  - methods are named for any graph (`RNA_snn_res.0.5` -\> `RNA_snn`);
+    before, only the `.log_snn` / `.sct_snn` naming worked and default
+    Seurat names always failed with “no single number of clusters”;
+  - empty factor levels (e.g. after
+    [`subset()`](https://rdrr.io/r/base/subset.html)) no longer give a
+    smallest cluster of 0, and columns such as `x_res.1_celltype` are no
+    longer taken as resolutions;
+  - new optional `pipelines` (compare only some methods) and
+    `min_cells_line` (the reference line, default 30);
+  - the plot is printed only in interactive sessions (no stray
+    `Rplots.pdf`) and is returned as `attr(res, "plot")`, with the
+    plotted values in `attr(res, "plot_data")` and the file path in
+    `attr(res, "file")`;
+  - plain-ASCII messages, documentation and tests. For the OHMmy naming
+    (`log.fastmnn.log_snn_res.1`, `sct.fastmnn.sct_snn_res.1`), the
+    returned table is unchanged.
+- New
   [`cluster_dot_dendro()`](https://chomchonu.github.io/OHMmy/reference/cluster_dot_dendro.md)
   cuts the group and/or gene dendrograms of
   [`plot_dot_dendro_multi()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_multi.md)

@@ -39,6 +39,7 @@ dataset. The other articles cover each module in depth:
 | Processing | [`ProcessSeuratLOG()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratLOG.md) | Processing |
 | Processing | [`ProcessSeuratSCT()`](https://chomchonu.github.io/OHMmy/reference/ProcessSeuratSCT.md) | Processing |
 | Processing | [`ClusterAndUMAP()`](https://chomchonu.github.io/OHMmy/reference/ClusterAndUMAP.md) | Processing |
+| Processing | [`analyze_and_save_clusters()`](https://chomchonu.github.io/OHMmy/reference/analyze_and_save_clusters.md) | Processing |
 | Processing | [`CleanSeuratReductions()`](https://chomchonu.github.io/OHMmy/reference/CleanSeuratReductions.md) | Processing |
 | Diagnostics | [`generate_dimheatmaps()`](https://chomchonu.github.io/OHMmy/reference/generate_dimheatmaps.md) | Diagnostics |
 | Diagnostics | [`plot_vizdimloadings()`](https://chomchonu.github.io/OHMmy/reference/plot_vizdimloadings.md) | Diagnostics |
@@ -53,6 +54,7 @@ dataset. The other articles cover each module in depth:
 | Visualization | [`plot_dot_dendro()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro.md) | Advanced visualization |
 | Visualization | [`plot_dot_dendro_split()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_split.md) | Advanced visualization |
 | Visualization | [`plot_dot_dendro_multi()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_multi.md) | Advanced visualization |
+| Visualization | [`cluster_dot_dendro()`](https://chomchonu.github.io/OHMmy/reference/cluster_dot_dendro.md) | Advanced visualization |
 | Visualization | [`plot_blend_nebulosa()`](https://chomchonu.github.io/OHMmy/reference/plot_blend_nebulosa.md) | Advanced visualization |
 | Visualization | [`.blend_feature_plot_v5()`](https://chomchonu.github.io/OHMmy/reference/dot-blend_feature_plot_v5.md) | Advanced visualization |
 | Visualization | [`plot_gene_markers_with_dendro()`](https://chomchonu.github.io/OHMmy/reference/plot_gene_markers_with_dendro.md) | Differential expression |
@@ -160,7 +162,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261014_145734.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261016_125801.jpg)
 
 ## 4. Visualise markers
 
@@ -240,7 +242,7 @@ if (!is.null(hallmark)) {
 }
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261014_150549.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261016_130559.jpg)
 
 ## Where to go next
 
@@ -357,7 +359,7 @@ sessionInfo()
 #> [149] GOSemSim_2.38.3             R.oo_1.27.1                
 #> [151] magrittr_2.0.5              ggplotify_0.1.4            
 #> [153] Formula_1.2-6               dotCall64_1.2              
-#> [155] Rcpp_1.1.2                  gdtools_0.5.1              
+#> [155] Rcpp_1.1.2                  gdtools_0.5.2              
 #> [157] ape_5.8-1                   ggnewscale_0.5.2           
 #> [159] viridis_0.6.5               reticulate_1.47.0          
 #> [161] stringi_1.8.9               MASS_7.3-65                
@@ -374,7 +376,7 @@ sessionInfo()
 #> [183] Nebulosa_1.22.0             tweenr_2.0.3               
 #> [185] httpuv_1.6.17               RANN_2.6.3                 
 #> [187] tidyr_1.3.2                 purrr_1.2.2                
-#> [189] polyclip_1.10-7             future_1.76.0              
+#> [189] polyclip_1.10-7             future_1.80.0              
 #> [191] scattermore_1.2             ggplot2_4.0.3              
 #> [193] ggforce_0.5.0               broom_1.0.13               
 #> [195] xtable_1.8-8                tidytree_0.4.8             

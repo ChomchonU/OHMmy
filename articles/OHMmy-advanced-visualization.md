@@ -157,7 +157,7 @@ plot_violin_qc_single(
 )
 ```
 
-![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-14_14-56-23.jpg)![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-14_14-56-23.jpg)
+![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-16_12-56-55.jpg)![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-16_12-56-55.jpg)
 
 ### Discretising expression into Low / Int / High
 
@@ -322,7 +322,7 @@ multi_df <- plot_dot_dendro_multi(
 )
 ```
 
-![](OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261014_145634.jpg)
+![](OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261016_125705.jpg)
 
 ``` r
 
@@ -753,7 +753,7 @@ sessionInfo()
 #> [153] fs_2.1.0                    stringi_1.8.9              
 #> [155] viridisLite_0.4.3           deldir_2.0-4               
 #> [157] spatstat.geom_3.8-3         Matrix_1.7-5               
-#> [159] RcppHNSW_0.7.0              future_1.76.0              
+#> [159] RcppHNSW_0.7.0              future_1.80.0              
 #> [161] shiny_1.14.0                SummarizedExperiment_1.42.0
 #> [163] ROCR_1.0-12                 igraph_2.3.4               
 #> [165] broom_1.0.13                memoise_2.0.1              

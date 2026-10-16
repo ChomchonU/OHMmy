@@ -73,7 +73,7 @@ generate_dimheatmaps(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_DimHeatmap_pca.log_PC1-9_20261016_130618.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_DimHeatmap_pca.log_PC1-9_20261016_134027.jpg)
 
 PC 1 separates myeloid genes (*LYZ*, *FCN1*, *CST3*) from lymphoid genes
 (*IL7R*, *LTB*). Note that *MALAT1* is among its top lymphoid loadings,
@@ -111,7 +111,7 @@ failed
 #> character(0)
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_VizDimLoadings_PC1-6_20261016_130619.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_VizDimLoadings_PC1-6_20261016_134028.jpg)
 
 ## 2. Quantifying technical gene contributions
 
@@ -140,7 +140,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261016_130621.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261016_134029.jpg)
 
 In pbmc3k every PC stays well below the 15 % cutoff. The largest value
 is a few percent on the negative side of PC 1. This is expected, because
@@ -172,7 +172,7 @@ plot_stacked_technical_contribution(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-stacked_technical_contrib_posneg_pbmc3k_20261016_130624.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-stacked_technical_contrib_posneg_pbmc3k_20261016_134032.jpg)
 
 ## 3. Correlating PCs with QC covariates
 
@@ -204,7 +204,7 @@ plot_pc_metadata_correlation(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-corr_pc_pbmc3k_20261016_130625.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-corr_pc_pbmc3k_20261016_134034.jpg)
 
 ## Interpreting the diagnostics
 

@@ -123,6 +123,13 @@
 * `plot_blend_nebulosa()` works on Seurat v5 objects with split layers (it failed
   with "GetAssayData doesn't work for multiple layers"), and a numeric `min_cutoff`
   is now applied as an expression value (it was silently ignored).
+* `plot_blend_nebulosa()` no longer fails with "The `slot` argument of `FetchData()`
+  was deprecated in SeuratObject 5.0.0 and is now defunct" when an older Nebulosa
+  (e.g. 1.16) is used with a newer SeuratObject (e.g. 5.4). Its density panels now
+  use the same version-independent route as `plot_combined()` (expression fetched
+  with `layer = "data"`, plotted through Nebulosa's SingleCellExperiment method),
+  so it now also needs the suggested package SingleCellExperiment. Plots are
+  unchanged.
 * `plot_technical_contribution()` and `plot_stacked_technical_contribution()` no
   longer fail when `n_top_genes` / `gene_depths` ask for more genes than the PCA
   loadings contain.

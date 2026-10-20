@@ -156,6 +156,34 @@ test_that("plot_blend_nebulosa stacks one row per valid gene pair", {
   expect_error(plot_blend_nebulosa(obj, "cell_type", gene_pairs = list("MS4A1")), "length 2")
 })
 
+test_that("density panels do not use Nebulosa's Seurat method (old releases pass `slot`)", {
+  skip_if_not_installed("Nebulosa")
+  skip_if_not_installed("SingleCellExperiment")
+  obj <- small_seurat()
+  out <- test_out_dir("blend_old_nebulosa")
+
+  # Simulate Nebulosa <= 1.16 + SeuratObject >= 5.2: the Seurat method fails
+  original_plot_density <- Nebulosa::plot_density
+  local_mocked_bindings(
+    plot_density = function(object, ...) {
+      if (inherits(object, "Seurat")) stop("`slot` argument of `FetchData()` is defunct")
+      original_plot_density(object, ...)
+    },
+    .package = "Nebulosa"
+  )
+
+  res <- quietly(plot_blend_nebulosa(obj, cluster_col = "cell_type",
+                                     gene_pairs = list(c("MS4A1", "CD79A")),
+                                     sample_name = "small", reduction = "tsne", width = 12,
+                                     dpi = 30, output_dir = out, verbose = FALSE))
+  expect_length(res$rows, 1)
+
+  res2 <- quietly(plot_combined(obj, cluster_col = "cell_type", genes_list = list(B = "MS4A1"),
+                                sample_name = "small", reduction = "tsne", output_dir = out,
+                                width = 6, dpi = 30, verbose = FALSE))
+  expect_named(res2$combined_plots, "B")
+})
+
 test_that("plot_gene_pair_correlations returns per-cluster correlations", {
   obj <- small_seurat()
   out <- test_out_dir("gene_pairs")

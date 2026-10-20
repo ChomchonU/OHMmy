@@ -111,29 +111,12 @@ plot_combined <- function(seurat_obj,
         order = TRUE
       ) + ggtitle(paste(feat, "- Feature"))
 
-      # ====================================================================
-      # 2. V5-SAFE DENSITY PLOT BYPASS
-      # ====================================================================
-      # Fetch data using the safe 'layer' argument
-      feat_data <- SeuratObject::FetchData(seurat_obj, vars = feat, layer = "data")
-
-      # Build a temporary, ultra-lightweight SCE object
-      sce_mini <- SingleCellExperiment::SingleCellExperiment(
-        assays = list(logcounts = t(as.matrix(feat_data))),
-        reducedDims = list(target_red = red_coords)
-      )
-
-      # Pass SCE directly to Nebulosa (bypasses Seurat v5 crash completely)
+      # 2. Density plot via the version-safe helper (see .nebulosa_density_v5)
       p_dens <- suppressWarnings({
-        Nebulosa::plot_density(
-          sce_mini,
-          features = feat,
-          reduction = "target_red"
-        ) +
+        .nebulosa_density_v5(seurat_obj, feat, reduction, embeddings = red_coords) +
           ggtitle(paste(feat, "- Density")) +
           ggplot2::scale_color_viridis_c(option = viridis_palette) # Replicate scCustomize styling
       })
-      # ====================================================================
 
       list(p_feat, p_dens)
     })
@@ -986,6 +969,37 @@ plot_gene_pair_correlations <- function(seurat_obj,
 
 #--------------------------------------------------------------------------------------
 
+#' Nebulosa density plot that works with any Nebulosa / SeuratObject version
+#'
+#' Nebulosa's Seurat method in releases before ~1.18 calls
+#' `FetchData(slot = "data")`, which SeuratObject >= 5.2 rejects as defunct.
+#' Here the values are fetched with `layer = "data"` and passed to Nebulosa's
+#' SingleCellExperiment method instead, which never touches the Seurat API.
+#'
+#' @param seurat_obj A Seurat object.
+#' @param feature Character. One gene or metadata column.
+#' @param reduction Character. Reduction to plot on.
+#' @param embeddings Optional matrix of cell embeddings for `reduction`; pass it
+#'   when plotting many features so it is extracted only once.
+#' @return A ggplot from `Nebulosa::plot_density()`.
+#' @noRd
+.nebulosa_density_v5 <- function(seurat_obj, feature, reduction, embeddings = NULL) {
+  if (is.null(embeddings)) embeddings <- SeuratObject::Embeddings(seurat_obj, reduction = reduction)
+
+  feature_values <- SeuratObject::FetchData(seurat_obj, vars = feature, layer = "data")
+
+  # Minimal SCE: one feature row, the same embedding. "logcounts" is the SCE
+  # equivalent of the Seurat "data" layer (Nebulosa's default assay for SCE).
+  sce_mini <- SingleCellExperiment::SingleCellExperiment(
+    assays      = list(logcounts = t(as.matrix(feature_values))),
+    reducedDims = list(target_red = embeddings[colnames(seurat_obj), , drop = FALSE])
+  )
+
+  Nebulosa::plot_density(sce_mini, features = feature, reduction = "target_red")
+}
+
+#--------------------------------------------------------------------------------------
+
 #' Generate Combined Blend and Nebulosa Density Plots
 #'
 #' Iterates over a list of gene pairs to generate a comprehensive 6-panel visualization
@@ -1055,7 +1069,7 @@ plot_blend_nebulosa <- function(seurat_obj,
                                 add_timestamp   = TRUE,
                                 verbose         = TRUE) {
 
-  .check_suggested("Nebulosa", "plot_blend_nebulosa()")
+  .check_suggested(c("SingleCellExperiment", "Nebulosa"), "plot_blend_nebulosa()")
 
   # -- Validation ----------------------------------------------------------------
   if (!is.list(gene_pairs) || !all(lengths(gene_pairs) == 2))
@@ -1082,6 +1096,9 @@ plot_blend_nebulosa <- function(seurat_obj,
       length(SeuratObject::Layers(seurat_obj[[assay]], search = "data")) > 1) {
     seurat_obj[[assay]] <- SeuratObject::JoinLayers(seurat_obj[[assay]])
   }
+
+  # Extract once; reused by every density panel
+  red_coords <- SeuratObject::Embeddings(seurat_obj, reduction = reduction)
 
   # -- Layout math ---------------------------------------------------------------
   n_panels_per_row <- 6
@@ -1115,7 +1132,7 @@ plot_blend_nebulosa <- function(seurat_obj,
     )
 
     # -- Nebulosa - gene 1 --------------------------------------------------------
-    p_neb1 <- Nebulosa::plot_density(seurat_obj, features = gene1, reduction = reduction) +
+    p_neb1 <- .nebulosa_density_v5(seurat_obj, gene1, reduction, embeddings = red_coords) +
       labs(title = paste(gene1, "density")) +
       theme(
         plot.title        = element_text(hjust = 0.5, face = "bold", size = 11),
@@ -1127,7 +1144,7 @@ plot_blend_nebulosa <- function(seurat_obj,
       )
 
     # -- Nebulosa - gene 2 --------------------------------------------------------
-    p_neb2 <- Nebulosa::plot_density(seurat_obj, features = gene2, reduction = reduction) +
+    p_neb2 <- .nebulosa_density_v5(seurat_obj, gene2, reduction, embeddings = red_coords) +
       labs(title = paste(gene2, "density")) +
       theme(
         plot.title        = element_text(hjust = 0.5, face = "bold", size = 11),

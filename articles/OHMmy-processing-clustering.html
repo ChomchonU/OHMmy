@@ -56,7 +56,7 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
-            <h4 data-toc-skip class="date">2026-10-16</h4>
+            <h4 data-toc-skip class="date">2026-10-20</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/vignettes/OHMmy-processing-clustering.Rmd" class="external-link"><code>vignettes/OHMmy-processing-clustering.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-processing-clustering.Rmd</code></div>
@@ -165,7 +165,7 @@ column can be used for grouping; before clustering we simply group by
 <span>  output_dir       <span class="op">=</span> <span class="va">out_dir</span>,</span>
 <span>  dpi              <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-16_13-55-22.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-20_18-39-13.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>Based on these distributions we apply the standard pbmc3k
 thresholds.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -239,7 +239,7 @@ separate look-alike populations such as CD8 T and NK cells;</li>
 <span>  sample_name           <span class="op">=</span> <span class="st">"pbmc3k"</span>,</span>
 <span>  verbose               <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261016_135535.jpg" class="r-plt" alt="" width="70%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261020_183926.jpg" class="r-plt" alt="" width="70%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pbmc</span></span>
 <span><span class="co">#&gt; An object of class Seurat </span></span>
@@ -347,8 +347,8 @@ working resolution.</p>
 <code class="sourceCode R"><span><span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span> <span class="op">&lt;-</span> <span class="va">pbmc</span><span class="op">$</span><span class="va">har_snn_res.0.6</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   0   1   2   3   4   5   6   7 </span></span>
-<span><span class="co">#&gt; 614 554 478 341 298 178 141  34</span></span></code></pre></div>
+<span><span class="co">#&gt;   0   1   2   3   4   5   6   7   8 </span></span>
+<span><span class="co">#&gt; 627 538 477 341 285 163 157  34  16</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="comparing-methods-at-the-same-number-of-clusters">Comparing methods at the same number of clusters<a class="anchor" aria-label="anchor" href="#comparing-methods-at-the-same-number-of-clusters"></a>
 </h3>
@@ -387,8 +387,8 @@ shared number:</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 4</span></span></span>
 <span><span class="co">#&gt;   Pipeline Resolution Num_Clusters Min_Cluster_Size</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> har_snn         1.5           12               18</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> pca_snn         1.6           12               13</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> har_snn         1.5           11               38</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> pca_snn         1.6           11               13</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cluster_choice</span>, <span class="st">"plot"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="OHMmy-processing-clustering_files/figure-html/cluster-choice-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
@@ -417,15 +417,16 @@ or manual curation.</p>
 <span><span class="va">pbmc</span> <span class="op">&lt;-</span> <span class="fu">annotate_pbmc</span><span class="op">(</span><span class="va">pbmc</span>, cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span>, <span class="va">pbmc</span><span class="op">$</span><span class="va">cell_type</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    </span></span>
-<span><span class="co">#&gt;     CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC</span></span>
-<span><span class="co">#&gt;   0   614     0   0   0         0           0   0</span></span>
-<span><span class="co">#&gt;   1   554     0   0   0         0           0   0</span></span>
-<span><span class="co">#&gt;   2     0     0   0   0       478           0   0</span></span>
-<span><span class="co">#&gt;   3     0     0   0 341         0           0   0</span></span>
-<span><span class="co">#&gt;   4     0   298   0   0         0           0   0</span></span>
-<span><span class="co">#&gt;   5     0     0   0   0         0         178   0</span></span>
-<span><span class="co">#&gt;   6     0     0 141   0         0           0   0</span></span>
-<span><span class="co">#&gt;   7     0     0   0   0         0           0  34</span></span></code></pre></div>
+<span><span class="co">#&gt;     CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC Platelet</span></span>
+<span><span class="co">#&gt;   0   627     0   0   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   1   538     0   0   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   2     0     0   0   0       477           0   0        0</span></span>
+<span><span class="co">#&gt;   3     0     0   0 341         0           0   0        0</span></span>
+<span><span class="co">#&gt;   4     0   285   0   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   5     0     0   0   0         0         163   0        0</span></span>
+<span><span class="co">#&gt;   6     0     0 157   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   7     0     0   0   0         0           0  34        0</span></span>
+<span><span class="co">#&gt;   8     0     0   0   0         0           0   0       16</span></span></code></pre></div>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">pbmc</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>, group.by <span class="op">=</span> <span class="st">"seurat_clusters"</span>, label <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SeuratTheme.html" class="external-link">NoLegend</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">pbmc</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>, group.by <span class="op">=</span> <span class="st">"cell_type"</span>, label <span class="op">=</span> <span class="cn">TRUE</span>, repel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SeuratTheme.html" class="external-link">NoLegend</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -510,14 +511,14 @@ argument of <code><a href="../reference/ClusterAndUMAP.html">ClusterAndUMAP()</a
 <span><span class="co">#&gt;  [37] fitdistrplus_1.2-6     shiny_1.14.0           digest_0.6.39         </span></span>
 <span><span class="co">#&gt;  [40] tensor_1.5.1           RSpectra_0.16-2        irlba_2.4.1           </span></span>
 <span><span class="co">#&gt;  [43] textshaping_1.0.5      ggpubr_1.0.0           labeling_0.4.3        </span></span>
-<span><span class="co">#&gt;  [46] progressr_1.0.0        spatstat.sparse_3.2-0  httr_1.4.9            </span></span>
+<span><span class="co">#&gt;  [46] progressr_1.1.0        spatstat.sparse_3.2-0  httr_1.4.9            </span></span>
 <span><span class="co">#&gt;  [49] polyclip_1.10-7        abind_1.4-8            compiler_4.6.1        </span></span>
 <span><span class="co">#&gt;  [52] withr_3.0.3            S7_0.2.2               backports_1.5.1       </span></span>
 <span><span class="co">#&gt;  [55] viridis_0.6.5          carData_3.0-6          fastDummies_1.7.6     </span></span>
 <span><span class="co">#&gt;  [58] R.utils_2.13.0         ggforce_0.5.0          ggsignif_0.6.4        </span></span>
 <span><span class="co">#&gt;  [61] MASS_7.3-65            tools_4.6.1            vipor_0.4.7           </span></span>
 <span><span class="co">#&gt;  [64] lmtest_0.9-40          otel_0.2.0             beeswarm_0.4.0        </span></span>
-<span><span class="co">#&gt;  [67] httpuv_1.6.17          future.apply_1.20.2    goftest_1.2-3         </span></span>
+<span><span class="co">#&gt;  [67] httpuv_1.6.17          future.apply_1.21.0    goftest_1.2-3         </span></span>
 <span><span class="co">#&gt;  [70] R.oo_1.27.1            glue_1.8.1             nlme_3.1-169          </span></span>
 <span><span class="co">#&gt;  [73] promises_1.5.0         grid_4.6.1             checkmate_2.3.4       </span></span>
 <span><span class="co">#&gt;  [76] Rtsne_0.17             cluster_2.1.8.2        reshape2_1.4.5        </span></span>
@@ -532,7 +533,7 @@ argument of <code><a href="../reference/ClusterAndUMAP.html">ClusterAndUMAP()</a
 <span><span class="co">#&gt; [103] deldir_2.0-4           tidyselect_1.2.1       miniUI_0.1.2          </span></span>
 <span><span class="co">#&gt; [106] pbapply_1.7-5          knitr_1.52             gridExtra_2.3.1       </span></span>
 <span><span class="co">#&gt; [109] SoupX_1.6.2            scattermore_1.2        RhpcBLASctl_0.23-42   </span></span>
-<span><span class="co">#&gt; [112] xfun_0.61              graphlayouts_1.2.5     matrixStats_1.5.0     </span></span>
+<span><span class="co">#&gt; [112] xfun_0.62              graphlayouts_1.2.5     matrixStats_1.5.0     </span></span>
 <span><span class="co">#&gt; [115] leidenbase_0.1.37      stringi_1.8.9          yaml_2.3.12           </span></span>
 <span><span class="co">#&gt; [118] evaluate_1.0.5         codetools_0.2-20       tibble_3.3.1          </span></span>
 <span><span class="co">#&gt; [121] cli_3.6.6              uwot_0.2.5             xtable_1.8-8          </span></span>

@@ -73,7 +73,7 @@ generate_dimheatmaps(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_DimHeatmap_pca.log_PC1-9_20261016_134027.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_DimHeatmap_pca.log_PC1-9_20261020_182236.jpg)
 
 PC 1 separates myeloid genes (*LYZ*, *FCN1*, *CST3*) from lymphoid genes
 (*IL7R*, *LTB*). Note that *MALAT1* is among its top lymphoid loadings,
@@ -111,7 +111,7 @@ failed
 #> character(0)
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_VizDimLoadings_PC1-6_20261016_134028.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-pbmc3k_VizDimLoadings_PC1-6_20261020_182237.jpg)
 
 ## 2. Quantifying technical gene contributions
 
@@ -140,7 +140,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261016_134029.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261020_182238.jpg)
 
 In pbmc3k every PC stays well below the 15 % cutoff. The largest value
 is a few percent on the negative side of PC 1. This is expected, because
@@ -172,7 +172,7 @@ plot_stacked_technical_contribution(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-stacked_technical_contrib_posneg_pbmc3k_20261016_134032.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-stacked_technical_contrib_posneg_pbmc3k_20261020_182241.jpg)
 
 ## 3. Correlating PCs with QC covariates
 
@@ -204,7 +204,7 @@ plot_pc_metadata_correlation(
 )
 ```
 
-![](OHMmy-diagnostics-evaluation_files/figure-html/saved-corr_pc_pbmc3k_20261016_134034.jpg)
+![](OHMmy-diagnostics-evaluation_files/figure-html/saved-corr_pc_pbmc3k_20261020_182242.jpg)
 
 ## Interpreting the diagnostics
 
@@ -266,14 +266,14 @@ sessionInfo()
 #>  [37] fitdistrplus_1.2-6     future_1.80.0          shiny_1.14.0          
 #>  [40] digest_0.6.39          patchwork_1.3.2        tensor_1.5.1          
 #>  [43] RSpectra_0.16-2        irlba_2.4.1            textshaping_1.0.5     
-#>  [46] ggpubr_1.0.0           labeling_0.4.3         progressr_1.0.0       
+#>  [46] ggpubr_1.0.0           labeling_0.4.3         progressr_1.1.0       
 #>  [49] spatstat.sparse_3.2-0  httr_1.4.9             polyclip_1.10-7       
 #>  [52] abind_1.4-8            compiler_4.6.1         withr_3.0.3           
 #>  [55] S7_0.2.2               backports_1.5.1        viridis_0.6.5         
 #>  [58] carData_3.0-6          fastDummies_1.7.6      ggforce_0.5.0         
 #>  [61] ggsignif_0.6.4         MASS_7.3-65            tools_4.6.1           
 #>  [64] lmtest_0.9-40          otel_0.2.0             httpuv_1.6.17         
-#>  [67] future.apply_1.20.2    goftest_1.2-3          glue_1.8.1            
+#>  [67] future.apply_1.21.0    goftest_1.2-3          glue_1.8.1            
 #>  [70] nlme_3.1-169           promises_1.5.0         grid_4.6.1            
 #>  [73] Rtsne_0.17             cluster_2.1.8.2        reshape2_1.4.5        
 #>  [76] generics_0.1.4         gtable_0.3.6           spatstat.data_3.1-9   
@@ -286,7 +286,7 @@ sessionInfo()
 #>  [97] survival_3.8-6         deldir_2.0-4           tidyselect_1.2.1      
 #> [100] miniUI_0.1.2           pbapply_1.7-5          knitr_1.52            
 #> [103] gridExtra_2.3.1        SoupX_1.6.2            scattermore_1.2       
-#> [106] xfun_0.61              graphlayouts_1.2.5     matrixStats_1.5.0     
+#> [106] xfun_0.62              graphlayouts_1.2.5     matrixStats_1.5.0     
 #> [109] pheatmap_1.0.13        leidenbase_0.1.37      stringi_1.8.9         
 #> [112] yaml_2.3.12            evaluate_1.0.5         codetools_0.2-20      
 #> [115] ggraph_2.2.2           tibble_3.3.1           cli_3.6.6             

@@ -56,7 +56,7 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
-            <h4 data-toc-skip class="date">2026-10-16</h4>
+            <h4 data-toc-skip class="date">2026-10-20</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/vignettes/OHMmy-advanced-visualization.Rmd" class="external-link"><code>vignettes/OHMmy-advanced-visualization.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-advanced-visualization.Rmd</code></div>
@@ -134,9 +134,9 @@ object, so you can keep customising in R.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">cell_type</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;       CD4 T       CD8 T          NK           B   CD14 Mono FCGR3A Mono </span></span>
-<span><span class="co">#&gt;        1168         298         141         341         478         178 </span></span>
-<span><span class="co">#&gt;          DC </span></span>
-<span><span class="co">#&gt;          34</span></span></code></pre></div>
+<span><span class="co">#&gt;        1165         285         157         341         477         163 </span></span>
+<span><span class="co">#&gt;          DC    Platelet </span></span>
+<span><span class="co">#&gt;          34          16</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="colour-palettes-for-many-clusters">1. Colour palettes for many clusters<a class="anchor" aria-label="anchor" href="#colour-palettes-for-many-clusters"></a>
@@ -239,7 +239,7 @@ and one for genes, grouped by any identity column.</p>
 <span>  output_dir       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"violins"</span><span class="op">)</span>,</span>
 <span>  dpi              <span class="op">=</span> <span class="fl">90</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-16_13-30-52.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-16_13-30-52.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-20_18-11-51.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-20_18-11-51.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="discretising-expression-into-low-int-high">Discretising expression into Low / Int / High<a class="anchor" aria-label="anchor" href="#discretising-expression-into-low-int-high"></a>
@@ -262,12 +262,12 @@ highest-expressing groups of each gene are labelled
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 5</span></span></span>
 <span><span class="co">#&gt;   Cluster Gene   AvgExpression PctExpress Expression_Level</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>           </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> CD4 T   CD3E          7.55        77.0  High            </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> CD4 T   CD8A          0.731       11.1  High            </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> CD4 T   GNLY          0.571       10.4  Int             </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> CD4 T   MS4A1         0.203        4.97 Low             </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> CD4 T   CD14          0.083<span style="text-decoration: underline;">8</span>       1.80 Int             </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> CD4 T   FCGR3A        0.207        4.54 Low</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> CD4 T   CD3E          7.54        76.8  High            </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> CD4 T   CD8A          0.728       11.0  High            </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> CD4 T   GNLY          0.563       10.3  Low             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> CD4 T   MS4A1         0.196        4.89 Low             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> CD4 T   CD14          0.084<span style="text-decoration: underline;">0</span>       1.80 Int             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> CD4 T   FCGR3A        0.204        4.46 Low</span></span></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">binned</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">Gene</span>, <span class="va">Cluster</span>, fill <span class="op">=</span> <span class="va">Expression_Level</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">"white"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -386,16 +386,16 @@ directly which clusters each label absorbed. Rows are named
 <span>  output_dir    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"dot_multi"</span><span class="op">)</span>,</span>
 <span>  save_options  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"combined"</span>, <span class="st">"gene_list"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261016_133102.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261020_181159.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">multi_df</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster_var"</span>, <span class="st">"feature"</span>, <span class="st">"avg.exp.scaled"</span>, <span class="st">"pct.exp"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;              cluster_var feature avg.exp.scaled  pct.exp</span></span>
-<span><span class="co">#&gt; IL7R...1 CD4 T_cell_type    IL7R      1.6004838 66.43836</span></span>
-<span><span class="co">#&gt; CCR7...2 CD4 T_cell_type    CCR7      1.9228209 36.38699</span></span>
-<span><span class="co">#&gt; LDHB...3 CD4 T_cell_type    LDHB      1.7808176 92.72260</span></span>
-<span><span class="co">#&gt; CD3E...4 CD4 T_cell_type    CD3E      1.3155181 76.96918</span></span>
-<span><span class="co">#&gt; MAL...5  CD4 T_cell_type     MAL      2.2501354 27.31164</span></span>
-<span><span class="co">#&gt; CD8A...6 CD4 T_cell_type    CD8A      0.2059775 11.13014</span></span></code></pre></div>
+<span><span class="co">#&gt; IL7R...1 CD4 T_cell_type    IL7R      1.6552981 66.18026</span></span>
+<span><span class="co">#&gt; CCR7...2 CD4 T_cell_type    CCR7      2.0153829 36.30901</span></span>
+<span><span class="co">#&gt; LDHB...3 CD4 T_cell_type    LDHB      1.9231096 92.53219</span></span>
+<span><span class="co">#&gt; CD3E...4 CD4 T_cell_type    CD3E      1.3666726 76.82403</span></span>
+<span><span class="co">#&gt; MAL...5  CD4 T_cell_type     MAL      2.4402184 27.29614</span></span>
+<span><span class="co">#&gt; CD8A...6 CD4 T_cell_type    CD8A      0.2086779 10.98712</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="cutting-the-dendrograms-into-clusters-with-cluster_dot_dendro">Cutting the dendrograms into clusters with
@@ -417,31 +417,32 @@ candidate is reported.</p>
 <span></span>
 <span><span class="va">dc</span><span class="op">$</span><span class="va">k</span></span>
 <span><span class="co">#&gt;  rows genes </span></span>
-<span><span class="co">#&gt;     7    10</span></span>
+<span><span class="co">#&gt;     8    10</span></span>
 <span><span class="va">dc</span><span class="op">$</span><span class="va">selection</span><span class="op">$</span><span class="va">rows</span></span>
-<span><span class="co">#&gt;      cutoff n_clusters n_unassigned avg_silhouette selected</span></span>
-<span><span class="co">#&gt; 1 0.0000000          7            1      0.8198003    FALSE</span></span>
-<span><span class="co">#&gt; 2 0.6194836          7            1      0.8198003    FALSE</span></span>
-<span><span class="co">#&gt; 3 0.7071068          7            0      0.8541494     TRUE</span></span>
-<span><span class="co">#&gt; 4 0.8424165          7            0      0.8541494    FALSE</span></span>
-<span><span class="co">#&gt; 5 0.9006495          7            0      0.8541494    FALSE</span></span>
-<span><span class="co">#&gt; 6 1.0008067          7            0      0.8541494    FALSE</span></span>
-<span><span class="co">#&gt; 7 1.1160426          7            0      0.8541494    FALSE</span></span>
-<span><span class="co">#&gt; 8 1.1546760          1            0             NA    FALSE</span></span>
-<span><span class="co">#&gt; 9 2.1546760          1            0             NA    FALSE</span></span>
+<span><span class="co">#&gt;       cutoff n_clusters n_unassigned avg_silhouette selected</span></span>
+<span><span class="co">#&gt; 1  0.0000000          8            1      0.8425799    FALSE</span></span>
+<span><span class="co">#&gt; 2  0.6429790          8            1      0.8425799    FALSE</span></span>
+<span><span class="co">#&gt; 3  0.7071068          8            0      0.8726987     TRUE</span></span>
+<span><span class="co">#&gt; 4  0.7254723          8            0      0.8726987    FALSE</span></span>
+<span><span class="co">#&gt; 5  0.7330018          8            0      0.8726987    FALSE</span></span>
+<span><span class="co">#&gt; 6  0.8370762          8            0      0.8726987    FALSE</span></span>
+<span><span class="co">#&gt; 7  1.1212589          6            0      0.5733035    FALSE</span></span>
+<span><span class="co">#&gt; 8  1.1546246          4            0      0.4220291    FALSE</span></span>
+<span><span class="co">#&gt; 9  1.1546993          4            0      0.4220291    FALSE</span></span>
+<span><span class="co">#&gt; 10 2.1546993          1            0             NA    FALSE</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dc</span><span class="op">$</span><span class="va">clusters</span><span class="op">[</span><span class="va">dc</span><span class="op">$</span><span class="va">clusters</span><span class="op">$</span><span class="va">type</span> <span class="op">==</span> <span class="st">"rows"</span>,</span>
 <span>                 <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"label"</span>, <span class="st">"cluster"</span>, <span class="st">"cluster_height"</span>, <span class="st">"cut_height"</span><span class="op">)</span><span class="op">]</span>, <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                    label cluster cluster_height cut_height</span></span>
-<span><span class="co">#&gt; 1  FCGR3A Mono_cell_type      C1      0.6418832   4.208865</span></span>
-<span><span class="co">#&gt; 2      5_seurat_clusters      C1      0.6418832   4.208865</span></span>
-<span><span class="co">#&gt; 3    CD14 Mono_cell_type      C2      0.5690872   2.863924</span></span>
-<span><span class="co">#&gt; 4      2_seurat_clusters      C2      0.5690872   2.863924</span></span>
-<span><span class="co">#&gt; 5           DC_cell_type      C3      0.6035432   2.881152</span></span>
-<span><span class="co">#&gt; 6      7_seurat_clusters      C3      0.6035432   2.881152</span></span>
-<span><span class="co">#&gt; 7            B_cell_type      C4      0.6514424   4.826426</span></span>
-<span><span class="co">#&gt; 8      3_seurat_clusters      C4      0.6514424   4.826426</span></span>
-<span><span class="co">#&gt; 9           NK_cell_type      C5      0.6249326   4.612283</span></span>
-<span><span class="co">#&gt; 10     6_seurat_clusters      C5      0.6249326   4.612283</span></span></code></pre></div>
+<span><span class="co">#&gt; 1  FCGR3A Mono_cell_type      C1      0.4757775   3.412300</span></span>
+<span><span class="co">#&gt; 2      5_seurat_clusters      C1      0.4757775   3.412300</span></span>
+<span><span class="co">#&gt; 3           DC_cell_type      C2      0.4763521   2.924448</span></span>
+<span><span class="co">#&gt; 4      7_seurat_clusters      C2      0.4763521   2.924448</span></span>
+<span><span class="co">#&gt; 5    CD14 Mono_cell_type      C3      0.4847236   2.928634</span></span>
+<span><span class="co">#&gt; 6      2_seurat_clusters      C3      0.4847236   2.928634</span></span>
+<span><span class="co">#&gt; 7           NK_cell_type      C4      0.5787966   3.448763</span></span>
+<span><span class="co">#&gt; 8      6_seurat_clusters      C4      0.5787966   3.448763</span></span>
+<span><span class="co">#&gt; 9        CD8 T_cell_type      C5      0.6543277   3.486528</span></span>
+<span><span class="co">#&gt; 10     4_seurat_clusters      C5      0.6543277   3.486528</span></span></code></pre></div>
 <p>Each cluster gets its own cut height, marked by a dashed line. Leaves
 that do not clearly belong to any cluster stay unassigned (grey); use
 <code>assign_all = TRUE</code> to assign them to their nearest
@@ -455,34 +456,34 @@ expression varies together across the groups.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/split.html" class="external-link">split</a></span><span class="op">(</span><span class="va">dc</span><span class="op">$</span><span class="va">clusters</span><span class="op">$</span><span class="va">label</span><span class="op">[</span><span class="va">dc</span><span class="op">$</span><span class="va">clusters</span><span class="op">$</span><span class="va">type</span> <span class="op">==</span> <span class="st">"genes"</span><span class="op">]</span>,</span>
 <span>      <span class="va">dc</span><span class="op">$</span><span class="va">clusters</span><span class="op">$</span><span class="va">cluster</span><span class="op">[</span><span class="va">dc</span><span class="op">$</span><span class="va">clusters</span><span class="op">$</span><span class="va">type</span> <span class="op">==</span> <span class="st">"genes"</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $C1</span></span>
-<span><span class="co">#&gt; [1] "CD8B" "CD8A" "GZMK"</span></span>
+<span><span class="co">#&gt; [1] "CCR7" "LDHB" "MAL" </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $C2</span></span>
-<span><span class="co">#&gt; [1] "LDHB" "CD3E" "IL7R" "CD3D"</span></span>
+<span><span class="co">#&gt; [1] "CD8A" "GZMK" "CD8B" "CD3E" "IL7R" "CD3D"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $C3</span></span>
-<span><span class="co">#&gt; [1] "CCR7" "MAL" </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $C4</span></span>
 <span><span class="co">#&gt; [1] "FCGR3A" "IFITM2"</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $C4</span></span>
+<span><span class="co">#&gt; [1] "GZMB"  "NKG7"  "KLRD1" "GNLY"  "PRF1" </span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $C5</span></span>
-<span><span class="co">#&gt; [1] "MS4A7" "PF4"   "PPBP"  "GNG11"</span></span>
+<span><span class="co">#&gt; [1] "CD79B" "MS4A1" "CD79A" "CD19" </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $C6</span></span>
-<span><span class="co">#&gt; [1] "FCER1A"  "CLEC10A"</span></span>
+<span><span class="co">#&gt; [1] "PF4"   "PPBP"  "GNG11"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $C7</span></span>
-<span><span class="co">#&gt; [1] "S100A9" "CD14"   "S100A8"</span></span>
+<span><span class="co">#&gt; [1] "FCER1A"  "CLEC10A"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $C8</span></span>
-<span><span class="co">#&gt; [1] "LST1" "LYZ"  "CST3"</span></span>
+<span><span class="co">#&gt; [1] "MS4A7" "LST1" </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $C9</span></span>
-<span><span class="co">#&gt; [1] "CD79B" "CD79A" "MS4A1" "CD19" </span></span>
+<span><span class="co">#&gt; [1] "CD14"   "S100A8"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $C10</span></span>
-<span><span class="co">#&gt; [1] "GZMB"  "NKG7"  "GNLY"  "PRF1"  "KLRD1"</span></span>
+<span><span class="co">#&gt; [1] "CST3"   "LYZ"    "S100A9"</span></span>
 <span><span class="va">dc</span><span class="op">$</span><span class="va">plot</span><span class="op">$</span><span class="va">genes</span></span></code></pre></div>
 <p><img src="OHMmy-advanced-visualization_files/figure-html/dendro-clusters-genes-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>For comparison, <code>method = "dynamic"</code> uses the hybrid
@@ -494,7 +495,7 @@ dynamic tree cut of the <strong>dynamicTreeCut</strong> package, and
 <span>  dynamic       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="fu"><a href="../reference/cluster_dot_dendro.html">cluster_dot_dendro</a></span><span class="op">(</span><span class="va">multi_df</span>, method <span class="op">=</span> <span class="st">"dynamic"</span><span class="op">)</span><span class="op">$</span><span class="va">k</span><span class="op">[</span><span class="st">"rows"</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  fixed_k4      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="fu"><a href="../reference/cluster_dot_dendro.html">cluster_dot_dendro</a></span><span class="op">(</span><span class="va">multi_df</span>, method <span class="op">=</span> <span class="st">"fixed"</span>, k <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">$</span><span class="va">k</span><span class="op">[</span><span class="st">"rows"</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; inconsistency       dynamic      fixed_k4 </span></span>
-<span><span class="co">#&gt;             7             7             4</span></span></code></pre></div>
+<span><span class="co">#&gt;             8             8             4</span></span></code></pre></div>
 <p>Finally, the group clusters can be written back to the cells. Here
 each <code>seurat_clusters</code> cluster receives the dendrogram
 cluster of its row, giving a coarser grouping of the clusters based on
@@ -505,15 +506,16 @@ their marker profiles:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span>seurat_cluster <span class="op">=</span> <span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span>, marker_group <span class="op">=</span> <span class="va">dc_cells</span><span class="op">$</span><span class="va">seurat_obj</span><span class="op">$</span><span class="va">marker_group</span>,</span>
 <span>      useNA <span class="op">=</span> <span class="st">"ifany"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;               marker_group</span></span>
-<span><span class="co">#&gt; seurat_cluster  C1  C2  C3  C4  C5  C6  C7</span></span>
-<span><span class="co">#&gt;              0   0   0   0   0   0   0 614</span></span>
-<span><span class="co">#&gt;              1   0   0   0   0   0   0 554</span></span>
-<span><span class="co">#&gt;              2   0 478   0   0   0   0   0</span></span>
-<span><span class="co">#&gt;              3   0   0   0 341   0   0   0</span></span>
-<span><span class="co">#&gt;              4   0   0   0   0   0 298   0</span></span>
-<span><span class="co">#&gt;              5 178   0   0   0   0   0   0</span></span>
-<span><span class="co">#&gt;              6   0   0   0   0 141   0   0</span></span>
-<span><span class="co">#&gt;              7   0   0  34   0   0   0   0</span></span>
+<span><span class="co">#&gt; seurat_cluster  C1  C2  C3  C4  C5  C6  C7  C8</span></span>
+<span><span class="co">#&gt;              0   0   0   0   0   0   0   0 627</span></span>
+<span><span class="co">#&gt;              1   0   0   0   0   0   0   0 538</span></span>
+<span><span class="co">#&gt;              2   0   0 477   0   0   0   0   0</span></span>
+<span><span class="co">#&gt;              3   0   0   0   0   0 341   0   0</span></span>
+<span><span class="co">#&gt;              4   0   0   0   0 285   0   0   0</span></span>
+<span><span class="co">#&gt;              5 163   0   0   0   0   0   0   0</span></span>
+<span><span class="co">#&gt;              6   0   0   0 157   0   0   0   0</span></span>
+<span><span class="co">#&gt;              7   0  34   0   0   0   0   0   0</span></span>
+<span><span class="co">#&gt;              8   0   0   0   0   0   0  16   0</span></span>
 <span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">dc_cells</span><span class="op">$</span><span class="va">seurat_obj</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>, group.by <span class="op">=</span> <span class="st">"marker_group"</span>, label <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">pbmc</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>, group.by <span class="op">=</span> <span class="st">"cell_type"</span>, label <span class="op">=</span> <span class="cn">TRUE</span>, repel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SeuratTheme.html" class="external-link">NoLegend</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="OHMmy-advanced-visualization_files/figure-html/dendro-clusters-cells-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
@@ -613,17 +615,17 @@ column of <code>cons$cutoffs</code> reports this.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cons</span><span class="op">$</span><span class="va">cutoffs</span></span>
-<span><span class="co">#&gt;    variant     cutoff fallback   med_diff q05_diff q95_diff  frac_cd8</span></span>
-<span><span class="co">#&gt; 1  CD8_TCR -0.8432246    FALSE 0.60889522 -2.88979 2.367464 0.6514806</span></span>
-<span><span class="co">#&gt; 2 CD8_core -1.2859800    FALSE 0.07507069 -2.44122 2.751788 0.6924829</span></span>
+<span><span class="co">#&gt;    variant     cutoff fallback   med_diff  q05_diff q95_diff  frac_cd8</span></span>
+<span><span class="co">#&gt; 1  CD8_TCR -0.8463179    FALSE 0.62392346 -2.948398 2.340278 0.6515837</span></span>
+<span><span class="co">#&gt; 2 CD8_core -1.3141486    FALSE 0.02909187 -2.412048 2.700774 0.6945701</span></span>
 <span><span class="va">cons</span><span class="op">$</span><span class="va">agreement</span></span>
 <span><span class="co">#&gt;            CD8_TCR  CD8_core</span></span>
-<span><span class="co">#&gt; CD8_TCR  1.0000000 0.9453303</span></span>
-<span><span class="co">#&gt; CD8_core 0.9453303 1.0000000</span></span>
+<span><span class="co">#&gt; CD8_TCR  1.0000000 0.9434389</span></span>
+<span><span class="co">#&gt; CD8_core 0.9434389 1.0000000</span></span>
 <span><span class="va">cons</span><span class="op">$</span><span class="va">bootstrap</span><span class="op">$</span><span class="va">summary</span></span>
-<span><span class="co">#&gt;    variant target   observed       mean        sd     ci_lo      ci_hi fb_rate</span></span>
-<span><span class="co">#&gt; 1  CD8_TCR cutoff -0.8432246 -0.7863805 0.1892429 -1.111310 -0.4723863       0</span></span>
-<span><span class="co">#&gt; 2 CD8_core cutoff -1.2859800 -1.2765134 0.1086915 -1.497219 -1.0857047       0</span></span></code></pre></div>
+<span><span class="co">#&gt;    variant target   observed      mean        sd     ci_lo      ci_hi fb_rate</span></span>
+<span><span class="co">#&gt; 1  CD8_TCR cutoff -0.8463179 -0.794449 0.1717250 -1.030044 -0.5128929       0</span></span>
+<span><span class="co">#&gt; 2 CD8_core cutoff -1.3141486 -1.294615 0.1148437 -1.530047 -1.0904355       0</span></span></code></pre></div>
 <p>Both variants get a data-driven cutoff
 (<code>fallback = FALSE</code>), and the bootstrap confidence intervals
 show how stable it is. The consensus agrees with the cluster-level
@@ -634,11 +636,11 @@ closer inspection:</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span>consensus <span class="op">=</span> <span class="va">cons</span><span class="op">$</span><span class="va">consensus</span>, annotation <span class="op">=</span> <span class="va">cyto</span><span class="op">$</span><span class="va">cell_type</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                        annotation</span></span>
-<span><span class="co">#&gt; consensus               CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC</span></span>
-<span><span class="co">#&gt;   Ambiguous_CD8_confirm     0     7  14   0         0           0   0</span></span>
-<span><span class="co">#&gt;   Ambiguous_CD8_primary     0     2   1   0         0           0   0</span></span>
-<span><span class="co">#&gt;   CD8                       0   274   9   0         0           0   0</span></span>
-<span><span class="co">#&gt;   NK                        0    15 117   0         0           0   0</span></span></code></pre></div>
+<span><span class="co">#&gt; consensus               CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC Platelet</span></span>
+<span><span class="co">#&gt;   Ambiguous_CD8_confirm     0     8  14   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   Ambiguous_CD8_primary     0     2   1   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   CD8                       0   273  12   0         0           0   0        0</span></span>
+<span><span class="co">#&gt;   NK                        0     2 130   0         0           0   0        0</span></span></code></pre></div>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">cons</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">Violin_CD8_TCR</span><span class="op">)</span> <span class="op">/</span></span>
 <span>  <span class="op">(</span><span class="va">cons</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">Primary_vs_Confirm</span> <span class="op">|</span> <span class="va">cons</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">Bootstrap_ForestPlot</span><span class="op">)</span></span></code></pre></div>
@@ -717,13 +719,13 @@ closer inspection:</p>
 <span><span class="co">#&gt;  [57] matrixStats_1.5.0           stats4_4.6.1               </span></span>
 <span><span class="co">#&gt;  [59] spatstat.explore_3.8-3      Seqinfo_1.2.0              </span></span>
 <span><span class="co">#&gt;  [61] jsonlite_2.0.0              ks_1.15.3                  </span></span>
-<span><span class="co">#&gt;  [63] tidygraph_1.3.1             progressr_1.0.0            </span></span>
+<span><span class="co">#&gt;  [63] tidygraph_1.3.1             progressr_1.1.0            </span></span>
 <span><span class="co">#&gt;  [65] Formula_1.2-6               ggridges_0.5.7             </span></span>
 <span><span class="co">#&gt;  [67] survival_3.8-6              systemfonts_1.3.2          </span></span>
 <span><span class="co">#&gt;  [69] tools_4.6.1                 ragg_1.5.2                 </span></span>
 <span><span class="co">#&gt;  [71] ica_1.0-3                   Rcpp_1.1.2                 </span></span>
 <span><span class="co">#&gt;  [73] glue_1.8.1                  SparseArray_1.12.3         </span></span>
-<span><span class="co">#&gt;  [75] gridExtra_2.3.1             xfun_0.61                  </span></span>
+<span><span class="co">#&gt;  [75] gridExtra_2.3.1             xfun_0.62                  </span></span>
 <span><span class="co">#&gt;  [77] MatrixGenerics_1.24.0       dplyr_1.2.1                </span></span>
 <span><span class="co">#&gt;  [79] withr_3.0.3                 fastmap_1.2.0              </span></span>
 <span><span class="co">#&gt;  [81] clustree_0.5.1              digest_0.6.39              </span></span>
@@ -759,7 +761,7 @@ closer inspection:</p>
 <span><span class="co">#&gt; [141] evaluate_1.0.5              mvtnorm_1.4-2              </span></span>
 <span><span class="co">#&gt; [143] cli_3.6.6                   compiler_4.6.1             </span></span>
 <span><span class="co">#&gt; [145] rlang_1.3.0                 leidenbase_0.1.37          </span></span>
-<span><span class="co">#&gt; [147] future.apply_1.20.2         ggsignif_0.6.4             </span></span>
+<span><span class="co">#&gt; [147] future.apply_1.21.0         ggsignif_0.6.4             </span></span>
 <span><span class="co">#&gt; [149] labeling_0.4.3              mclust_6.1.3               </span></span>
 <span><span class="co">#&gt; [151] ggbeeswarm_0.7.3            plyr_1.8.9                 </span></span>
 <span><span class="co">#&gt; [153] fs_2.1.0                    stringi_1.8.9              </span></span>

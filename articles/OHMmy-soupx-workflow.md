@@ -109,7 +109,7 @@ seurat_list <- create_seurat_for_clustering(counts$filtered, samples)
 soup_list$PBMC_A
 sapply(seurat_list, function(x) nlevels(x$seurat_clusters))
 #> PBMC_A PBMC_B 
-#>      7      9
+#>      8      7
 ```
 
 ### Estimate and remove contamination
@@ -144,8 +144,8 @@ est_manual <- estimate_contamination(
 get_rho <- function(soup_objs) sapply(soup_objs, function(sc) unique(sc$metaData$rho))
 rbind(auto = get_rho(est_auto$soup_list_all), selective = get_rho(est_manual$soup_list_all))
 #>           PBMC_A PBMC_B
-#> auto       0.061  0.055
-#> selective  0.061  0.105
+#> auto       0.058  0.063
+#> selective  0.058  0.113
 ```
 
 `autoEstCont()` estimates about 6 % contamination. The selective
@@ -183,14 +183,14 @@ clean_list <- create_final_seurat(est_auto$soup_list_all, samples)
 clean_list
 #> $PBMC_A
 #> An object of class Seurat 
-#> 12326 features across 1326 samples within 1 assay 
-#> Active assay: RNA (12326 features, 0 variable features)
+#> 12337 features across 1326 samples within 1 assay 
+#> Active assay: RNA (12337 features, 0 variable features)
 #>  1 layer present: counts
 #> 
 #> $PBMC_B
 #> An object of class Seurat 
-#> 12317 features across 1373 samples within 1 assay 
-#> Active assay: RNA (12317 features, 0 variable features)
+#> 12305 features across 1374 samples within 1 assay 
+#> Active assay: RNA (12305 features, 0 variable features)
 #>  1 layer present: counts
 ```
 
@@ -238,14 +238,14 @@ raw_umis <- sapply(counts$filtered, sum)
 sweep$pct_removed <- 100 * (1 - sweep$umis / raw_umis[sweep$sample])
 sweep
 #>         multiFac sample   rho    umis pct_removed
-#> PBMC_A         0 PBMC_A 0.061 2998574    6.221562
-#> PBMC_B         0 PBMC_B 0.055 3012519    5.656001
-#> PBMC_A1        5 PBMC_A 0.111 2838224   11.236403
-#> PBMC_B1        5 PBMC_B 0.105 2852899   10.654870
-#> PBMC_A2       10 PBMC_A 0.161 2678323   16.237202
-#> PBMC_B2       10 PBMC_B 0.155 2692632   15.674002
-#> PBMC_A3       20 PBMC_A 0.261 2358145   26.250559
-#> PBMC_B3       20 PBMC_B 0.255 2373682   25.662659
+#> PBMC_A         0 PBMC_A 0.058 3008084    5.924143
+#> PBMC_B         0 PBMC_B 0.063 2987689    6.433609
+#> PBMC_A1        5 PBMC_A 0.108 2847611   10.942831
+#> PBMC_B1        5 PBMC_B 0.113 2828121   11.430850
+#> PBMC_A2       10 PBMC_A 0.158 2688346   15.923739
+#> PBMC_B2       10 PBMC_B 0.163 2667483   16.461601
+#> PBMC_A3       20 PBMC_A 0.258 2368384   25.930341
+#> PBMC_B3       20 PBMC_B 0.263 2348273   26.458400
 
 ggplot(sweep, aes(rho, pct_removed, colour = sample)) +
   geom_line() + geom_point(size = 2.5) +
@@ -269,7 +269,7 @@ override <- run_soupx_post_clustering(prep, multiFac = 10, manual_contam = "PBMC
 
 get_rho(override$soup_objects)
 #> PBMC_A PBMC_B 
-#>  0.061  0.155
+#>  0.058  0.163
 ```
 
 ### One-step wrapper
@@ -290,7 +290,7 @@ names(one_step)
 #> [1] "final_seurat"      "soup_objects"      "seurat_clustering"
 get_rho(one_step$soup_objects)
 #> PBMC_A PBMC_B 
-#>  0.061  0.055
+#>  0.058  0.063
 ```
 
 ## 4. Transferring the cleaned counts to an existing object
@@ -344,8 +344,8 @@ corrected <- addSoupXMetaToSeurat(
 
 corrected
 #> An object of class Seurat 
-#> 13003 features across 2699 samples within 1 assay 
-#> Active assay: RNA (13003 features, 0 variable features)
+#> 13006 features across 2700 samples within 1 assay 
+#> Active assay: RNA (13006 features, 0 variable features)
 #>  1 layer present: counts
 ```
 
@@ -373,10 +373,10 @@ data.frame(gene = ambient_genes,
            pct_nonmono_before = round(detect(before), 1),
            pct_nonmono_after  = round(detect(after), 1))
 #>          gene pct_nonmono_before pct_nonmono_after
-#> LYZ       LYZ               43.4               4.4
-#> S100A8 S100A8                9.4               0.7
-#> S100A9 S100A9               16.4               1.1
-#> FTL       FTL               98.3              90.9
+#> LYZ       LYZ               43.4               3.1
+#> S100A8 S100A8                9.4               0.5
+#> S100A9 S100A9               16.3               0.9
+#> FTL       FTL               98.3              89.6
 
 plot_df <- data.frame(
   nCount = c(original$nCount_RNA[cells], corrected$nCount_RNA),
@@ -445,14 +445,14 @@ sessionInfo()
 #>  [37] future_1.80.0          shiny_1.14.0           digest_0.6.39         
 #>  [40] patchwork_1.3.2        tensor_1.5.1           RSpectra_0.16-2       
 #>  [43] irlba_2.4.1            textshaping_1.0.5      ggpubr_1.0.0          
-#>  [46] labeling_0.4.3         progressr_1.0.0        spatstat.sparse_3.2-0 
+#>  [46] labeling_0.4.3         progressr_1.1.0        spatstat.sparse_3.2-0 
 #>  [49] httr_1.4.9             polyclip_1.10-7        abind_1.4-8           
 #>  [52] compiler_4.6.1         withr_3.0.3            S7_0.2.2              
 #>  [55] backports_1.5.1        viridis_0.6.5          carData_3.0-6         
 #>  [58] fastDummies_1.7.6      R.utils_2.13.0         ggforce_0.5.0         
 #>  [61] ggsignif_0.6.4         MASS_7.3-65            tools_4.6.1           
 #>  [64] lmtest_0.9-40          otel_0.2.0             httpuv_1.6.17         
-#>  [67] future.apply_1.20.2    goftest_1.2-3          R.oo_1.27.1           
+#>  [67] future.apply_1.21.0    goftest_1.2-3          R.oo_1.27.1           
 #>  [70] glue_1.8.1             nlme_3.1-169           promises_1.5.0        
 #>  [73] grid_4.6.1             Rtsne_0.17             cluster_2.1.8.2       
 #>  [76] reshape2_1.4.5         generics_0.1.4         gtable_0.3.6          
@@ -465,7 +465,7 @@ sessionInfo()
 #>  [97] lattice_0.22-9         survival_3.8-6         deldir_2.0-4          
 #> [100] tidyselect_1.2.1       miniUI_0.1.2           pbapply_1.7-5         
 #> [103] knitr_1.52             gridExtra_2.3.1        SoupX_1.6.2           
-#> [106] scattermore_1.2        xfun_0.61              graphlayouts_1.2.5    
+#> [106] scattermore_1.2        xfun_0.62              graphlayouts_1.2.5    
 #> [109] matrixStats_1.5.0      leidenbase_0.1.37      stringi_1.8.9         
 #> [112] yaml_2.3.12            evaluate_1.0.5         codetools_0.2-20      
 #> [115] ggraph_2.2.2           tibble_3.3.1           cli_3.6.6             

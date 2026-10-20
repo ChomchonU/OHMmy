@@ -162,7 +162,7 @@ plot_technical_contribution(
 )
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261016_133158.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-tech_contrib_pca_log_posneg_split_pbmc3k_20261020_181251.jpg)
 
 ## 4. Visualise markers
 
@@ -242,7 +242,7 @@ if (!is.null(hallmark)) {
 }
 ```
 
-![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261016_134007.jpg)
+![](OHMmy-comprehensive_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261020_182216.jpg)
 
 ## Where to go next
 
@@ -289,7 +289,7 @@ sessionInfo()
 #>   [9] backports_1.5.1             R6_2.6.1                   
 #>  [11] lazyeval_0.2.3              uwot_0.2.5                 
 #>  [13] withr_3.0.3                 gridExtra_2.3.1            
-#>  [15] progressr_1.0.0             cli_3.6.6                  
+#>  [15] progressr_1.1.0             cli_3.6.6                  
 #>  [17] Biobase_2.72.0              textshaping_1.0.5          
 #>  [19] Cairo_1.7-0                 spatstat.explore_3.8-3     
 #>  [21] fastDummies_1.7.6           scatterpie_0.2.6           
@@ -317,7 +317,7 @@ sessionInfo()
 #>  [65] lattice_0.22-9              msigdbr_26.1.1             
 #>  [67] cowplot_1.2.0               KEGGREST_1.52.2            
 #>  [69] pillar_1.11.1               knitr_1.52                 
-#>  [71] GenomicRanges_1.64.0        future.apply_1.20.2        
+#>  [71] GenomicRanges_1.64.0        future.apply_1.21.0        
 #>  [73] codetools_0.2-20            glue_1.8.1                 
 #>  [75] ggiraph_0.9.6               leidenbase_0.1.37          
 #>  [77] fontLiberation_0.1.0        ggfun_0.2.2                
@@ -326,7 +326,7 @@ sessionInfo()
 #>  [83] png_0.1-9                   spam_2.11-4                
 #>  [85] gtable_0.3.6                assertthat_0.2.1           
 #>  [87] cachem_1.1.0                ks_1.15.3                  
-#>  [89] xfun_0.61                   S4Arrays_1.12.1            
+#>  [89] xfun_0.62                   S4Arrays_1.12.1            
 #>  [91] mime_0.13                   tidygraph_1.3.1            
 #>  [93] Seqinfo_1.2.0               pracma_2.4.6               
 #>  [95] survival_3.8-6              aisdk_1.4.12               

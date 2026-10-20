@@ -69,7 +69,7 @@ plot_violin_qc_single(
 )
 ```
 
-![](OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-16_13-55-22.jpg)
+![](OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-20_18-39-13.jpg)
 
 Based on these distributions we apply the standard pbmc3k thresholds.
 
@@ -147,7 +147,7 @@ pbmc <- ProcessSeuratLOG(
 )
 ```
 
-![](OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261016_135535.jpg)
+![](OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261020_183926.jpg)
 
 ``` r
 
@@ -275,8 +275,8 @@ working resolution.
 pbmc$seurat_clusters <- pbmc$har_snn_res.0.6
 table(pbmc$seurat_clusters)
 #> 
-#>   0   1   2   3   4   5   6   7 
-#> 614 554 478 341 298 178 141  34
+#>   0   1   2   3   4   5   6   7   8 
+#> 627 538 477 341 285 163 157  34  16
 ```
 
 ### Comparing methods at the same number of clusters
@@ -322,8 +322,8 @@ cluster_choice
 #> # A tibble: 2 × 4
 #>   Pipeline Resolution Num_Clusters Min_Cluster_Size
 #>   <chr>         <dbl>        <int>            <int>
-#> 1 har_snn         1.5           12               18
-#> 2 pca_snn         1.6           12               13
+#> 1 har_snn         1.5           11               38
+#> 2 pca_snn         1.6           11               13
 attr(cluster_choice, "plot")
 ```
 
@@ -354,15 +354,16 @@ str(pbmc_marker_sets)
 pbmc <- annotate_pbmc(pbmc, cluster_col = "seurat_clusters")
 table(pbmc$seurat_clusters, pbmc$cell_type)
 #>    
-#>     CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC
-#>   0   614     0   0   0         0           0   0
-#>   1   554     0   0   0         0           0   0
-#>   2     0     0   0   0       478           0   0
-#>   3     0     0   0 341         0           0   0
-#>   4     0   298   0   0         0           0   0
-#>   5     0     0   0   0         0         178   0
-#>   6     0     0 141   0         0           0   0
-#>   7     0     0   0   0         0           0  34
+#>     CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC Platelet
+#>   0   627     0   0   0         0           0   0        0
+#>   1   538     0   0   0         0           0   0        0
+#>   2     0     0   0   0       477           0   0        0
+#>   3     0     0   0 341         0           0   0        0
+#>   4     0   285   0   0         0           0   0        0
+#>   5     0     0   0   0         0         163   0        0
+#>   6     0     0 157   0         0           0   0        0
+#>   7     0     0   0   0         0           0  34        0
+#>   8     0     0   0   0         0           0   0       16
 ```
 
 ``` r
@@ -457,14 +458,14 @@ sessionInfo()
 #>  [37] fitdistrplus_1.2-6     shiny_1.14.0           digest_0.6.39         
 #>  [40] tensor_1.5.1           RSpectra_0.16-2        irlba_2.4.1           
 #>  [43] textshaping_1.0.5      ggpubr_1.0.0           labeling_0.4.3        
-#>  [46] progressr_1.0.0        spatstat.sparse_3.2-0  httr_1.4.9            
+#>  [46] progressr_1.1.0        spatstat.sparse_3.2-0  httr_1.4.9            
 #>  [49] polyclip_1.10-7        abind_1.4-8            compiler_4.6.1        
 #>  [52] withr_3.0.3            S7_0.2.2               backports_1.5.1       
 #>  [55] viridis_0.6.5          carData_3.0-6          fastDummies_1.7.6     
 #>  [58] R.utils_2.13.0         ggforce_0.5.0          ggsignif_0.6.4        
 #>  [61] MASS_7.3-65            tools_4.6.1            vipor_0.4.7           
 #>  [64] lmtest_0.9-40          otel_0.2.0             beeswarm_0.4.0        
-#>  [67] httpuv_1.6.17          future.apply_1.20.2    goftest_1.2-3         
+#>  [67] httpuv_1.6.17          future.apply_1.21.0    goftest_1.2-3         
 #>  [70] R.oo_1.27.1            glue_1.8.1             nlme_3.1-169          
 #>  [73] promises_1.5.0         grid_4.6.1             checkmate_2.3.4       
 #>  [76] Rtsne_0.17             cluster_2.1.8.2        reshape2_1.4.5        
@@ -479,7 +480,7 @@ sessionInfo()
 #> [103] deldir_2.0-4           tidyselect_1.2.1       miniUI_0.1.2          
 #> [106] pbapply_1.7-5          knitr_1.52             gridExtra_2.3.1       
 #> [109] SoupX_1.6.2            scattermore_1.2        RhpcBLASctl_0.23-42   
-#> [112] xfun_0.61              graphlayouts_1.2.5     matrixStats_1.5.0     
+#> [112] xfun_0.62              graphlayouts_1.2.5     matrixStats_1.5.0     
 #> [115] leidenbase_0.1.37      stringi_1.8.9          yaml_2.3.12           
 #> [118] evaluate_1.0.5         codetools_0.2-20       tibble_3.3.1          
 #> [121] cli_3.6.6              uwot_0.2.5             xtable_1.8-8          

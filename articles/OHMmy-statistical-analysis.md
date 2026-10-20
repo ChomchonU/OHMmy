@@ -293,16 +293,16 @@ head(cor_res$data[order(-cor_res$data$N_Cells), ], 10)
 #> # A tibble: 10 × 4
 #>    Cluster     Correlation N_Cells Pair            
 #>    <fct>             <dbl>   <int> <chr>           
-#>  1 CD14 Mono        0.773      463 S100A8 vs S100A9
+#>  1 CD14 Mono        0.773      462 S100A8 vs S100A9
 #>  2 B                0.0743     275 CD79A vs MS4A1  
-#>  3 NK              -0.110      134 GNLY vs NKG7    
-#>  4 CD8 T            0.248      101 GNLY vs NKG7    
-#>  5 FCGR3A Mono      0.200       80 S100A8 vs S100A9
+#>  3 NK              -0.236      149 GNLY vs NKG7    
+#>  4 CD8 T            0.305       87 GNLY vs NKG7    
+#>  5 FCGR3A Mono      0.222       79 S100A8 vs S100A9
 #>  6 CD4 T            0.844       21 S100A8 vs S100A9
-#>  7 CD4 T            0.967       18 GNLY vs NKG7    
+#>  7 CD4 T            0.961       17 GNLY vs NKG7    
 #>  8 CD14 Mono        0.512       16 GNLY vs NKG7    
-#>  9 FCGR3A Mono      0.261       10 GNLY vs NKG7    
-#> 10 DC               0.333       10 S100A8 vs S100A9
+#>  9 DC               0.333       10 S100A8 vs S100A9
+#> 10 FCGR3A Mono     -0.119        8 GNLY vs NKG7
 ```
 
 ## Session information
@@ -350,13 +350,13 @@ sessionInfo()
 #>  [37] future_1.80.0          shiny_1.14.0           digest_0.6.39         
 #>  [40] tensor_1.5.1           RSpectra_0.16-2        irlba_2.4.1           
 #>  [43] textshaping_1.0.5      ggpubr_1.0.0           labeling_0.4.3        
-#>  [46] progressr_1.0.0        spatstat.sparse_3.2-0  httr_1.4.9            
+#>  [46] progressr_1.1.0        spatstat.sparse_3.2-0  httr_1.4.9            
 #>  [49] polyclip_1.10-7        abind_1.4-8            compiler_4.6.1        
 #>  [52] withr_3.0.3            S7_0.2.2               backports_1.5.1       
 #>  [55] viridis_0.6.5          carData_3.0-6          fastDummies_1.7.6     
 #>  [58] ggforce_0.5.0          ggsignif_0.6.4         MASS_7.3-65           
 #>  [61] ggsci_5.2.0            tools_4.6.1            lmtest_0.9-40         
-#>  [64] otel_0.2.0             httpuv_1.6.17          future.apply_1.20.2   
+#>  [64] otel_0.2.0             httpuv_1.6.17          future.apply_1.21.0   
 #>  [67] goftest_1.2-3          glue_1.8.1             nlme_3.1-169          
 #>  [70] promises_1.5.0         grid_4.6.1             Rtsne_0.17            
 #>  [73] cluster_2.1.8.2        reshape2_1.4.5         generics_0.1.4        
@@ -369,7 +369,7 @@ sessionInfo()
 #>  [94] dplyr_1.2.1            lattice_0.22-9         survival_3.8-6        
 #>  [97] deldir_2.0-4           tidyselect_1.2.1       miniUI_0.1.2          
 #> [100] pbapply_1.7-5          knitr_1.52             gridExtra_2.3.1       
-#> [103] SoupX_1.6.2            scattermore_1.2        xfun_0.61             
+#> [103] SoupX_1.6.2            scattermore_1.2        xfun_0.62             
 #> [106] graphlayouts_1.2.5     matrixStats_1.5.0      leidenbase_0.1.37     
 #> [109] stringi_1.8.9          yaml_2.3.12            evaluate_1.0.5        
 #> [112] codetools_0.2-20       ggraph_2.2.2           tibble_3.3.1          

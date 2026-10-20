@@ -70,21 +70,21 @@ mk$top_markers %>%
   group_by(cluster) %>%
   slice_head(n = 3) %>%
   dplyr::select(cluster, gene, avg_log2FC, pct.1, pct.2, p_val_adj, score)
-#> # A tibble: 21 × 7
-#> # Groups:   cluster [7]
+#> # A tibble: 24 × 7
+#> # Groups:   cluster [8]
 #>    cluster gene   avg_log2FC pct.1 pct.2 p_val_adj        score
 #>    <fct>   <chr>       <dbl> <dbl> <dbl>     <dbl>        <dbl>
-#>  1 CD4 T   CD3D         1.84 0.875 0.238         0 11707548842.
-#>  2 CD4 T   MAL          4.22 0.273 0.023         0 10544703625.
-#>  3 CD4 T   IL7R         2.14 0.664 0.195         0 10059451479.
-#>  4 CD8 T   GZMK         4.57 0.587 0.053         0 24411707948.
-#>  5 CD8 T   CCL5         3.25 0.953 0.235         0 23328815222.
-#>  6 CD8 T   NKG7         2.55 0.973 0.213         0 19406875071.
-#>  7 NK      GZMB         5.89 0.972 0.072         0 52972497610.
-#>  8 NK      FGFBP2       5.40 0.922 0.064         0 46355989739.
-#>  9 NK      PRF1         5.11 0.972 0.11          0 44009493902.
+#>  1 CD4 T   CD3D         1.86 0.876 0.239         0 11832733243.
+#>  2 CD4 T   MAL          4.18 0.273 0.024         0 10408717439.
+#>  3 CD4 T   IL7R         2.07 0.662 0.198         0  9627326382.
+#>  4 CD8 T   CCL5         3.31 0.986 0.235         0 24860743868.
+#>  5 CD8 T   GZMK         4.28 0.568 0.058         0 21819033699.
+#>  6 CD8 T   NKG7         2.47 0.968 0.218         0 18515415364.
+#>  7 NK      GZMB         5.93 0.943 0.069         0 51839175856.
+#>  8 NK      GNLY         6.10 0.949 0.131         0 49870973178.
+#>  9 NK      FGFBP2       5.31 0.866 0.062         0 42699888960.
 #> 10 B       CD79A        6.85 0.938 0.042         0 61335103114.
-#> # ℹ 11 more rows
+#> # ℹ 14 more rows
 mk$heatmap
 ```
 
@@ -148,12 +148,12 @@ marker_tbl <- bind_rows(lapply(sort(unique(pbmc$group)), function(g) {
 
 marker_tbl %>% dplyr::count(group)
 #>             group    n
-#> 1 Healthy_Batch_1 3639
-#> 2 Healthy_Batch_2 2653
-#> 3    Mild_Batch_1 4279
-#> 4    Mild_Batch_2 3897
-#> 5  Severe_Batch_1 4086
-#> 6  Severe_Batch_2 3867
+#> 1 Healthy_Batch_1 3953
+#> 2 Healthy_Batch_2 3178
+#> 3    Mild_Batch_1 4264
+#> 4    Mild_Batch_2 3723
+#> 5  Severe_Batch_1 4589
+#> 6  Severe_Batch_2 4170
 ```
 
 ### `plot_gene_markers_with_dendro()`
@@ -202,7 +202,7 @@ plot_split_dotplots_by_gene_cluster(
 )
 ```
 
-![](OHMmy-differential-expression_files/figure-html/saved-DotPlot_Part1_2026-10-16_13-45-26.png)![](OHMmy-differential-expression_files/figure-html/saved-Dendrogram_ALL_2026-10-16_13-45-26.png)
+![](OHMmy-differential-expression_files/figure-html/saved-DotPlot_Part1_2026-10-20_18-27-54.png)![](OHMmy-differential-expression_files/figure-html/saved-Dendrogram_ALL_2026-10-20_18-27-54.png)
 
 ## 3. Pathway enrichment
 
@@ -235,9 +235,9 @@ enrich_df <- mk_clusters$markers %>%
 ``` r
 
 dim(enrich_df)
-#> [1] 18943     8
+#> [1] 19618     8
 dplyr::as_tibble(dplyr::distinct(enrich_df, cluster, cell_type))
-#> # A tibble: 8 × 2
+#> # A tibble: 9 × 2
 #>   cluster cell_type  
 #>   <chr>   <chr>      
 #> 1 0       CD4 T      
@@ -247,7 +247,8 @@ dplyr::as_tibble(dplyr::distinct(enrich_df, cluster, cell_type))
 #> 5 4       CD8 T      
 #> 6 5       FCGR3A Mono
 #> 7 6       NK         
-#> 8 7       DC
+#> 8 7       DC         
+#> 9 8       Platelet
 ```
 
 ### Gene Set Enrichment Analysis: `run_global_gsea()`
@@ -282,23 +283,25 @@ gsea_res %>%
   slice_min(p.adjust, n = 2, with_ties = FALSE) %>%
   dplyr::select(cluster, cell_type, Description, NES, p.adjust) %>%
   arrange(as.numeric(cluster))
-#> # A tibble: 13 × 5
-#> # Groups:   cluster [7]
+#> # A tibble: 15 × 5
+#> # Groups:   cluster [8]
 #>    cluster cell_type   Description                        NES     p.adjust
 #>    <chr>   <chr>       <chr>                            <dbl>        <dbl>
-#>  1 0       CD4 T       HALLMARK_ALLOGRAFT_REJECTION     -1.55 0.0441      
-#>  2 1       CD4 T       HALLMARK_KRAS_SIGNALING_UP       -1.86 0.000412    
-#>  3 1       CD4 T       HALLMARK_ALLOGRAFT_REJECTION     -1.68 0.000412    
-#>  4 2       CD14 Mono   HALLMARK_ALLOGRAFT_REJECTION     -2.00 0.000653    
-#>  5 2       CD14 Mono   HALLMARK_MYC_TARGETS_V1          -1.93 0.00139     
-#>  6 3       B           HALLMARK_COMPLEMENT              -1.97 0.00209     
-#>  7 3       B           HALLMARK_INFLAMMATORY_RESPONSE   -1.89 0.00209     
-#>  8 4       CD8 T       HALLMARK_KRAS_SIGNALING_UP       -2.11 0.000580    
-#>  9 4       CD8 T       HALLMARK_XENOBIOTIC_METABOLISM   -1.88 0.0221      
-#> 10 5       FCGR3A Mono HALLMARK_ALLOGRAFT_REJECTION     -2.55 0.0000000219
-#> 11 5       FCGR3A Mono HALLMARK_COAGULATION              1.95 0.000692    
-#> 12 6       NK          HALLMARK_TNFA_SIGNALING_VIA_NFKB -2.48 0.000177    
-#> 13 6       NK          HALLMARK_G2M_CHECKPOINT           2.09 0.000378
+#>  1 1       CD4 T       HALLMARK_KRAS_SIGNALING_UP       -1.88 0.000473    
+#>  2 1       CD4 T       HALLMARK_ALLOGRAFT_REJECTION     -1.69 0.000877    
+#>  3 2       CD14 Mono   HALLMARK_ALLOGRAFT_REJECTION     -2.01 0.000413    
+#>  4 2       CD14 Mono   HALLMARK_MYC_TARGETS_V1          -1.97 0.00137     
+#>  5 3       B           HALLMARK_COMPLEMENT              -1.94 0.00388     
+#>  6 3       B           HALLMARK_INFLAMMATORY_RESPONSE   -1.93 0.00388     
+#>  7 4       CD8 T       HALLMARK_KRAS_SIGNALING_UP       -2.08 0.00196     
+#>  8 4       CD8 T       HALLMARK_XENOBIOTIC_METABOLISM   -1.79 0.0482      
+#>  9 5       FCGR3A Mono HALLMARK_ALLOGRAFT_REJECTION     -2.48 0.0000000191
+#> 10 5       FCGR3A Mono HALLMARK_XENOBIOTIC_METABOLISM    1.74 0.0121      
+#> 11 6       NK          HALLMARK_TNFA_SIGNALING_VIA_NFKB -2.37 0.000136    
+#> 12 6       NK          HALLMARK_G2M_CHECKPOINT           2.19 0.000136    
+#> 13 7       DC          HALLMARK_DNA_REPAIR              -1.83 0.0408      
+#> 14 8       Platelet    HALLMARK_COAGULATION              2.14 0.000489    
+#> 15 8       Platelet    HALLMARK_MYC_TARGETS_V1          -2.36 0.00146
 ```
 
 The clustered overview groups clusters with similar pathway activity.
@@ -308,17 +311,17 @@ activated inflammatory and TNF-alpha signalling, and cluster 8 has
 activated coagulation. Clusters without significant pathways, here the
 small DC cluster 7, are left out.
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261016_135422.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261020_183818.jpg)
 
 The signed-significance view puts direction and significance on one
 axis:
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Signed_Significance_Dotplot_20261016_135422.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Signed_Significance_Dotplot_20261020_183818.jpg)
 
 Per-cluster outputs for cluster 2 (CD14 monocytes): the NES dot plot and
 the running enrichment score of its top pathway.
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_GSEA_NES_Dotplot_20261016_135422.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20261016_135422.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_GSEA_NES_Dotplot_20261020_183818.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20261020_183818.jpg)
 
 ### Over-Representation Analysis: `run_global_ora()`
 
@@ -356,28 +359,30 @@ ora_res %>%
   dplyr::count(cluster, cell_type, Direction) %>%
   arrange(as.numeric(cluster))
 #>    cluster   cell_type  Direction n
-#> 1        0       CD4 T  Activated 7
-#> 2        0       CD4 T Suppressed 4
-#> 3        1       CD4 T  Activated 2
-#> 4        1       CD4 T Suppressed 5
-#> 5        2   CD14 Mono  Activated 5
+#> 1        0       CD4 T  Activated 5
+#> 2        0       CD4 T Suppressed 3
+#> 3        1       CD4 T  Activated 1
+#> 4        1       CD4 T Suppressed 4
+#> 5        2   CD14 Mono  Activated 7
 #> 6        2   CD14 Mono Suppressed 2
 #> 7        3           B  Activated 2
-#> 8        3           B Suppressed 6
+#> 8        3           B Suppressed 8
 #> 9        4       CD8 T  Activated 2
-#> 10       4       CD8 T Suppressed 5
-#> 11       5 FCGR3A Mono  Activated 4
+#> 10       4       CD8 T Suppressed 6
+#> 11       5 FCGR3A Mono  Activated 3
 #> 12       5 FCGR3A Mono Suppressed 2
 #> 13       6          NK  Activated 1
 #> 14       6          NK Suppressed 2
 #> 15       7          DC Suppressed 1
+#> 16       8    Platelet  Activated 4
+#> 17       8    Platelet Suppressed 1
 ```
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_Global_Activated_Clustered_Dendro_20261016_135442.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_ORA_Signed_Significance_Dotplot_20261016_135442.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_Global_Activated_Clustered_Dendro_20261020_183838.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_ORA_Signed_Significance_Dotplot_20261020_183838.jpg)
 
 Per-cluster ORA outputs (cluster 2, CD14 monocytes):
 
-![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Dotplot_20261016_135442.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Barplot_20261016_135442.jpg)
+![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Dotplot_20261020_183838.jpg)![](OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Barplot_20261020_183838.jpg)
 
 ## 4. Pseudo-bulk differential expression with DESeq2
 
@@ -408,12 +413,12 @@ dds <- DESeq(dds, quiet = TRUE)
 res_df <- as.data.frame(results(dds, contrast = c("subset", "FCGR3A", "CD14")))
 head(res_df[order(res_df$padj), c("baseMean", "log2FoldChange", "padj")])
 #>         baseMean log2FoldChange          padj
-#> LYZ    723.15192      -2.754455 1.411370e-313
-#> S100A9 468.42638      -3.446815 6.226475e-243
-#> S100A8 240.60757      -4.187309 1.249838e-104
-#> IFITM2 127.76440       2.048881  4.342559e-66
-#> RPS19  425.32590       1.018986  6.593423e-62
-#> FCGR3A  72.34323       4.748685  8.892743e-54
+#> LYZ    710.62555      -2.711858 3.888894e-293
+#> S100A9 459.50829      -3.408762 1.039931e-238
+#> S100A8 236.02676      -4.137252  4.311980e-94
+#> IFITM2 127.90055       2.087865  4.086997e-67
+#> RPS19  420.64363       1.041063  7.382850e-61
+#> FCGR3A  72.51636       4.780340  3.927394e-55
 ```
 
 ### Volcano trio: `generate_volcano_trio()`
@@ -451,10 +456,10 @@ effects in lowly expressed genes are missed.
 
 top_genes <- get_top_mixed_genes(res_df, n_padj = 25, n_lfc = 25)
 length(top_genes)
-#> [1] 40
+#> [1] 39
 head(top_genes, 15)
 #>  [1] "LYZ"    "S100A9" "S100A8" "IFITM2" "RPS19"  "FCGR3A" "LGALS2" "LST1"  
-#>  [9] "FCER1G" "RHOC"   "MS4A7"  "GSTP1"  "MS4A6A" "CD14"   "CCL3"
+#>  [9] "FCER1G" "RHOC"   "MS4A7"  "GPX1"   "GSTP1"  "MS4A6A" "CCL3"
 ```
 
 [`generate_and_save_heatmap()`](https://chomchonu.github.io/OHMmy/reference/generate_and_save_heatmap.md)
@@ -486,7 +491,7 @@ generate_and_save_heatmap(
 )
 ```
 
-![](OHMmy-differential-expression_files/figure-html/saved-Heatmap_FCGR3A_vs_CD14_Monocytes_topP_25_topLFC_25_20261016_135505.png)
+![](OHMmy-differential-expression_files/figure-html/saved-Heatmap_FCGR3A_vs_CD14_Monocytes_topP_25_topLFC_25_20261020_183857.png)
 
 In the unordered (right) heatmap the samples split by monocyte subset,
 not by the simulated severity. This is expected, because severity was
@@ -535,7 +540,7 @@ sessionInfo()
 #>   [4] httr_1.4.9              RColorBrewer_1.1-3      tools_4.6.1            
 #>   [7] sctransform_0.4.3       backports_1.5.1         utf8_1.2.6             
 #>  [10] R6_2.6.1                lazyeval_0.2.3          uwot_0.2.5             
-#>  [13] withr_3.0.3             gridExtra_2.3.1         progressr_1.0.0        
+#>  [13] withr_3.0.3             gridExtra_2.3.1         progressr_1.1.0        
 #>  [16] cli_3.6.6               textshaping_1.0.5       spatstat.explore_3.8-3 
 #>  [19] fastDummies_1.7.6       scatterpie_0.2.6        labeling_0.4.3         
 #>  [22] sass_0.4.10             S7_0.2.2                spatstat.data_3.1-9    
@@ -550,13 +555,13 @@ sessionInfo()
 #>  [49] blob_1.3.0              promises_1.5.0          crayon_1.5.3           
 #>  [52] miniUI_0.1.2            ggtangle_0.1.4          lattice_0.22-9         
 #>  [55] cowplot_1.2.0           KEGGREST_1.52.2         pillar_1.11.1          
-#>  [58] knitr_1.52              future.apply_1.20.2     codetools_0.2-20       
+#>  [58] knitr_1.52              future.apply_1.21.0     codetools_0.2-20       
 #>  [61] glue_1.8.1              ggiraph_0.9.6           leidenbase_0.1.37      
 #>  [64] fontLiberation_0.1.0    ggfun_0.2.2             spatstat.univar_3.2-0  
 #>  [67] data.table_1.18.6.1     EnhancedVolcano_1.30.0  treeio_1.36.1          
 #>  [70] vctrs_0.7.3             png_0.1-9               spam_2.11-4            
 #>  [73] gtable_0.3.6            assertthat_0.2.1        cachem_1.1.0           
-#>  [76] xfun_0.61               S4Arrays_1.12.1         mime_0.13              
+#>  [76] xfun_0.62               S4Arrays_1.12.1         mime_0.13              
 #>  [79] tidygraph_1.3.1         survival_3.8-6          aisdk_1.4.12           
 #>  [82] pheatmap_1.0.13         fitdistrplus_1.2-6      ROCR_1.0-12            
 #>  [85] nlme_3.1-169            ggtree_4.2.0            fontquiver_0.2.1       

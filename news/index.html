@@ -111,6 +111,8 @@
 <li>
 <code><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa()</a></code> works on Seurat v5 objects with split layers (it failed with “GetAssayData doesn’t work for multiple layers”), and a numeric <code>min_cutoff</code> is now applied as an expression value (it was silently ignored).</li>
 <li>
+<code><a href="../reference/plot_blend_nebulosa.html">plot_blend_nebulosa()</a></code> no longer fails with “The <code>slot</code> argument of <code><a href="https://satijalab.github.io/seurat-object/reference/FetchData.html" class="external-link">FetchData()</a></code> was deprecated in SeuratObject 5.0.0 and is now defunct” when an older Nebulosa (e.g. 1.16) is used with a newer SeuratObject (e.g. 5.4). Its density panels now use the same version-independent route as <code><a href="../reference/plot_combined.html">plot_combined()</a></code> (expression fetched with <code>layer = "data"</code>, plotted through Nebulosa’s SingleCellExperiment method), so it now also needs the suggested package SingleCellExperiment. Plots are unchanged.</li>
+<li>
 <code><a href="../reference/plot_technical_contribution.html">plot_technical_contribution()</a></code> and <code><a href="../reference/plot_stacked_technical_contribution.html">plot_stacked_technical_contribution()</a></code> no longer fail when <code>n_top_genes</code> / <code>gene_depths</code> ask for more genes than the PCA loadings contain.</li>
 <li>
 <code><a href="../reference/plot_pc_metadata_correlation.html">plot_pc_metadata_correlation()</a></code> skips non-numeric metadata columns with a warning (it failed with “‘y’ must be numeric”).</li>

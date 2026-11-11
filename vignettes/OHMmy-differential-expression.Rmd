@@ -33,6 +33,7 @@ This article goes from cluster markers to pathways and pseudo-bulk differential 
 | Step | Functions |
 |----|----|
 | Cluster markers | `FindTopMarkersAndHeatmap()` |
+| Markers across resolutions, dichotomous key | `find_hierarchical_markers()` |
 | Marker tables across conditions | `plot_gene_markers_with_dendro()`, `plot_split_dotplots_by_gene_cluster()` |
 | Pathway enrichment | `run_global_gsea()`, `run_global_ora()` |
 | Pseudo-bulk DESeq2 visualisation | `generate_volcano_trio()`, `get_top_mixed_genes()`, `generate_and_save_heatmap()` |
@@ -101,6 +102,53 @@ mk_mono <- FindTopMarkersAndHeatmap(
 ```{r markers-pair-show, fig.width = 8, fig.height = 6}
 table(mk_mono$top_markers$cluster)
 mk_mono$heatmap
+```
+
+### Markers across resolutions: a dichotomous key
+
+Low resolutions separate the major populations and higher resolutions split them into sub-populations. `find_hierarchical_markers()` follows the clusters from low to high resolution. It links each cluster to the lower-resolution cluster that holds most of its cells, and that share is reported as `purity`. At every split it compares each child **with its siblings only**, so broad markers shared by all children (for example *CD3E* within T cells) do not reappear at the finer levels.
+
+Markers must pass four filters: adjusted p-value, log2FC, `pct.1` and `pct.1 - pct.2`. They are then ranked by **AUC**, the probability that a random child cell expresses the gene more highly than a random sibling cell (0.5 = no separation, 1 = perfect). The clusters were defined on the same data, so the p-values are optimistic. They work as a filter, not as evidence on their own.
+
+```{r hier-markers, results = "hide"}
+hm <- find_hierarchical_markers(
+  seurat_obj  = pbmc,
+  res_cols    = c("har_snn_res.0.2", "har_snn_res.0.6", "har_snn_res.1.2"),
+  sample_name = "pbmc3k",
+  output_dir  = file.path(out_dir, "hierarchical_markers")
+)
+```
+
+`hm$splits` summarises each split. `hm$markers` holds every gene that passed the filters, with its rank, AUC, the usual DE statistics and a `pattern`:
+
+| Pattern | Meaning |
+|----|----|
+| `lineage` | Marks this child, but does not separate its own sub-clusters (shared by all of them) |
+| `split` | Separates this child from its siblings |
+| `specific` | The child does not split further, and the gene also separates it from all other cells (`auc_vs_all >= 0.8`) |
+| `unstable` | The child has purity below `min_purity`: its cells came from more than one parent, so the split is not clean across resolutions |
+
+```{r hier-markers-show}
+hm$splits[, c("split", "children", "n_markers", "n_key_genes", "cv_accuracy")]
+hm$markers %>%
+  group_by(split, child) %>%
+  slice_head(n = 2) %>%
+  dplyr::select(split, child, gene, rank, auc, p_val_adj, pct.1, pct.2, pattern)
+```
+
+For each split, a decision tree (**rpart**) is grown on the top-ranked markers and pruned by cross-validation, so each split gets as many genes as it needs. `hm$key` lists every question of the key. The chosen gene has `role = "key"`. The `role = "backup"` rows are genes that sort the cells almost the same way, with their `agreement`. Every row carries the same ranking columns as `hm$markers`.
+
+```{r hier-key}
+hm$key %>%
+  dplyr::select(split, role, gene, rule, agreement, rank, auc, pct.1, pct.2, pattern)
+```
+
+```{r hier-tree, fig.width = 10, fig.height = 6}
+hm$plots$tree
+```
+
+```{r hier-dot, fig.width = 9, fig.height = 5}
+hm$plots$dotplot
 ```
 
 ## 2. Comparing marker tables across conditions

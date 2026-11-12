@@ -56,7 +56,7 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
-            <h4 data-toc-skip class="date">2026-10-20</h4>
+            <h4 data-toc-skip class="date">2026-11-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/vignettes/OHMmy-processing-clustering.Rmd" class="external-link"><code>vignettes/OHMmy-processing-clustering.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-processing-clustering.Rmd</code></div>
@@ -165,7 +165,7 @@ column can be used for grouping; before clustering we simply group by
 <span>  output_dir       <span class="op">=</span> <span class="va">out_dir</span>,</span>
 <span>  dpi              <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-10-20_18-39-13.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-processing-clustering_files/figure-html/saved-pbmc3k_preQC_ViolinQC_orig.ident_2026-11-12_06-58-15.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>Based on these distributions we apply the standard pbmc3k
 thresholds.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -239,7 +239,7 @@ separate look-alike populations such as CD8 T and NK cells;</li>
 <span>  sample_name           <span class="op">=</span> <span class="st">"pbmc3k"</span>,</span>
 <span>  verbose               <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261020_183926.jpg" class="r-plt" alt="" width="70%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-processing-clustering_files/figure-html/saved-elbow_plot_pbmc3k_20261112_065827.jpg" class="r-plt" alt="" width="70%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pbmc</span></span>
 <span><span class="co">#&gt; An object of class Seurat </span></span>
@@ -347,8 +347,8 @@ working resolution.</p>
 <code class="sourceCode R"><span><span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span> <span class="op">&lt;-</span> <span class="va">pbmc</span><span class="op">$</span><span class="va">har_snn_res.0.6</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   0   1   2   3   4   5   6   7   8 </span></span>
-<span><span class="co">#&gt; 627 538 477 341 285 163 157  34  16</span></span></code></pre></div>
+<span><span class="co">#&gt;   0   1   2   3   4   5   6   7 </span></span>
+<span><span class="co">#&gt; 614 554 478 341 298 178 141  34</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="comparing-methods-at-the-same-number-of-clusters">Comparing methods at the same number of clusters<a class="anchor" aria-label="anchor" href="#comparing-methods-at-the-same-number-of-clusters"></a>
 </h3>
@@ -387,8 +387,8 @@ shared number:</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 4</span></span></span>
 <span><span class="co">#&gt;   Pipeline Resolution Num_Clusters Min_Cluster_Size</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> har_snn         1.5           11               38</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> pca_snn         1.6           11               13</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> har_snn         1.5           12               18</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> pca_snn         1.6           12               13</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cluster_choice</span>, <span class="st">"plot"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="OHMmy-processing-clustering_files/figure-html/cluster-choice-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
@@ -417,16 +417,15 @@ or manual curation.</p>
 <span><span class="va">pbmc</span> <span class="op">&lt;-</span> <span class="fu">annotate_pbmc</span><span class="op">(</span><span class="va">pbmc</span>, cluster_col <span class="op">=</span> <span class="st">"seurat_clusters"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span>, <span class="va">pbmc</span><span class="op">$</span><span class="va">cell_type</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    </span></span>
-<span><span class="co">#&gt;     CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC Platelet</span></span>
-<span><span class="co">#&gt;   0   627     0   0   0         0           0   0        0</span></span>
-<span><span class="co">#&gt;   1   538     0   0   0         0           0   0        0</span></span>
-<span><span class="co">#&gt;   2     0     0   0   0       477           0   0        0</span></span>
-<span><span class="co">#&gt;   3     0     0   0 341         0           0   0        0</span></span>
-<span><span class="co">#&gt;   4     0   285   0   0         0           0   0        0</span></span>
-<span><span class="co">#&gt;   5     0     0   0   0         0         163   0        0</span></span>
-<span><span class="co">#&gt;   6     0     0 157   0         0           0   0        0</span></span>
-<span><span class="co">#&gt;   7     0     0   0   0         0           0  34        0</span></span>
-<span><span class="co">#&gt;   8     0     0   0   0         0           0   0       16</span></span></code></pre></div>
+<span><span class="co">#&gt;     CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC</span></span>
+<span><span class="co">#&gt;   0   614     0   0   0         0           0   0</span></span>
+<span><span class="co">#&gt;   1   554     0   0   0         0           0   0</span></span>
+<span><span class="co">#&gt;   2     0     0   0   0       478           0   0</span></span>
+<span><span class="co">#&gt;   3     0     0   0 341         0           0   0</span></span>
+<span><span class="co">#&gt;   4     0   298   0   0         0           0   0</span></span>
+<span><span class="co">#&gt;   5     0     0   0   0         0         178   0</span></span>
+<span><span class="co">#&gt;   6     0     0 141   0         0           0   0</span></span>
+<span><span class="co">#&gt;   7     0     0   0   0         0           0  34</span></span></code></pre></div>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">pbmc</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>, group.by <span class="op">=</span> <span class="st">"seurat_clusters"</span>, label <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SeuratTheme.html" class="external-link">NoLegend</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">pbmc</span>, reduction <span class="op">=</span> <span class="st">"umap.har"</span>, group.by <span class="op">=</span> <span class="st">"cell_type"</span>, label <span class="op">=</span> <span class="cn">TRUE</span>, repel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SeuratTheme.html" class="external-link">NoLegend</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -471,7 +470,7 @@ argument of <code><a href="../reference/ClusterAndUMAP.html">ClusterAndUMAP()</a
 </h2>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
+<span><span class="co">#&gt; R version 4.6.2 (2026-10-29)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
 <span><span class="co">#&gt; Running under: Ubuntu 22.04.5 LTS</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -492,59 +491,50 @@ argument of <code><a href="../reference/ClusterAndUMAP.html">ClusterAndUMAP()</a
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] ggraph_2.2.2       future_1.80.0      patchwork_1.3.2    OHMmy_1.0.2.9000  </span></span>
-<span><span class="co">#&gt; [5] Seurat_5.6.0       SeuratObject_5.4.0 sp_2.2-4          </span></span>
+<span><span class="co">#&gt; [1] ggraph_2.2.2       future_1.82.0      patchwork_1.3.2    OHMmy_1.0.2.9000  </span></span>
+<span><span class="co">#&gt; [5] Seurat_6.0.0       SeuratObject_5.4.0 sp_2.2-4          </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;   [1] RColorBrewer_1.1-3     jsonlite_2.0.0         magrittr_2.0.5        </span></span>
-<span><span class="co">#&gt;   [4] ggbeeswarm_0.7.3       spatstat.utils_3.2-5   farver_2.1.2          </span></span>
-<span><span class="co">#&gt;   [7] rmarkdown_2.32         fs_2.1.0               ragg_1.5.2            </span></span>
-<span><span class="co">#&gt;  [10] vctrs_0.7.3            ROCR_1.0-12            memoise_2.0.1         </span></span>
-<span><span class="co">#&gt;  [13] spatstat.explore_3.8-3 rstatix_1.1.0          htmltools_0.5.9       </span></span>
-<span><span class="co">#&gt;  [16] broom_1.0.13           Formula_1.2-6          sass_0.4.10           </span></span>
-<span><span class="co">#&gt;  [19] sctransform_0.4.3      parallelly_1.48.0      KernSmooth_2.23-26    </span></span>
-<span><span class="co">#&gt;  [22] bslib_0.12.0           htmlwidgets_1.6.4      desc_1.4.3            </span></span>
-<span><span class="co">#&gt;  [25] ica_1.0-3              plyr_1.8.9             plotly_4.12.1         </span></span>
-<span><span class="co">#&gt;  [28] zoo_1.9-1              cachem_1.1.0           igraph_2.3.4          </span></span>
-<span><span class="co">#&gt;  [31] mime_0.13              lifecycle_1.0.5        pkgconfig_2.0.3       </span></span>
-<span><span class="co">#&gt;  [34] Matrix_1.7-5           R6_2.6.1               fastmap_1.2.0         </span></span>
-<span><span class="co">#&gt;  [37] fitdistrplus_1.2-6     shiny_1.14.0           digest_0.6.39         </span></span>
-<span><span class="co">#&gt;  [40] tensor_1.5.1           RSpectra_0.16-2        irlba_2.4.1           </span></span>
-<span><span class="co">#&gt;  [43] textshaping_1.0.5      ggpubr_1.0.0           labeling_0.4.3        </span></span>
-<span><span class="co">#&gt;  [46] progressr_1.1.0        spatstat.sparse_3.2-0  httr_1.4.9            </span></span>
-<span><span class="co">#&gt;  [49] polyclip_1.10-7        abind_1.4-8            compiler_4.6.1        </span></span>
-<span><span class="co">#&gt;  [52] withr_3.0.3            S7_0.2.2               backports_1.5.1       </span></span>
-<span><span class="co">#&gt;  [55] viridis_0.6.5          carData_3.0-6          fastDummies_1.7.6     </span></span>
-<span><span class="co">#&gt;  [58] R.utils_2.13.0         ggforce_0.5.0          ggsignif_0.6.4        </span></span>
-<span><span class="co">#&gt;  [61] MASS_7.3-65            tools_4.6.1            vipor_0.4.7           </span></span>
-<span><span class="co">#&gt;  [64] lmtest_0.9-40          otel_0.2.0             beeswarm_0.4.0        </span></span>
-<span><span class="co">#&gt;  [67] httpuv_1.6.17          future.apply_1.21.0    goftest_1.2-3         </span></span>
-<span><span class="co">#&gt;  [70] R.oo_1.27.1            glue_1.8.1             nlme_3.1-169          </span></span>
-<span><span class="co">#&gt;  [73] promises_1.5.0         grid_4.6.1             checkmate_2.3.4       </span></span>
-<span><span class="co">#&gt;  [76] Rtsne_0.17             cluster_2.1.8.2        reshape2_1.4.5        </span></span>
-<span><span class="co">#&gt;  [79] generics_0.1.4         clustree_0.5.1         gtable_0.3.6          </span></span>
-<span><span class="co">#&gt;  [82] spatstat.data_3.1-9    R.methodsS3_1.8.2      tidyr_1.3.2           </span></span>
-<span><span class="co">#&gt;  [85] data.table_1.18.6.1    utf8_1.2.6             tidygraph_1.3.1       </span></span>
-<span><span class="co">#&gt;  [88] car_3.1-5              spatstat.geom_3.8-3    RcppAnnoy_0.0.23      </span></span>
-<span><span class="co">#&gt;  [91] ggrepel_0.9.8          RANN_2.6.3             pillar_1.11.1         </span></span>
-<span><span class="co">#&gt;  [94] stringr_1.6.0          spam_2.11-4            RcppHNSW_0.7.0        </span></span>
-<span><span class="co">#&gt;  [97] later_1.4.8            splines_4.6.1          tweenr_2.0.3          </span></span>
-<span><span class="co">#&gt; [100] dplyr_1.2.1            lattice_0.22-9         survival_3.8-6        </span></span>
-<span><span class="co">#&gt; [103] deldir_2.0-4           tidyselect_1.2.1       miniUI_0.1.2          </span></span>
-<span><span class="co">#&gt; [106] pbapply_1.7-5          knitr_1.52             gridExtra_2.3.1       </span></span>
-<span><span class="co">#&gt; [109] SoupX_1.6.2            scattermore_1.2        RhpcBLASctl_0.23-42   </span></span>
-<span><span class="co">#&gt; [112] xfun_0.62              graphlayouts_1.2.5     matrixStats_1.5.0     </span></span>
-<span><span class="co">#&gt; [115] leidenbase_0.1.37      stringi_1.8.9          yaml_2.3.12           </span></span>
-<span><span class="co">#&gt; [118] evaluate_1.0.5         codetools_0.2-20       tibble_3.3.1          </span></span>
-<span><span class="co">#&gt; [121] cli_3.6.6              uwot_0.2.5             xtable_1.8-8          </span></span>
-<span><span class="co">#&gt; [124] reticulate_1.47.0      systemfonts_1.3.2      jquerylib_0.1.4       </span></span>
-<span><span class="co">#&gt; [127] harmony_2.0.5          Rcpp_1.1.2             globals_0.20.0        </span></span>
-<span><span class="co">#&gt; [130] spatstat.random_3.5-2  png_0.1-9              ggrastr_1.0.2         </span></span>
-<span><span class="co">#&gt; [133] spatstat.univar_3.2-0  parallel_4.6.1         pkgdown_2.2.1         </span></span>
-<span><span class="co">#&gt; [136] ggplot2_4.0.3          dotCall64_1.2          jpeg_0.1-11           </span></span>
-<span><span class="co">#&gt; [139] listenv_1.1.0          viridisLite_0.4.3      scales_1.4.0          </span></span>
-<span><span class="co">#&gt; [142] ggridges_0.5.7         purrr_1.2.2            rlang_1.3.0           </span></span>
-<span><span class="co">#&gt; [145] cowplot_1.2.0</span></span></code></pre></div>
+<span><span class="co">#&gt;   [1] pbapply_1.7-5       gridExtra_2.3.1     rlang_1.3.0        </span></span>
+<span><span class="co">#&gt;   [4] magrittr_2.0.5      RcppAnnoy_0.0.23    otel_0.3.0         </span></span>
+<span><span class="co">#&gt;   [7] matrixStats_1.5.0   ggridges_0.5.7      compiler_4.6.2     </span></span>
+<span><span class="co">#&gt;  [10] png_0.1-9           systemfonts_1.3.2   vctrs_0.7.3        </span></span>
+<span><span class="co">#&gt;  [13] reshape2_1.4.5      stringr_1.6.0       pkgconfig_2.0.3    </span></span>
+<span><span class="co">#&gt;  [16] fastmap_1.2.0       backports_1.5.1     labeling_0.4.3     </span></span>
+<span><span class="co">#&gt;  [19] utf8_1.2.6          rmarkdown_2.32      SoupX_1.6.2        </span></span>
+<span><span class="co">#&gt;  [22] ggbeeswarm_0.7.3    ragg_1.5.2          purrr_1.2.2        </span></span>
+<span><span class="co">#&gt;  [25] xfun_0.62           cachem_1.1.0        jsonlite_2.0.0     </span></span>
+<span><span class="co">#&gt;  [28] tweenr_2.0.3        jpeg_0.1-11         broom_1.0.13       </span></span>
+<span><span class="co">#&gt;  [31] irlba_2.4.1         parallel_4.6.2      cluster_2.1.8.3    </span></span>
+<span><span class="co">#&gt;  [34] R6_2.6.1            ica_1.0-3           bslib_0.12.0       </span></span>
+<span><span class="co">#&gt;  [37] stringi_1.8.9       RColorBrewer_1.1-3  parallelly_1.50.0  </span></span>
+<span><span class="co">#&gt;  [40] car_3.1-5           jquerylib_0.1.4     scattermore_1.2    </span></span>
+<span><span class="co">#&gt;  [43] Rcpp_1.1.2          knitr_1.52          future.apply_1.21.0</span></span>
+<span><span class="co">#&gt;  [46] clustree_0.5.1      R.utils_2.13.0      sctransform_0.4.3  </span></span>
+<span><span class="co">#&gt;  [49] Matrix_1.7-6        igraph_2.3.4        tidyselect_1.2.1   </span></span>
+<span><span class="co">#&gt;  [52] viridis_0.6.5       abind_1.4-8         yaml_2.3.12        </span></span>
+<span><span class="co">#&gt;  [55] codetools_0.2-20    listenv_1.1.0       lattice_0.23-1     </span></span>
+<span><span class="co">#&gt;  [58] tibble_3.3.1        plyr_1.8.9          withr_3.0.3        </span></span>
+<span><span class="co">#&gt;  [61] S7_0.2.2            ggrastr_1.0.2       evaluate_1.0.5     </span></span>
+<span><span class="co">#&gt;  [64] Rtsne_0.17          fastDummies_1.7.6   desc_1.4.3         </span></span>
+<span><span class="co">#&gt;  [67] polyclip_1.10-7     pillar_1.11.1       ggpubr_1.0.0       </span></span>
+<span><span class="co">#&gt;  [70] carData_3.0-6       leidenbase_0.1.37   KernSmooth_2.23-27 </span></span>
+<span><span class="co">#&gt;  [73] checkmate_2.3.4     generics_0.1.4      RcppHNSW_0.7.0     </span></span>
+<span><span class="co">#&gt;  [76] ggplot2_4.0.3       scales_1.4.0        globals_0.20.0     </span></span>
+<span><span class="co">#&gt;  [79] RhpcBLASctl_0.23-42 glue_1.8.1          tools_4.6.2        </span></span>
+<span><span class="co">#&gt;  [82] data.table_1.18.6.1 RSpectra_0.16-2     ggsignif_0.6.4     </span></span>
+<span><span class="co">#&gt;  [85] RANN_2.6.3          graphlayouts_1.2.5  fs_2.1.0           </span></span>
+<span><span class="co">#&gt;  [88] dotCall64_1.2       tidygraph_1.3.1     cowplot_1.2.0      </span></span>
+<span><span class="co">#&gt;  [91] grid_4.6.2          tidyr_1.3.2         beeswarm_0.4.0     </span></span>
+<span><span class="co">#&gt;  [94] ggforce_0.5.0       vipor_0.4.7         Formula_1.2-6      </span></span>
+<span><span class="co">#&gt;  [97] cli_3.6.6           textshaping_1.0.5   spam_2.11-4        </span></span>
+<span><span class="co">#&gt; [100] viridisLite_0.4.3   dplyr_1.2.1         uwot_0.2.5         </span></span>
+<span><span class="co">#&gt; [103] gtable_0.3.6        pls_2.9-0           R.methodsS3_1.8.2  </span></span>
+<span><span class="co">#&gt; [106] rstatix_1.1.0       sass_0.4.10         digest_0.6.39      </span></span>
+<span><span class="co">#&gt; [109] progressr_1.1.0     ggrepel_0.9.8       htmlwidgets_1.6.4  </span></span>
+<span><span class="co">#&gt; [112] farver_2.1.2        R.oo_1.27.1         memoise_2.0.1      </span></span>
+<span><span class="co">#&gt; [115] htmltools_0.5.9     pkgdown_2.2.1       lifecycle_1.0.5    </span></span>
+<span><span class="co">#&gt; [118] httr_1.4.9          harmony_2.0.5       MASS_7.3-66</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

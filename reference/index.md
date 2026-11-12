@@ -54,6 +54,9 @@
 - [`extract_binned_expression()`](https://chomchonu.github.io/OHMmy/reference/extract_binned_expression.md)
   : Extract and Bin Average Gene Expression into Terciles
 
+- [`find_hierarchical_markers()`](https://chomchonu.github.io/OHMmy/reference/find_hierarchical_markers.md)
+  : Find Markers Along a Resolution Tree and Build a Dichotomous Key
+
 - [`generate_and_save_heatmap()`](https://chomchonu.github.io/OHMmy/reference/generate_and_save_heatmap.md)
   : Generate and Save Dual-Layout Differential Expression Heatmaps
 

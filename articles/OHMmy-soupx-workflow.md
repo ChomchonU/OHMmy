@@ -109,7 +109,7 @@ seurat_list <- create_seurat_for_clustering(counts$filtered, samples)
 soup_list$PBMC_A
 sapply(seurat_list, function(x) nlevels(x$seurat_clusters))
 #> PBMC_A PBMC_B 
-#>      8      7
+#>      7      9
 ```
 
 ### Estimate and remove contamination
@@ -144,8 +144,8 @@ est_manual <- estimate_contamination(
 get_rho <- function(soup_objs) sapply(soup_objs, function(sc) unique(sc$metaData$rho))
 rbind(auto = get_rho(est_auto$soup_list_all), selective = get_rho(est_manual$soup_list_all))
 #>           PBMC_A PBMC_B
-#> auto       0.058  0.063
-#> selective  0.058  0.113
+#> auto       0.061  0.055
+#> selective  0.061  0.105
 ```
 
 `autoEstCont()` estimates about 6 % contamination. The selective
@@ -183,14 +183,14 @@ clean_list <- create_final_seurat(est_auto$soup_list_all, samples)
 clean_list
 #> $PBMC_A
 #> An object of class Seurat 
-#> 12337 features across 1326 samples within 1 assay 
-#> Active assay: RNA (12337 features, 0 variable features)
+#> 12326 features across 1326 samples within 1 assay 
+#> Active assay: RNA (12326 features, 0 variable features)
 #>  1 layer present: counts
 #> 
 #> $PBMC_B
 #> An object of class Seurat 
-#> 12305 features across 1374 samples within 1 assay 
-#> Active assay: RNA (12305 features, 0 variable features)
+#> 12317 features across 1373 samples within 1 assay 
+#> Active assay: RNA (12317 features, 0 variable features)
 #>  1 layer present: counts
 ```
 
@@ -238,14 +238,14 @@ raw_umis <- sapply(counts$filtered, sum)
 sweep$pct_removed <- 100 * (1 - sweep$umis / raw_umis[sweep$sample])
 sweep
 #>         multiFac sample   rho    umis pct_removed
-#> PBMC_A         0 PBMC_A 0.058 3008084    5.924143
-#> PBMC_B         0 PBMC_B 0.063 2987689    6.433609
-#> PBMC_A1        5 PBMC_A 0.108 2847611   10.942831
-#> PBMC_B1        5 PBMC_B 0.113 2828121   11.430850
-#> PBMC_A2       10 PBMC_A 0.158 2688346   15.923739
-#> PBMC_B2       10 PBMC_B 0.163 2667483   16.461601
-#> PBMC_A3       20 PBMC_A 0.258 2368384   25.930341
-#> PBMC_B3       20 PBMC_B 0.263 2348273   26.458400
+#> PBMC_A         0 PBMC_A 0.061 2998574    6.221562
+#> PBMC_B         0 PBMC_B 0.055 3012519    5.656001
+#> PBMC_A1        5 PBMC_A 0.111 2838224   11.236403
+#> PBMC_B1        5 PBMC_B 0.105 2852899   10.654870
+#> PBMC_A2       10 PBMC_A 0.161 2678323   16.237202
+#> PBMC_B2       10 PBMC_B 0.155 2692632   15.674002
+#> PBMC_A3       20 PBMC_A 0.261 2358145   26.250559
+#> PBMC_B3       20 PBMC_B 0.255 2373682   25.662659
 
 ggplot(sweep, aes(rho, pct_removed, colour = sample)) +
   geom_line() + geom_point(size = 2.5) +
@@ -269,7 +269,7 @@ override <- run_soupx_post_clustering(prep, multiFac = 10, manual_contam = "PBMC
 
 get_rho(override$soup_objects)
 #> PBMC_A PBMC_B 
-#>  0.058  0.163
+#>  0.061  0.155
 ```
 
 ### One-step wrapper
@@ -290,7 +290,7 @@ names(one_step)
 #> [1] "final_seurat"      "soup_objects"      "seurat_clustering"
 get_rho(one_step$soup_objects)
 #> PBMC_A PBMC_B 
-#>  0.058  0.063
+#>  0.061  0.055
 ```
 
 ## 4. Transferring the cleaned counts to an existing object
@@ -344,8 +344,8 @@ corrected <- addSoupXMetaToSeurat(
 
 corrected
 #> An object of class Seurat 
-#> 13006 features across 2700 samples within 1 assay 
-#> Active assay: RNA (13006 features, 0 variable features)
+#> 13003 features across 2699 samples within 1 assay 
+#> Active assay: RNA (13003 features, 0 variable features)
 #>  1 layer present: counts
 ```
 
@@ -373,10 +373,10 @@ data.frame(gene = ambient_genes,
            pct_nonmono_before = round(detect(before), 1),
            pct_nonmono_after  = round(detect(after), 1))
 #>          gene pct_nonmono_before pct_nonmono_after
-#> LYZ       LYZ               43.4               3.1
-#> S100A8 S100A8                9.4               0.5
-#> S100A9 S100A9               16.3               0.9
-#> FTL       FTL               98.3              89.6
+#> LYZ       LYZ               43.4               4.4
+#> S100A8 S100A8                9.4               0.7
+#> S100A9 S100A9               16.4               1.1
+#> FTL       FTL               98.3              90.9
 
 plot_df <- data.frame(
   nCount = c(original$nCount_RNA[cells], corrected$nCount_RNA),
@@ -405,7 +405,7 @@ See the article *Data Processing, Integration, and Clustering*.
 ``` r
 
 sessionInfo()
-#> R version 4.6.1 (2026-06-24)
+#> R version 4.6.2 (2026-10-29)
 #> Platform: x86_64-pc-linux-gnu
 #> Running under: Ubuntu 22.04.5 LTS
 #> 
@@ -426,54 +426,46 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ggplot2_4.0.3      OHMmy_1.0.2.9000   Seurat_5.6.0       SeuratObject_5.4.0
+#> [1] ggplot2_4.0.3      OHMmy_1.0.2.9000   Seurat_6.0.0       SeuratObject_5.4.0
 #> [5] sp_2.2-4          
 #> 
 #> loaded via a namespace (and not attached):
-#>   [1] RColorBrewer_1.1-3     jsonlite_2.0.0         magrittr_2.0.5        
-#>   [4] spatstat.utils_3.2-5   farver_2.1.2           rmarkdown_2.32        
-#>   [7] fs_2.1.0               ragg_1.5.2             vctrs_0.7.3           
-#>  [10] ROCR_1.0-12            memoise_2.0.1          spatstat.explore_3.8-3
-#>  [13] rstatix_1.1.0          htmltools_0.5.9        broom_1.0.13          
-#>  [16] Formula_1.2-6          sass_0.4.10            sctransform_0.4.3     
-#>  [19] parallelly_1.48.0      KernSmooth_2.23-26     bslib_0.12.0          
-#>  [22] htmlwidgets_1.6.4      desc_1.4.3             ica_1.0-3             
-#>  [25] plyr_1.8.9             plotly_4.12.1          zoo_1.9-1             
-#>  [28] cachem_1.1.0           igraph_2.3.4           mime_0.13             
-#>  [31] lifecycle_1.0.5        pkgconfig_2.0.3        Matrix_1.7-5          
-#>  [34] R6_2.6.1               fastmap_1.2.0          fitdistrplus_1.2-6    
-#>  [37] future_1.80.0          shiny_1.14.0           digest_0.6.39         
-#>  [40] patchwork_1.3.2        tensor_1.5.1           RSpectra_0.16-2       
-#>  [43] irlba_2.4.1            textshaping_1.0.5      ggpubr_1.0.0          
-#>  [46] labeling_0.4.3         progressr_1.1.0        spatstat.sparse_3.2-0 
-#>  [49] httr_1.4.9             polyclip_1.10-7        abind_1.4-8           
-#>  [52] compiler_4.6.1         withr_3.0.3            S7_0.2.2              
-#>  [55] backports_1.5.1        viridis_0.6.5          carData_3.0-6         
-#>  [58] fastDummies_1.7.6      R.utils_2.13.0         ggforce_0.5.0         
-#>  [61] ggsignif_0.6.4         MASS_7.3-65            tools_4.6.1           
-#>  [64] lmtest_0.9-40          otel_0.2.0             httpuv_1.6.17         
-#>  [67] future.apply_1.21.0    goftest_1.2-3          R.oo_1.27.1           
-#>  [70] glue_1.8.1             nlme_3.1-169           promises_1.5.0        
-#>  [73] grid_4.6.1             Rtsne_0.17             cluster_2.1.8.2       
-#>  [76] reshape2_1.4.5         generics_0.1.4         gtable_0.3.6          
-#>  [79] spatstat.data_3.1-9    R.methodsS3_1.8.2      tidyr_1.3.2           
-#>  [82] data.table_1.18.6.1    tidygraph_1.3.1        car_3.1-5             
-#>  [85] spatstat.geom_3.8-3    RcppAnnoy_0.0.23       ggrepel_0.9.8         
-#>  [88] RANN_2.6.3             pillar_1.11.1          stringr_1.6.0         
-#>  [91] spam_2.11-4            RcppHNSW_0.7.0         later_1.4.8           
-#>  [94] splines_4.6.1          tweenr_2.0.3           dplyr_1.2.1           
-#>  [97] lattice_0.22-9         survival_3.8-6         deldir_2.0-4          
-#> [100] tidyselect_1.2.1       miniUI_0.1.2           pbapply_1.7-5         
-#> [103] knitr_1.52             gridExtra_2.3.1        SoupX_1.6.2           
-#> [106] scattermore_1.2        xfun_0.62              graphlayouts_1.2.5    
-#> [109] matrixStats_1.5.0      leidenbase_0.1.37      stringi_1.8.9         
-#> [112] yaml_2.3.12            evaluate_1.0.5         codetools_0.2-20      
-#> [115] ggraph_2.2.2           tibble_3.3.1           cli_3.6.6             
-#> [118] uwot_0.2.5             xtable_1.8-8           reticulate_1.47.0     
-#> [121] systemfonts_1.3.2      jquerylib_0.1.4        Rcpp_1.1.2            
-#> [124] globals_0.20.0         spatstat.random_3.5-2  png_0.1-9             
-#> [127] spatstat.univar_3.2-0  parallel_4.6.1         pkgdown_2.2.1         
-#> [130] dotCall64_1.2          listenv_1.1.0          viridisLite_0.4.3     
-#> [133] scales_1.4.0           ggridges_0.5.7         purrr_1.2.2           
-#> [136] rlang_1.3.0            cowplot_1.2.0
+#>   [1] pbapply_1.7-5       gridExtra_2.3.1     rlang_1.3.0        
+#>   [4] magrittr_2.0.5      RcppAnnoy_0.0.23    otel_0.3.0         
+#>   [7] matrixStats_1.5.0   ggridges_0.5.7      compiler_4.6.2     
+#>  [10] png_0.1-9           systemfonts_1.3.2   vctrs_0.7.3        
+#>  [13] reshape2_1.4.5      stringr_1.6.0       pkgconfig_2.0.3    
+#>  [16] fastmap_1.2.0       backports_1.5.1     labeling_0.4.3     
+#>  [19] ggraph_2.2.2        rmarkdown_2.32      SoupX_1.6.2        
+#>  [22] ragg_1.5.2          purrr_1.2.2         xfun_0.62          
+#>  [25] cachem_1.1.0        jsonlite_2.0.0      tweenr_2.0.3       
+#>  [28] broom_1.0.13        irlba_2.4.1         parallel_4.6.2     
+#>  [31] cluster_2.1.8.3     R6_2.6.1            ica_1.0-3          
+#>  [34] bslib_0.12.0        stringi_1.8.9       RColorBrewer_1.1-3 
+#>  [37] parallelly_1.50.0   car_3.1-5           jquerylib_0.1.4    
+#>  [40] scattermore_1.2     Rcpp_1.1.2          knitr_1.52         
+#>  [43] future.apply_1.21.0 R.utils_2.13.0      sctransform_0.4.3  
+#>  [46] Matrix_1.7-6        igraph_2.3.4        tidyselect_1.2.1   
+#>  [49] viridis_0.6.5       abind_1.4-8         yaml_2.3.12        
+#>  [52] codetools_0.2-20    listenv_1.1.0       lattice_0.23-1     
+#>  [55] tibble_3.3.1        plyr_1.8.9          withr_3.0.3        
+#>  [58] S7_0.2.2            evaluate_1.0.5      Rtsne_0.17         
+#>  [61] future_1.82.0       fastDummies_1.7.6   desc_1.4.3         
+#>  [64] polyclip_1.10-7     pillar_1.11.1       ggpubr_1.0.0       
+#>  [67] carData_3.0-6       leidenbase_0.1.37   KernSmooth_2.23-27 
+#>  [70] generics_0.1.4      RcppHNSW_0.7.0      scales_1.4.0       
+#>  [73] globals_0.20.0      glue_1.8.1          tools_4.6.2        
+#>  [76] data.table_1.18.6.1 RSpectra_0.16-2     ggsignif_0.6.4     
+#>  [79] RANN_2.6.3          graphlayouts_1.2.5  fs_2.1.0           
+#>  [82] dotCall64_1.2       tidygraph_1.3.1     cowplot_1.2.0      
+#>  [85] grid_4.6.2          tidyr_1.3.2         patchwork_1.3.2    
+#>  [88] ggforce_0.5.0       Formula_1.2-6       cli_3.6.6          
+#>  [91] textshaping_1.0.5   spam_2.11-4         viridisLite_0.4.3  
+#>  [94] dplyr_1.2.1         uwot_0.2.5          gtable_0.3.6       
+#>  [97] pls_2.9-0           R.methodsS3_1.8.2   rstatix_1.1.0      
+#> [100] sass_0.4.10         digest_0.6.39       progressr_1.1.0    
+#> [103] ggrepel_0.9.8       htmlwidgets_1.6.4   farver_2.1.2       
+#> [106] R.oo_1.27.1         memoise_2.0.1       htmltools_0.5.9    
+#> [109] pkgdown_2.2.1       lifecycle_1.0.5     httr_1.4.9         
+#> [112] MASS_7.3-66
 ```

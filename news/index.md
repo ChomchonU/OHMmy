@@ -39,6 +39,17 @@
   automatically by silhouette width, unclear leaves stay unassigned (or
   are assigned with `assign_all = TRUE`), and group clusters can be
   written back to the cells of a Seurat object.
+- New
+  [`find_hierarchical_markers()`](https://chomchonu.github.io/OHMmy/reference/find_hierarchical_markers.md)
+  tracks markers from low to high resolution. It links each cluster to
+  the lower-resolution cluster holding most of its cells (flagging
+  clusters with low purity), compares each child with its siblings
+  within the parent at every split, filters markers by adjusted p-value,
+  log2 fold change and detection, ranks them by AUC, and labels them
+  `lineage`, `split`, `specific` or `unstable`. For each split, a pruned
+  decision tree (rpart) gives a dichotomous key: key genes with
+  thresholds, backup genes, all ranking values, and cross-validated
+  accuracy. Adds `rpart` (shipped with R) to Imports.
 - [`plot_dot_dendro_multi()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_multi.md)
   attaches the matrix and `hclust` trees behind its dendrograms to its
   returned data frame as attributes.

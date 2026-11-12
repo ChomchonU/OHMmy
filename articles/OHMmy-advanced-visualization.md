@@ -31,9 +31,9 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 table(pbmc$cell_type)
 #> 
 #>       CD4 T       CD8 T          NK           B   CD14 Mono FCGR3A Mono 
-#>        1165         285         157         341         477         163 
-#>          DC    Platelet 
-#>          34          16
+#>        1168         298         141         341         478         178 
+#>          DC 
+#>          34
 ```
 
 ## 1. Colour palettes for many clusters
@@ -157,7 +157,7 @@ plot_violin_qc_single(
 )
 ```
 
-![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-10-20_18-11-51.jpg)![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-10-20_18-11-51.jpg)
+![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinQC_cell_type_2026-11-12_06-34-27.jpg)![](OHMmy-advanced-visualization_files/figure-html/saved-pbmc3k_ViolinGene_cell_type_2026-11-12_06-34-27.jpg)
 
 ### Discretising expression into Low / Int / High
 
@@ -180,12 +180,12 @@ head(binned)
 #> # A tibble: 6 × 5
 #>   Cluster Gene   AvgExpression PctExpress Expression_Level
 #>   <fct>   <fct>          <dbl>      <dbl> <fct>           
-#> 1 CD4 T   CD3E          7.54        76.8  High            
-#> 2 CD4 T   CD8A          0.728       11.0  High            
-#> 3 CD4 T   GNLY          0.563       10.3  Low             
-#> 4 CD4 T   MS4A1         0.196        4.89 Low             
-#> 5 CD4 T   CD14          0.0840       1.80 Int             
-#> 6 CD4 T   FCGR3A        0.204        4.46 Low
+#> 1 CD4 T   CD3E          7.55        77.0  High            
+#> 2 CD4 T   CD8A          0.731       11.1  High            
+#> 3 CD4 T   GNLY          0.571       10.4  Int             
+#> 4 CD4 T   MS4A1         0.203        4.97 Low             
+#> 5 CD4 T   CD14          0.0838       1.80 Int             
+#> 6 CD4 T   FCGR3A        0.207        4.54 Low
 ```
 
 ``` r
@@ -322,18 +322,18 @@ multi_df <- plot_dot_dendro_multi(
 )
 ```
 
-![](OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261020_181159.jpg)
+![](OHMmy-advanced-visualization_files/figure-html/saved-DotPlot_RowColDendro_PBMC_pct10_20261112_063436.jpg)
 
 ``` r
 
 head(multi_df[, c("cluster_var", "feature", "avg.exp.scaled", "pct.exp")])
 #>              cluster_var feature avg.exp.scaled  pct.exp
-#> IL7R...1 CD4 T_cell_type    IL7R      1.6552981 66.18026
-#> CCR7...2 CD4 T_cell_type    CCR7      2.0153829 36.30901
-#> LDHB...3 CD4 T_cell_type    LDHB      1.9231096 92.53219
-#> CD3E...4 CD4 T_cell_type    CD3E      1.3666726 76.82403
-#> MAL...5  CD4 T_cell_type     MAL      2.4402184 27.29614
-#> CD8A...6 CD4 T_cell_type    CD8A      0.2086779 10.98712
+#> IL7R...1 CD4 T_cell_type    IL7R      1.6004838 66.43836
+#> CCR7...2 CD4 T_cell_type    CCR7      1.9228209 36.38699
+#> LDHB...3 CD4 T_cell_type    LDHB      1.7808176 92.72260
+#> CD3E...4 CD4 T_cell_type    CD3E      1.3155181 76.96918
+#> MAL...5  CD4 T_cell_type     MAL      2.2501354 27.31164
+#> CD8A...6 CD4 T_cell_type    CD8A      0.2059775 11.13014
 ```
 
 ### Cutting the dendrograms into clusters with `cluster_dot_dendro()`
@@ -359,32 +359,31 @@ dc <- cluster_dot_dendro(multi_df, what = "both")
 
 dc$k
 #>  rows genes 
-#>     8    10
+#>     7    10
 dc$selection$rows
-#>       cutoff n_clusters n_unassigned avg_silhouette selected
-#> 1  0.0000000          8            1      0.8425799    FALSE
-#> 2  0.6429790          8            1      0.8425799    FALSE
-#> 3  0.7071068          8            0      0.8726987     TRUE
-#> 4  0.7254723          8            0      0.8726987    FALSE
-#> 5  0.7330018          8            0      0.8726987    FALSE
-#> 6  0.8370762          8            0      0.8726987    FALSE
-#> 7  1.1212589          6            0      0.5733035    FALSE
-#> 8  1.1546246          4            0      0.4220291    FALSE
-#> 9  1.1546993          4            0      0.4220291    FALSE
-#> 10 2.1546993          1            0             NA    FALSE
+#>      cutoff n_clusters n_unassigned avg_silhouette selected
+#> 1 0.0000000          7            1      0.8198003    FALSE
+#> 2 0.6194836          7            1      0.8198003    FALSE
+#> 3 0.7071068          7            0      0.8541494     TRUE
+#> 4 0.8424165          7            0      0.8541494    FALSE
+#> 5 0.9006495          7            0      0.8541494    FALSE
+#> 6 1.0008067          7            0      0.8541494    FALSE
+#> 7 1.1160426          7            0      0.8541494    FALSE
+#> 8 1.1546760          1            0             NA    FALSE
+#> 9 2.1546760          1            0             NA    FALSE
 head(dc$clusters[dc$clusters$type == "rows",
                  c("label", "cluster", "cluster_height", "cut_height")], 10)
 #>                    label cluster cluster_height cut_height
-#> 1  FCGR3A Mono_cell_type      C1      0.4757775   3.412300
-#> 2      5_seurat_clusters      C1      0.4757775   3.412300
-#> 3           DC_cell_type      C2      0.4763521   2.924448
-#> 4      7_seurat_clusters      C2      0.4763521   2.924448
-#> 5    CD14 Mono_cell_type      C3      0.4847236   2.928634
-#> 6      2_seurat_clusters      C3      0.4847236   2.928634
-#> 7           NK_cell_type      C4      0.5787966   3.448763
-#> 8      6_seurat_clusters      C4      0.5787966   3.448763
-#> 9        CD8 T_cell_type      C5      0.6543277   3.486528
-#> 10     4_seurat_clusters      C5      0.6543277   3.486528
+#> 1  FCGR3A Mono_cell_type      C1      0.6418832   4.208865
+#> 2      5_seurat_clusters      C1      0.6418832   4.208865
+#> 3    CD14 Mono_cell_type      C2      0.5690872   2.863924
+#> 4      2_seurat_clusters      C2      0.5690872   2.863924
+#> 5           DC_cell_type      C3      0.6035432   2.881152
+#> 6      7_seurat_clusters      C3      0.6035432   2.881152
+#> 7            B_cell_type      C4      0.6514424   4.826426
+#> 8      3_seurat_clusters      C4      0.6514424   4.826426
+#> 9           NK_cell_type      C5      0.6249326   4.612283
+#> 10     6_seurat_clusters      C5      0.6249326   4.612283
 ```
 
 Each cluster gets its own cut height, marked by a dashed line. Leaves
@@ -406,34 +405,34 @@ varies together across the groups.
 split(dc$clusters$label[dc$clusters$type == "genes"],
       dc$clusters$cluster[dc$clusters$type == "genes"])
 #> $C1
-#> [1] "CCR7" "LDHB" "MAL" 
+#> [1] "CD8B" "CD8A" "GZMK"
 #> 
 #> $C2
-#> [1] "CD8A" "GZMK" "CD8B" "CD3E" "IL7R" "CD3D"
+#> [1] "LDHB" "CD3E" "IL7R" "CD3D"
 #> 
 #> $C3
-#> [1] "FCGR3A" "IFITM2"
+#> [1] "CCR7" "MAL" 
 #> 
 #> $C4
-#> [1] "GZMB"  "NKG7"  "KLRD1" "GNLY"  "PRF1" 
+#> [1] "FCGR3A" "IFITM2"
 #> 
 #> $C5
-#> [1] "CD79B" "MS4A1" "CD79A" "CD19" 
+#> [1] "MS4A7" "PF4"   "PPBP"  "GNG11"
 #> 
 #> $C6
-#> [1] "PF4"   "PPBP"  "GNG11"
-#> 
-#> $C7
 #> [1] "FCER1A"  "CLEC10A"
 #> 
+#> $C7
+#> [1] "S100A9" "CD14"   "S100A8"
+#> 
 #> $C8
-#> [1] "MS4A7" "LST1" 
+#> [1] "LST1" "LYZ"  "CST3"
 #> 
 #> $C9
-#> [1] "CD14"   "S100A8"
+#> [1] "CD79B" "CD79A" "MS4A1" "CD19" 
 #> 
 #> $C10
-#> [1] "CST3"   "LYZ"    "S100A9"
+#> [1] "GZMB"  "NKG7"  "GNLY"  "PRF1"  "KLRD1"
 dc$plot$genes
 ```
 
@@ -449,7 +448,7 @@ c(inconsistency = unname(dc$k["rows"]),
   dynamic       = unname(cluster_dot_dendro(multi_df, method = "dynamic")$k["rows"]),
   fixed_k4      = unname(cluster_dot_dendro(multi_df, method = "fixed", k = 4)$k["rows"]))
 #> inconsistency       dynamic      fixed_k4 
-#>             8             8             4
+#>             7             7             4
 ```
 
 Finally, the group clusters can be written back to the cells. Here each
@@ -464,16 +463,15 @@ dc_cells <- cluster_dot_dendro(multi_df, seurat_obj = pbmc, meta_col = "seurat_c
 table(seurat_cluster = pbmc$seurat_clusters, marker_group = dc_cells$seurat_obj$marker_group,
       useNA = "ifany")
 #>               marker_group
-#> seurat_cluster  C1  C2  C3  C4  C5  C6  C7  C8
-#>              0   0   0   0   0   0   0   0 627
-#>              1   0   0   0   0   0   0   0 538
-#>              2   0   0 477   0   0   0   0   0
-#>              3   0   0   0   0   0 341   0   0
-#>              4   0   0   0   0 285   0   0   0
-#>              5 163   0   0   0   0   0   0   0
-#>              6   0   0   0 157   0   0   0   0
-#>              7   0  34   0   0   0   0   0   0
-#>              8   0   0   0   0   0   0  16   0
+#> seurat_cluster  C1  C2  C3  C4  C5  C6  C7
+#>              0   0   0   0   0   0   0 614
+#>              1   0   0   0   0   0   0 554
+#>              2   0 478   0   0   0   0   0
+#>              3   0   0   0 341   0   0   0
+#>              4   0   0   0   0   0 298   0
+#>              5 178   0   0   0   0   0   0
+#>              6   0   0   0   0 141   0   0
+#>              7   0   0  34   0   0   0   0
 DimPlot(dc_cells$seurat_obj, reduction = "umap.har", group.by = "marker_group", label = TRUE) +
   DimPlot(pbmc, reduction = "umap.har", group.by = "cell_type", label = TRUE, repel = TRUE) & NoLegend()
 ```
@@ -590,17 +588,17 @@ cons <- score_consensus(
 )
 
 cons$cutoffs
-#>    variant     cutoff fallback   med_diff  q05_diff q95_diff  frac_cd8
-#> 1  CD8_TCR -0.8463179    FALSE 0.62392346 -2.948398 2.340278 0.6515837
-#> 2 CD8_core -1.3141486    FALSE 0.02909187 -2.412048 2.700774 0.6945701
+#>    variant     cutoff fallback   med_diff q05_diff q95_diff  frac_cd8
+#> 1  CD8_TCR -0.8432246    FALSE 0.60889522 -2.88979 2.367464 0.6514806
+#> 2 CD8_core -1.2859800    FALSE 0.07507069 -2.44122 2.751788 0.6924829
 cons$agreement
 #>            CD8_TCR  CD8_core
-#> CD8_TCR  1.0000000 0.9434389
-#> CD8_core 0.9434389 1.0000000
+#> CD8_TCR  1.0000000 0.9453303
+#> CD8_core 0.9453303 1.0000000
 cons$bootstrap$summary
-#>    variant target   observed      mean        sd     ci_lo      ci_hi fb_rate
-#> 1  CD8_TCR cutoff -0.8463179 -0.794449 0.1717250 -1.030044 -0.5128929       0
-#> 2 CD8_core cutoff -1.3141486 -1.294615 0.1148437 -1.530047 -1.0904355       0
+#>    variant target   observed       mean        sd     ci_lo      ci_hi fb_rate
+#> 1  CD8_TCR cutoff -0.8432246 -0.7863805 0.1892429 -1.111310 -0.4723863       0
+#> 2 CD8_core cutoff -1.2859800 -1.2765134 0.1086915 -1.497219 -1.0857047       0
 ```
 
 Both variants get a data-driven cutoff (`fallback = FALSE`), and the
@@ -614,11 +612,11 @@ cells are good candidates for closer inspection:
 
 table(consensus = cons$consensus, annotation = cyto$cell_type)
 #>                        annotation
-#> consensus               CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC Platelet
-#>   Ambiguous_CD8_confirm     0     8  14   0         0           0   0        0
-#>   Ambiguous_CD8_primary     0     2   1   0         0           0   0        0
-#>   CD8                       0   273  12   0         0           0   0        0
-#>   NK                        0     2 130   0         0           0   0        0
+#> consensus               CD4 T CD8 T  NK   B CD14 Mono FCGR3A Mono  DC
+#>   Ambiguous_CD8_confirm     0     7  14   0         0           0   0
+#>   Ambiguous_CD8_primary     0     2   1   0         0           0   0
+#>   CD8                       0   274   9   0         0           0   0
+#>   NK                        0    15 117   0         0           0   0
 ```
 
 ``` r
@@ -651,7 +649,7 @@ DimPlot(cons$obj, reduction = "umap.har", group.by = "CD8vNK_consensus") +
 ``` r
 
 sessionInfo()
-#> R version 4.6.1 (2026-06-24)
+#> R version 4.6.2 (2026-10-29)
 #> Platform: x86_64-pc-linux-gnu
 #> Running under: Ubuntu 22.04.5 LTS
 #> 
@@ -673,91 +671,78 @@ sessionInfo()
 #> 
 #> other attached packages:
 #> [1] ggraph_2.2.2       ggplot2_4.0.3      patchwork_1.3.2    OHMmy_1.0.2.9000  
-#> [5] Seurat_5.6.0       SeuratObject_5.4.0 sp_2.2-4          
+#> [5] Seurat_6.0.0       SeuratObject_5.4.0 sp_2.2-4          
 #> 
 #> loaded via a namespace (and not attached):
-#>   [1] RcppAnnoy_0.0.23            splines_4.6.1              
-#>   [3] later_1.4.8                 tibble_3.3.1               
-#>   [5] R.oo_1.27.1                 polyclip_1.10-7            
-#>   [7] fastDummies_1.7.6           lifecycle_1.0.5            
-#>   [9] rstatix_1.1.0               globals_0.20.0             
-#>  [11] lattice_0.22-9              MASS_7.3-65                
-#>  [13] backports_1.5.1             magrittr_2.0.5             
-#>  [15] plotly_4.12.1               sass_0.4.10                
-#>  [17] rmarkdown_2.32              jquerylib_0.1.4            
-#>  [19] yaml_2.3.12                 httpuv_1.6.17              
-#>  [21] otel_0.2.0                  sctransform_0.4.3          
-#>  [23] spam_2.11-4                 spatstat.sparse_3.2-0      
-#>  [25] reticulate_1.47.0           cowplot_1.2.0              
-#>  [27] pbapply_1.7-5               RColorBrewer_1.1-3         
-#>  [29] abind_1.4-8                 GenomicRanges_1.64.0       
-#>  [31] Rtsne_0.17                  purrr_1.2.2                
-#>  [33] R.utils_2.13.0              BiocGenerics_0.58.1        
-#>  [35] pracma_2.4.6                tweenr_2.0.3               
-#>  [37] IRanges_2.46.0              S4Vectors_0.50.3           
-#>  [39] ggrepel_0.9.8               irlba_2.4.1                
-#>  [41] listenv_1.1.0               spatstat.utils_3.2-5       
-#>  [43] goftest_1.2-3               RSpectra_0.16-2            
-#>  [45] spatstat.random_3.5-2       fitdistrplus_1.2-6         
-#>  [47] parallelly_1.48.0           pkgdown_2.2.1              
-#>  [49] DelayedArray_0.38.2         codetools_0.2-20           
-#>  [51] ggforce_0.5.0               tidyselect_1.2.1           
-#>  [53] farver_2.1.2                SoupX_1.6.2                
-#>  [55] viridis_0.6.5               dynamicTreeCut_1.63-1      
-#>  [57] matrixStats_1.5.0           stats4_4.6.1               
-#>  [59] spatstat.explore_3.8-3      Seqinfo_1.2.0              
-#>  [61] jsonlite_2.0.0              ks_1.15.3                  
-#>  [63] tidygraph_1.3.1             progressr_1.1.0            
-#>  [65] Formula_1.2-6               ggridges_0.5.7             
-#>  [67] survival_3.8-6              systemfonts_1.3.2          
-#>  [69] tools_4.6.1                 ragg_1.5.2                 
-#>  [71] ica_1.0-3                   Rcpp_1.1.2                 
-#>  [73] glue_1.8.1                  SparseArray_1.12.3         
-#>  [75] gridExtra_2.3.1             xfun_0.62                  
-#>  [77] MatrixGenerics_1.24.0       dplyr_1.2.1                
-#>  [79] withr_3.0.3                 fastmap_1.2.0              
-#>  [81] clustree_0.5.1              digest_0.6.39              
-#>  [83] R6_2.6.1                    mime_0.13                  
-#>  [85] textshaping_1.0.5           Cairo_1.7-0                
-#>  [87] scattermore_1.2             tensor_1.5.1               
-#>  [89] jpeg_0.1-11                 spatstat.data_3.1-9        
-#>  [91] R.methodsS3_1.8.2           RhpcBLASctl_0.23-42        
-#>  [93] utf8_1.2.6                  Nebulosa_1.22.0            
-#>  [95] tidyr_1.3.2                 generics_0.1.4             
-#>  [97] data.table_1.18.6.1         S4Arrays_1.12.1            
-#>  [99] graphlayouts_1.2.5          httr_1.4.9                 
-#> [101] htmlwidgets_1.6.4           uwot_0.2.5                 
-#> [103] pkgconfig_2.0.3             gtable_0.3.6               
-#> [105] lmtest_0.9-40               S7_0.2.2                   
-#> [107] XVector_0.52.0              SingleCellExperiment_1.34.0
-#> [109] htmltools_0.5.9             carData_3.0-6              
-#> [111] dotCall64_1.2               Biobase_2.72.0             
-#> [113] scales_1.4.0                png_0.1-9                  
-#> [115] harmony_2.0.5               spatstat.univar_3.2-0      
-#> [117] ggdendro_0.2.0              knitr_1.52                 
-#> [119] reshape2_1.4.5              checkmate_2.3.4            
-#> [121] nlme_3.1-169                cachem_1.1.0               
-#> [123] zoo_1.9-1                   stringr_1.6.0              
-#> [125] KernSmooth_2.23-26          vipor_0.4.7                
-#> [127] parallel_4.6.1              miniUI_0.1.2               
-#> [129] ggrastr_1.0.2               desc_1.4.3                 
-#> [131] pillar_1.11.1               grid_4.6.1                 
-#> [133] vctrs_0.7.3                 RANN_2.6.3                 
-#> [135] promises_1.5.0              ggpubr_1.0.0               
-#> [137] car_3.1-5                   xtable_1.8-8               
-#> [139] cluster_2.1.8.2             beeswarm_0.4.0             
-#> [141] evaluate_1.0.5              mvtnorm_1.4-2              
-#> [143] cli_3.6.6                   compiler_4.6.1             
-#> [145] rlang_1.3.0                 leidenbase_0.1.37          
-#> [147] future.apply_1.21.0         ggsignif_0.6.4             
-#> [149] labeling_0.4.3              mclust_6.1.3               
-#> [151] ggbeeswarm_0.7.3            plyr_1.8.9                 
-#> [153] fs_2.1.0                    stringi_1.8.9              
-#> [155] viridisLite_0.4.3           deldir_2.0-4               
-#> [157] spatstat.geom_3.8-3         Matrix_1.7-5               
-#> [159] RcppHNSW_0.7.0              future_1.80.0              
-#> [161] shiny_1.14.0                SummarizedExperiment_1.42.0
-#> [163] ROCR_1.0-12                 igraph_2.3.4               
-#> [165] broom_1.0.13                memoise_2.0.1              
-#> [167] bslib_0.12.0
+#>   [1] RColorBrewer_1.1-3          ggdendro_0.2.0             
+#>   [3] jsonlite_2.0.0              magrittr_2.0.5             
+#>   [5] ggbeeswarm_0.7.3            farver_2.1.2               
+#>   [7] rmarkdown_2.32              fs_2.1.0                   
+#>   [9] ragg_1.5.2                  vctrs_0.7.3                
+#>  [11] Cairo_1.7-0                 memoise_2.0.1              
+#>  [13] rstatix_1.1.0               S4Arrays_1.12.1            
+#>  [15] htmltools_0.5.9             dynamicTreeCut_1.63-1      
+#>  [17] broom_1.0.13                SparseArray_1.12.3         
+#>  [19] Formula_1.2-6               pracma_2.4.6               
+#>  [21] sass_0.4.10                 sctransform_0.4.3          
+#>  [23] parallelly_1.50.0           KernSmooth_2.23-27         
+#>  [25] bslib_0.12.0                htmlwidgets_1.6.4          
+#>  [27] desc_1.4.3                  ica_1.0-3                  
+#>  [29] plyr_1.8.9                  cachem_1.1.0               
+#>  [31] igraph_2.3.4                lifecycle_1.0.5            
+#>  [33] pkgconfig_2.0.3             Matrix_1.7-6               
+#>  [35] R6_2.6.1                    fastmap_1.2.0              
+#>  [37] MatrixGenerics_1.24.0       future_1.82.0              
+#>  [39] digest_0.6.39               S4Vectors_0.50.3           
+#>  [41] RSpectra_0.16-2             irlba_2.4.1                
+#>  [43] GenomicRanges_1.64.0        textshaping_1.0.5          
+#>  [45] ggpubr_1.0.0                labeling_0.4.3             
+#>  [47] progressr_1.1.0             httr_1.4.9                 
+#>  [49] polyclip_1.10-7             abind_1.4-8                
+#>  [51] compiler_4.6.2              withr_3.0.3                
+#>  [53] S7_0.2.2                    backports_1.5.1            
+#>  [55] carData_3.0-6               viridis_0.6.5              
+#>  [57] fastDummies_1.7.6           ggforce_0.5.0              
+#>  [59] R.utils_2.13.0              ggsignif_0.6.4             
+#>  [61] MASS_7.3-66                 DelayedArray_0.38.2        
+#>  [63] tools_4.6.2                 vipor_0.4.7                
+#>  [65] otel_0.3.0                  beeswarm_0.4.0             
+#>  [67] future.apply_1.21.0         R.oo_1.27.1                
+#>  [69] glue_1.8.1                  grid_4.6.2                 
+#>  [71] checkmate_2.3.4             Rtsne_0.17                 
+#>  [73] cluster_2.1.8.3             reshape2_1.4.5             
+#>  [75] generics_0.1.4              gtable_0.3.6               
+#>  [77] clustree_0.5.1              R.methodsS3_1.8.2          
+#>  [79] tidyr_1.3.2                 data.table_1.18.6.1        
+#>  [81] utf8_1.2.6                  XVector_0.52.0             
+#>  [83] tidygraph_1.3.1             car_3.1-5                  
+#>  [85] BiocGenerics_0.58.1         RcppAnnoy_0.0.23           
+#>  [87] ggrepel_0.9.8               RANN_2.6.3                 
+#>  [89] pillar_1.11.1               stringr_1.6.0              
+#>  [91] spam_2.11-4                 RcppHNSW_0.7.0             
+#>  [93] dplyr_1.2.1                 tweenr_2.0.3               
+#>  [95] lattice_0.23-1              ks_1.15.3                  
+#>  [97] tidyselect_1.2.1            SingleCellExperiment_1.34.0
+#>  [99] pbapply_1.7-5               knitr_1.52                 
+#> [101] gridExtra_2.3.1             IRanges_2.46.0             
+#> [103] Seqinfo_1.2.0               SummarizedExperiment_1.42.0
+#> [105] SoupX_1.6.2                 scattermore_1.2            
+#> [107] RhpcBLASctl_0.23-42         stats4_4.6.2               
+#> [109] xfun_0.62                   Biobase_2.72.0             
+#> [111] pls_2.9-0                   graphlayouts_1.2.5         
+#> [113] matrixStats_1.5.0           leidenbase_0.1.37          
+#> [115] stringi_1.8.9               yaml_2.3.12                
+#> [117] evaluate_1.0.5              codetools_0.2-20           
+#> [119] Nebulosa_1.22.0             tibble_3.3.1               
+#> [121] cli_3.6.6                   uwot_0.2.5                 
+#> [123] systemfonts_1.3.2           jquerylib_0.1.4            
+#> [125] harmony_2.0.5               Rcpp_1.1.2                 
+#> [127] globals_0.20.0              png_0.1-9                  
+#> [129] ggrastr_1.0.2               parallel_4.6.2             
+#> [131] pkgdown_2.2.1               mclust_6.1.3               
+#> [133] dotCall64_1.2               jpeg_0.1-11                
+#> [135] listenv_1.1.0               mvtnorm_1.4-2              
+#> [137] viridisLite_0.4.3           scales_1.4.0               
+#> [139] ggridges_0.5.7              purrr_1.2.2                
+#> [141] rlang_1.3.0                 cowplot_1.2.0
 ```

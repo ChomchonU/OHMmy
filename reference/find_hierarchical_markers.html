@@ -64,9 +64,9 @@ genes and thresholds that sort cells into the sub-clusters: a dichotomous key.</
 <span>  min_purity <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  min_cells <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  specific_auc <span class="op">=</span> <span class="fl">0.8</span>,</span>
-<span>  max_candidate_genes <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  max_candidate_genes <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  max_depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  n_backup <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  n_backup <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  cv_folds <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">42</span>,</span>
 <span>  sample_name <span class="op">=</span> <span class="st">"Sample"</span>,</span>
@@ -126,7 +126,7 @@ labelled <code>"unstable"</code> (they are still tested). Default is 0.8.</p></d
 
 <dt id="arg-max-candidate-genes">max_candidate_genes<a class="anchor" aria-label="anchor" href="#arg-max-candidate-genes"></a></dt>
 <dd><p>Integer. Top-ranked markers per child offered to
-<code>rpart</code>. Default is 50.</p></dd>
+<code>rpart</code>. Default is 100.</p></dd>
 
 
 <dt id="arg-max-depth">max_depth<a class="anchor" aria-label="anchor" href="#arg-max-depth"></a></dt>
@@ -136,7 +136,7 @@ the split (at most 30).</p></dd>
 
 
 <dt id="arg-n-backup">n_backup<a class="anchor" aria-label="anchor" href="#arg-n-backup"></a></dt>
-<dd><p>Integer. Backup (surrogate) genes reported per question. Default 3.</p></dd>
+<dd><p>Integer. Backup (surrogate) genes reported per question. Default 10.</p></dd>
 
 
 <dt id="arg-cv-folds">cv_folds<a class="anchor" aria-label="anchor" href="#arg-cv-folds"></a></dt>

@@ -49,7 +49,10 @@
   `lineage`, `split`, `specific` or `unstable`. For each split, a pruned
   decision tree (rpart) gives a dichotomous key: key genes with
   thresholds, backup genes, all ranking values, and cross-validated
-  accuracy. Adds `rpart` (shipped with R) to Imports.
+  accuracy. Adds `rpart` (shipped with R) to Imports. By default rpart
+  may choose from the top 100 markers of each child
+  (`max_candidate_genes = 100`) and up to 10 backup genes are reported
+  per question (`n_backup = 10`).
 - [`plot_dot_dendro_multi()`](https://chomchonu.github.io/OHMmy/reference/plot_dot_dendro_multi.md)
   attaches the matrix and `hclust` trees behind its dendrograms to its
   returned data frame as attributes.

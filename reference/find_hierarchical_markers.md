@@ -22,9 +22,9 @@ find_hierarchical_markers(
   min_purity = 0.8,
   min_cells = 20,
   specific_auc = 0.8,
-  max_candidate_genes = 50,
+  max_candidate_genes = 100,
   max_depth = NULL,
-  n_backup = 3,
+  n_backup = 10,
   cv_folds = 10,
   seed = 42,
   sample_name = "Sample",
@@ -82,7 +82,7 @@ find_hierarchical_markers(
 - max_candidate_genes:
 
   Integer. Top-ranked markers per child offered to `rpart`. Default is
-  50.
+  100.
 
 - max_depth:
 
@@ -92,7 +92,7 @@ find_hierarchical_markers(
 
 - n_backup:
 
-  Integer. Backup (surrogate) genes reported per question. Default 3.
+  Integer. Backup (surrogate) genes reported per question. Default 10.
 
 - cv_folds:
 

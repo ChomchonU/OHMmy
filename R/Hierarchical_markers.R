@@ -5,6 +5,20 @@
 # finds markers between sibling clusters at every split, ranks them by AUC and
 # builds a short decision-tree key (rpart) per split.
 
+# Labels for a parent's cells that its key was not trained on (per-split confusion tables)
+HIER_MOVED_LABEL   <- "moved elsewhere"        # went to a child of another parent
+HIER_SKIPPED_LABEL <- "skipped (< min_cells)"  # belong to a child too small to test
+
+# Saved image sizes (inches) grow with what is drawn, within these limits
+HIER_IMAGE <- list(
+  max_inches          = 100,   # no side larger than this, however big the object
+  per_final_cluster   = 0.6,   # tree width
+  per_layer           = 1.5,   # tree height
+  per_gene            = 0.35,  # dot plot width
+  per_dot_row         = 0.25,  # dot plot height (clusters of the highest resolution)
+  per_confusion_class = 0.35   # confusion heatmaps, per row / column
+)
+
 #' Find Markers Along a Resolution Tree and Build a Dichotomous Key
 #'
 #' Tracks clusters from low to high resolution and finds, at every point where a
@@ -55,6 +69,22 @@
 #' (\code{role = "key"}) and up to \code{n_backup} surrogate genes that sort the cells
 #' almost the same way (\code{role = "backup"}) are reported with all ranking values.
 #'
+#' \strong{5. Checking the key on all cells.} Two confusion views are given, both using
+#' the keys built from these same cells (so their accuracy is optimistic, like
+#' \code{train_accuracy}; \code{cv_accuracy} is the honest one):
+#' \itemize{
+#'   \item per split (\code{confusion}): every cell of the parent, sorted by that split's
+#'     key. Cells the key was not trained on keep their own row: \code{"moved elsewhere"}
+#'     (they went to a child of another parent) or \code{"skipped (< min_cells)"};
+#'   \item whole key (\code{confusion_full}, \code{key_accuracy}): every cell of the
+#'     object goes from the root through each split's key down to a final cluster, and
+#'     is compared with its cluster at the highest resolution. A cell that reaches a
+#'     split without a key stops there (\code{"stopped at <node>"}).
+#' }
+#'
+#' Saved images are sized from their content (number of clusters, genes, splits), up to
+#' 100 inches per side.
+#'
 #' Expression is read from the \code{data} layer of \code{assay}; split Seurat v5
 #' layers are joined on a local copy.
 #'
@@ -101,7 +131,8 @@
 #'   \item \code{splits}: one row per split: \code{split}, \code{layer},
 #'     \code{children}, \code{skipped_children} (too few cells), \code{n_cells},
 #'     \code{n_markers}, \code{n_key_genes}, \code{cv_accuracy},
-#'     \code{train_accuracy}, \code{status}.
+#'     \code{train_accuracy}, \code{accuracy_all_parent_cells} (the key on every cell
+#'     of the parent, counting moved and skipped cells as wrong), \code{status}.
 #'   \item \code{markers}: every gene passing the filters, per split and child:
 #'     \code{split}, \code{child}, \code{gene}, \code{rank}, \code{auc},
 #'     \code{auc_vs_all}, \code{p_val}, \code{p_val_adj}, \code{avg_log2FC},
@@ -114,9 +145,17 @@
 #'     predicted for cells at or above the threshold), \code{agreement} (backup genes:
 #'     rpart's adjusted agreement with the key gene), \code{importance}, then
 #'     \code{marker_of} and the ranking columns of \code{markers} for that gene.
-#'   \item \code{confusion}: per split, a table of true vs key-predicted child.
-#'   \item \code{plots}: \code{tree} (the resolution tree with key genes at each split)
-#'     and \code{dotplot} (key genes across the clusters of the highest resolution).
+#'   \item \code{confusion}: per split, a table of every parent cell's true child (or
+#'     \code{"moved elsewhere"} / \code{"skipped (< min_cells)"}) vs the child its key
+#'     predicts.
+#'   \item \code{confusion_full}: every cell's cluster at the highest resolution vs the
+#'     final cluster reached by walking the whole key from the root.
+#'   \item \code{key_accuracy}: share of all cells the whole key sorts into their own
+#'     final cluster.
+#'   \item \code{plots}: \code{tree} (the resolution tree with key genes at each split),
+#'     \code{dotplot} (key genes across the clusters of the highest resolution),
+#'     \code{confusion} (per-split heatmaps) and \code{confusion_full} (whole-key heatmap);
+#'     heatmap colour = share of the true cluster's cells, numbers = cells.
 #'   \item \code{res_cols} and \code{parameters}.
 #' }
 #'
@@ -211,15 +250,34 @@ find_hierarchical_markers <- function(seurat_obj,
 
   splits <- .summarise_splits(split_nodes, tree, per_split, keys, markers)
 
-  # 5. Plots
+  # 5. The whole key on every cell: root -> ... -> final cluster
+  true_final <- cell_nodes[, ncol(cell_nodes)]
+  predicted_final <- .walk_key(tree, keys, expr, rownames(cell_nodes))
+  confusion_full <- table(true = factor(true_final, levels = intersect(tree$node, true_final)),
+                          predicted = factor(predicted_final,
+                                             levels = c(intersect(tree$node, predicted_final),
+                                                        setdiff(predicted_final, tree$node))))
+  key_accuracy <- mean(predicted_final == true_final)
+  say("Whole key sorts ", round(100 * key_accuracy, 1), "% of cells into their own final cluster.")
+
+  # 6. Plots
+  confusion <- lapply(keys, `[[`, "confusion")
   plots <- list(
-    tree    = .plot_resolution_tree(tree, key, sample_name),
-    dotplot = .plot_key_dotplot(seurat_obj, key, res_cols[length(res_cols)], assay, sample_name)
+    tree           = .plot_resolution_tree(tree, key, sample_name),
+    dotplot        = .plot_key_dotplot(seurat_obj, key, res_cols[length(res_cols)], assay, sample_name),
+    confusion      = .plot_confusion(.split_confusion_long(confusion), "true_child", "predicted_child",
+                                     paste(sample_name, "- key per split, on all cells of the parent"),
+                                     facet_columns = .facet_columns(sum(!vapply(confusion, is.null, TRUE)))),
+    confusion_full = .plot_confusion(.confusion_long(confusion_full, "true_cluster", "predicted_cluster"),
+                                     "true_cluster", "predicted_cluster",
+                                     paste0(sample_name, " - whole key on all cells (accuracy ",
+                                            round(100 * key_accuracy, 1), "%)"))
   )
 
   out <- list(
     tree = tree, splits = splits, markers = markers, key = key,
-    confusion = lapply(keys, `[[`, "confusion"), plots = plots, res_cols = res_cols,
+    confusion = confusion, confusion_full = confusion_full, key_accuracy = key_accuracy,
+    plots = plots, res_cols = res_cols,
     parameters = list(assay = assay, padj_max = padj_max, min_log2fc = min_log2fc, min_pct = min_pct,
                       min_pct_diff = min_pct_diff, min_purity = min_purity, min_cells = min_cells,
                       specific_auc = specific_auc, max_candidate_genes = max_candidate_genes,
@@ -376,8 +434,17 @@ find_hierarchical_markers <- function(seurat_obj,
   tested <- names(sizes)[sizes >= min_cells]
   skipped <- setdiff(children, tested)
 
+  # Every cell of the parent, labelled for the per-split confusion table: its child, or
+  # why the key is not trained on it
+  of_parent <- cell_nodes[, split_layer + 1] == split_node
+  next_node <- cell_nodes[of_parent, split_layer + 2]
+  parent_cells <- stats::setNames(ifelse(next_node %in% tested, next_node,
+                                         ifelse(next_node %in% children, HIER_SKIPPED_LABEL, HIER_MOVED_LABEL)),
+                                  rownames(cell_nodes)[of_parent])
+
   result <- list(children = children, tested = tested, skipped = skipped,
-                 cells = split(names(child_of_cell), child_of_cell)[tested], markers = NULL)
+                 cells = split(names(child_of_cell), child_of_cell)[tested],
+                 parent_cells = parent_cells, markers = NULL)
   if (length(tested) < 2) return(result)
 
   result$markers <- do.call(rbind, lapply(tested, function(child) {
@@ -504,7 +571,8 @@ find_hierarchical_markers <- function(seurat_obj,
 #' @noRd
 .key_for_split <- function(split_info, markers, expr, split_node, max_candidate_genes, max_depth,
                            n_backup, cv_folds, seed) {
-  empty <- list(key = NULL, confusion = NULL, cv_accuracy = NA_real_, train_accuracy = NA_real_)
+  empty <- list(key = NULL, confusion = NULL, model = NULL, cv_accuracy = NA_real_,
+                train_accuracy = NA_real_, accuracy_all = NA_real_)
   split_markers <- markers[markers$split == split_node, , drop = FALSE]
   if (length(split_info$tested) < 2 || nrow(split_markers) == 0) return(empty)
 
@@ -528,10 +596,56 @@ find_hierarchical_markers <- function(seurat_obj,
   pruned <- .prune_one_se(fit)
 
   predicted <- stats::predict(pruned, type = "class")
-  confusion <- table(true = child, predicted = predicted)
   key <- .key_rows(pruned, gene_of, levels(child), split_node, split_markers)
-  list(key = key, confusion = confusion, cv_accuracy = attr(pruned, "cv_accuracy"),
-       train_accuracy = mean(as.character(predicted) == as.character(child)))
+
+  # The key on every cell of the parent, including cells it was not trained on
+  model <- list(fit = pruned, genes = candidates, safe_names = safe_names)
+  true_all <- split_info$parent_cells
+  predicted_all <- .predict_split(model, expr, names(true_all))
+  true_levels <- c(split_info$tested, intersect(c(HIER_SKIPPED_LABEL, HIER_MOVED_LABEL), true_all))
+  confusion <- table(true = factor(true_all, levels = true_levels), predicted = predicted_all)
+
+  list(key = key, confusion = confusion, model = model, cv_accuracy = attr(pruned, "cv_accuracy"),
+       train_accuracy = mean(as.character(predicted) == as.character(child)),
+       accuracy_all = mean(as.character(predicted_all) == unname(true_all)))
+}
+
+#' Child predicted by one split's key for the given cells
+#' @keywords internal
+#' @noRd
+.predict_split <- function(model, expr, cells) {
+  values <- as.data.frame(t(as.matrix(expr[model$genes, cells, drop = FALSE])))
+  colnames(values) <- model$safe_names
+  stats::predict(model$fit, newdata = values, type = "class")
+}
+
+#' Run every cell through the whole key, from the root down to a final cluster
+#'
+#' At a split, cells go to the child its key predicts; a cluster with a single child
+#' passes them on unchanged. Cells that reach a split without a key stop there.
+#' @keywords internal
+#' @noRd
+.walk_key <- function(tree, keys, expr, cells) {
+  children_of <- split(tree$node, tree$parent)
+  position <- stats::setNames(rep("root", length(cells)), cells)
+  finished <- rep(FALSE, length(cells))
+  while (!all(finished)) {
+    for (node in unique(position[!finished])) {
+      here <- which(position == node & !finished)
+      kids <- children_of[[node]]
+      if (length(kids) == 0) {
+        finished[here] <- TRUE                                   # a final cluster
+      } else if (length(kids) == 1) {
+        position[here] <- kids                                   # unchanged at the next resolution
+      } else if (is.null(keys[[node]]$model)) {
+        position[here] <- paste("stopped at", node)
+        finished[here] <- TRUE
+      } else {
+        position[here] <- as.character(.predict_split(keys[[node]]$model, expr, cells[here]))
+      }
+    }
+  }
+  unname(position)
 }
 
 #' Run an expression with a fixed seed, then restore the caller's random state
@@ -661,14 +775,15 @@ find_hierarchical_markers <- function(seurat_obj,
                skipped_children = paste(info$skipped, collapse = ", "),
                n_cells = sum(lengths(info$cells)), n_markers = sum(markers$split == s),
                n_key_genes = n_key, cv_accuracy = k$cv_accuracy, train_accuracy = k$train_accuracy,
-               status = status, stringsAsFactors = FALSE)
+               accuracy_all_parent_cells = k$accuracy_all, status = status, stringsAsFactors = FALSE)
   })
   out <- do.call(rbind, rows)
   if (is.null(out)) {
     out <- data.frame(split = character(), layer = integer(), children = character(),
                       skipped_children = character(), n_cells = integer(), n_markers = integer(),
                       n_key_genes = integer(), cv_accuracy = numeric(), train_accuracy = numeric(),
-                      status = character(), stringsAsFactors = FALSE)
+                      accuracy_all_parent_cells = numeric(), status = character(),
+                      stringsAsFactors = FALSE)
   }
   rownames(out) <- NULL
   out
@@ -753,16 +868,119 @@ find_hierarchical_markers <- function(seurat_obj,
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   stem <- file.path(output_dir, paste0(sanitize(sample_name), "_HierMarkers_",
                                        format(Sys.time(), "%Y%m%d_%H%M%S")))
-  for (table_name in c("tree", "splits", "markers", "key")) {
-    utils::write.csv(out[[table_name]], paste0(stem, "_", table_name, ".csv"), row.names = FALSE)
+  tables <- list(
+    tree = out$tree, splits = out$splits, markers = out$markers, key = out$key,
+    confusion_splits = .split_confusion_long(out$confusion),
+    confusion_full   = .confusion_long(out$confusion_full, "true_cluster", "predicted_cluster")
+  )
+  for (table_name in names(tables)) {
+    utils::write.csv(tables[[table_name]], paste0(stem, "_", table_name, ".csv"), row.names = FALSE)
   }
-  n_leaves <- sum(out$tree$n_children == 0)
-  ggsave(paste0(stem, "_tree.jpg"), out$plots$tree, width = min(40, max(8, 0.6 * n_leaves)),
-         height = 2 + 1.5 * max(out$tree$layer), dpi = 300, limitsize = FALSE, bg = "white")
-  if (!is.null(out$plots$dotplot)) {
-    n_genes <- length(unique(out$key$gene[out$key$role == "key"]))
-    ggsave(paste0(stem, "_dotplot.jpg"), out$plots$dotplot, width = min(40, max(6, 0.35 * n_genes + 3)),
-           height = 6, dpi = 300, limitsize = FALSE, bg = "white")
+
+  sizes <- .image_sizes(out)
+  file_suffix <- c(tree = "tree", dotplot = "dotplot", confusion = "confusion_splits",
+                   confusion_full = "confusion_full")
+  for (plot_name in names(file_suffix)) {
+    if (is.null(out$plots[[plot_name]])) next
+    ggsave(paste0(stem, "_", file_suffix[[plot_name]], ".jpg"), out$plots[[plot_name]],
+           width = sizes[[plot_name]][["width"]], height = sizes[[plot_name]][["height"]],
+           dpi = 300, limitsize = FALSE, bg = "white")
   }
   say("Saved hierarchical markers to: ", output_dir)
+}
+
+#' Width and height (inches) of each saved image, grown from what it draws
+#'
+#' Bounded below so small results stay readable, and above by HIER_IMAGE$max_inches.
+#' @keywords internal
+#' @noRd
+.image_sizes <- function(out) {
+  bounded <- function(width, height, min_width, min_height) {
+    c(width  = min(HIER_IMAGE$max_inches, max(min_width, width)),
+      height = min(HIER_IMAGE$max_inches, max(min_height, height)))
+  }
+  n_layers <- max(out$tree$layer)
+  n_final_clusters <- sum(out$tree$n_children == 0)
+  n_top_clusters <- sum(out$tree$layer == n_layers)
+  n_key_genes <- length(unique(out$key$gene[out$key$role == "key"]))
+
+  split_tables <- Filter(Negate(is.null), out$confusion)
+  n_facets <- max(1, length(split_tables))
+  facet_cols <- .facet_columns(n_facets)
+  largest <- max(c(1, unlist(lapply(split_tables, dim))))
+  facet_side <- 1.5 + HIER_IMAGE$per_confusion_class * largest
+
+  list(
+    tree      = bounded(HIER_IMAGE$per_final_cluster * n_final_clusters,
+                        2 + HIER_IMAGE$per_layer * n_layers, 8, 4),
+    dotplot   = bounded(3 + HIER_IMAGE$per_gene * n_key_genes,
+                        2 + HIER_IMAGE$per_dot_row * n_top_clusters, 6, 4),
+    confusion = bounded(1.5 + facet_cols * facet_side,
+                        1 + ceiling(n_facets / facet_cols) * facet_side, 5, 4),
+    confusion_full = bounded(3 + HIER_IMAGE$per_confusion_class * ncol(out$confusion_full),
+                             2 + HIER_IMAGE$per_confusion_class * nrow(out$confusion_full), 5, 4)
+  )
+}
+
+#' Facets per row for n per-split heatmaps (about square)
+#' @keywords internal
+#' @noRd
+.facet_columns <- function(n) max(1, ceiling(sqrt(n)))
+
+#' A confusion table as long rows: true, predicted, cells, share of the true group
+#' @keywords internal
+#' @noRd
+.confusion_long <- function(confusion, true_col, predicted_col) {
+  long <- as.data.frame(confusion, responseName = "n_cells", stringsAsFactors = FALSE)
+  names(long)[1:2] <- c(true_col, predicted_col)
+  row_total <- stats::ave(long$n_cells, long[[true_col]], FUN = sum)
+  long$share_of_true <- ifelse(row_total > 0, long$n_cells / row_total, 0)
+  long
+}
+
+#' All per-split confusion tables as one long table with a `split` column
+#' @keywords internal
+#' @noRd
+.split_confusion_long <- function(confusion) {
+  confusion <- Filter(Negate(is.null), confusion)
+  if (length(confusion) == 0) {
+    return(data.frame(split = character(), true_child = character(), predicted_child = character(),
+                      n_cells = integer(), share_of_true = numeric(), stringsAsFactors = FALSE))
+  }
+  rows <- lapply(names(confusion), function(s) {
+    cbind(split = s, .confusion_long(confusion[[s]], "true_child", "predicted_child"),
+          stringsAsFactors = FALSE)
+  })
+  do.call(rbind, rows)
+}
+
+#' Heatmap of a long confusion table: colour = share of the true group, text = cells
+#'
+#' Rows and columns keep the order of the table (tree order). With `facet_columns`,
+#' one panel per split, each with its own axes.
+#' @keywords internal
+#' @noRd
+.plot_confusion <- function(long, true_col, predicted_col, title, facet_columns = NULL) {
+  if (is.null(long) || nrow(long) == 0) return(NULL)
+  # Clusters in tree order, with the rows for untrained cells always at the bottom
+  true_levels <- unique(long[[true_col]])
+  untrained <- c(HIER_SKIPPED_LABEL, HIER_MOVED_LABEL)
+  true_levels <- c(setdiff(true_levels, untrained), intersect(untrained, true_levels))
+  long$true <- factor(long[[true_col]], levels = rev(true_levels))
+  long$predicted <- factor(long[[predicted_col]], levels = unique(long[[predicted_col]]))
+  if ("split" %in% names(long)) long$split <- factor(long$split, levels = unique(long$split))
+  long$text_colour <- ifelse(long$share_of_true > 0.6, "white", "black")   # readable on dark tiles
+
+  p <- ggplot(long, aes(x = .data$predicted, y = .data$true)) +
+    geom_tile(aes(fill = .data$share_of_true), colour = "grey85") +
+    geom_text(data = long[long$n_cells > 0, , drop = FALSE],
+              aes(label = .data$n_cells, colour = .data$text_colour), size = 2.5) +
+    scale_fill_gradient(low = "white", high = "steelblue4", limits = c(0, 1),
+                        name = "Share of\ntrue cells") +
+    scale_colour_identity() +
+    labs(title = title, x = "Predicted by the key", y = "True") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1), panel.grid = element_blank())
+  if (!is.null(facet_columns)) p <- p + facet_wrap(~split, scales = "free", ncol = facet_columns)
+  p
 }

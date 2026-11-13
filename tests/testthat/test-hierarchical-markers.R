@@ -28,6 +28,7 @@ hierarchy_seurat <- function(cells_per_group = 60, n_noise = 200) {
   res1 <- groups
   res1[which(groups == "A2")[seq_len(20)]] <- "B2"     # mixed cluster: cells from two parents
   obj$RNA_snn_res.1 <- res1
+  obj$true_group <- groups
   obj
 }
 
@@ -147,12 +148,60 @@ test_that("the caller's random state is left unchanged", {
   expect_equal(stats::runif(1), expected)
 })
 
+test_that("the whole key walks every cell from the root to a final cluster", {
+  full <- hier_res$confusion_full
+  expect_equal(sum(full), ncol(hier_obj))
+  expect_equal(rownames(full), c("res1_A1", "res1_A2", "res1_B1", "res1_B2"))
+  # the 20 A2 cells clustered with B2 are sorted by their expression into A2
+  expect_gte(full["res1_B2", "res1_A2"], 18)
+  expect_equal(hier_res$key_accuracy, sum(diag(full)) / sum(full))
+  expect_gt(hier_res$key_accuracy, 0.85)
+})
+
+test_that("per-split confusion uses every cell of the parent, with moved cells in their own row", {
+  # res 0.5 where 20 B1 cells are clustered with A1: they leave parent B for a child of A
+  obj <- hier_obj
+  res05 <- obj$true_group
+  res05[which(obj$true_group == "B1")[seq_len(20)]] <- "A1"
+  obj$RNA_snn_res.0.5 <- res05
+  res <- suppressMessages(find_hierarchical_markers(obj, res_cols = c("RNA_snn_res.0.1", "RNA_snn_res.0.5"),
+                                                    verbose = FALSE))
+  b_split <- res$confusion[["res0.1_B"]]
+  expect_equal(rownames(b_split), c("res0.5_B1", "res0.5_B2", "moved elsewhere"))
+  expect_equal(sum(b_split["moved elsewhere", ]), 20)
+  expect_equal(sum(b_split), sum(obj$RNA_snn_res.0.1 == "B"))
+  row_b <- res$splits[res$splits$split == "res0.1_B", ]
+  expect_lte(row_b$accuracy_all_parent_cells, 100 / 120)        # moved cells always count as wrong
+  # the confusion CSV rows add up to the cells of each parent
+  long <- OHMmy:::.split_confusion_long(res$confusion)
+  expect_equal(as.vector(tapply(long$n_cells, long$split, sum)[c("root", "res0.1_A", "res0.1_B")]),
+               c(240, 120, 120))
+})
+
+test_that("saved image sizes grow with content and stay within the limit", {
+  sizes <- OHMmy:::.image_sizes(hier_res)
+  expect_true(all(unlist(sizes) >= 4))
+  big <- hier_res
+  extra <- data.frame(node = paste0("res1_x", 1:200), layer = 3L, resolution = 1, res_col = "RNA_snn_res.1",
+                      cluster = paste0("x", 1:200), parent = "res0.5_A1", n_cells = 1L, purity = 1,
+                      n_children = 0L, low_purity = FALSE)
+  big$tree <- rbind(big$tree, extra)
+  big_sizes <- OHMmy:::.image_sizes(big)
+  expect_gt(big_sizes$dotplot[["height"]], sizes$dotplot[["height"]])
+  expect_gt(big_sizes$tree[["width"]], sizes$tree[["width"]])
+  expect_lte(big_sizes$tree[["width"]], 100)
+})
+
 test_that("plots are returned and tables/plots are saved", {
   expect_s3_class(hier_res$plots$tree, "ggplot")
   expect_s3_class(hier_res$plots$dotplot, "ggplot")
+  expect_s3_class(hier_res$plots$confusion, "ggplot")
+  expect_s3_class(hier_res$plots$confusion_full, "ggplot")
   out <- test_out_dir("hier_markers")
   suppressMessages(find_hierarchical_markers(hier_obj, pipeline = "RNA_snn", sample_name = "toy",
                                              output_dir = out, verbose = FALSE))
-  expect_length(written_files(out, "^toy_HierMarkers_.*\\.csv$"), 4)
-  expect_length(written_files(out, "^toy_HierMarkers_.*\\.jpg$"), 2)
+  expect_length(written_files(out, "^toy_HierMarkers_.*\\.csv$"), 6)
+  expect_length(written_files(out, "^toy_HierMarkers_.*\\.jpg$"), 4)
+  conf_csv <- utils::read.csv(written_files(out, "confusion_splits\\.csv$"))
+  expect_named(conf_csv, c("split", "true_child", "predicted_child", "n_cells", "share_of_true"))
 })

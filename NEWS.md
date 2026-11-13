@@ -41,6 +41,13 @@
   By default rpart may choose from the top 100 markers of each child
   (`max_candidate_genes = 100`) and up to 10 backup genes are reported per
   question (`n_backup = 10`).
+  The key is checked on all cells: per split on every cell of the parent
+  (`confusion`, with rows for cells that moved to another parent or belong to
+  skipped children; `accuracy_all_parent_cells` in `splits`), and as a whole
+  key from the root down to the final cluster for every cell of the object
+  (`confusion_full`, `key_accuracy`). Both are drawn as heatmaps and saved
+  (CSV + JPEG), and every saved image is sized from its content (clusters,
+  genes, splits), up to 100 inches per side.
 * `plot_dot_dendro_multi()` attaches the matrix and `hclust` trees behind its
   dendrograms to its returned data frame as attributes.
 * `ProcessSeuratLOG()` and `ProcessSeuratSCT()` gain `force_norm` and `force_scale`

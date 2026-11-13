@@ -86,7 +86,8 @@ A list with:
 \item \code{splits}: one row per split: \code{split}, \code{layer},
 \code{children}, \code{skipped_children} (too few cells), \code{n_cells},
 \code{n_markers}, \code{n_key_genes}, \code{cv_accuracy},
-\code{train_accuracy}, \code{status}.
+\code{train_accuracy}, \code{accuracy_all_parent_cells} (the key on every cell
+of the parent, counting moved and skipped cells as wrong), \code{status}.
 \item \code{markers}: every gene passing the filters, per split and child:
 \code{split}, \code{child}, \code{gene}, \code{rank}, \code{auc},
 \code{auc_vs_all}, \code{p_val}, \code{p_val_adj}, \code{avg_log2FC},
@@ -99,9 +100,17 @@ A list with:
 predicted for cells at or above the threshold), \code{agreement} (backup genes:
 rpart's adjusted agreement with the key gene), \code{importance}, then
 \code{marker_of} and the ranking columns of \code{markers} for that gene.
-\item \code{confusion}: per split, a table of true vs key-predicted child.
-\item \code{plots}: \code{tree} (the resolution tree with key genes at each split)
-and \code{dotplot} (key genes across the clusters of the highest resolution).
+\item \code{confusion}: per split, a table of every parent cell's true child (or
+\code{"moved elsewhere"} / \code{"skipped (< min_cells)"}) vs the child its key
+predicts.
+\item \code{confusion_full}: every cell's cluster at the highest resolution vs the
+final cluster reached by walking the whole key from the root.
+\item \code{key_accuracy}: share of all cells the whole key sorts into their own
+final cluster.
+\item \code{plots}: \code{tree} (the resolution tree with key genes at each split),
+\code{dotplot} (key genes across the clusters of the highest resolution),
+\code{confusion} (per-split heatmaps) and \code{confusion_full} (whole-key heatmap);
+heatmap colour = share of the true cluster's cells, numbers = cells.
 \item \code{res_cols} and \code{parameters}.
 }
 }
@@ -153,6 +162,22 @@ tree whose error is within one standard error of the best). The data therefore
 decide how many genes each split needs. For every question, the chosen gene
 (\code{role = "key"}) and up to \code{n_backup} surrogate genes that sort the cells
 almost the same way (\code{role = "backup"}) are reported with all ranking values.
+
+\strong{5. Checking the key on all cells.} Two confusion views are given, both using
+the keys built from these same cells (so their accuracy is optimistic, like
+\code{train_accuracy}; \code{cv_accuracy} is the honest one):
+\itemize{
+\item per split (\code{confusion}): every cell of the parent, sorted by that split's
+key. Cells the key was not trained on keep their own row: \code{"moved elsewhere"}
+(they went to a child of another parent) or \code{"skipped (< min_cells)"};
+\item whole key (\code{confusion_full}, \code{key_accuracy}): every cell of the
+object goes from the root through each split's key down to a final cluster, and
+is compared with its cluster at the highest resolution. A cell that reaches a
+split without a key stops there (\code{"stopped at <node>"}).
+}
+
+Saved images are sized from their content (number of clusters, genes, splits), up to
+100 inches per side.
 
 Expression is read from the \code{data} layer of \code{assay}; split Seurat v5
 layers are joined on a local copy.

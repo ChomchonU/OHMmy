@@ -109,10 +109,12 @@ test_that("the key picks a planted marker per split, with backup genes in the sa
 
 test_that("the high side of a rule is the child with high expression", {
   key <- hier_res$key
-  la1 <- key[key$gene == "LA1", ]
-  expect_equal(la1$high_side, "res0.5_A1")
-  la2 <- key[key$gene == "LA2", ]
-  expect_equal(la2$high_side, "res0.5_A2")
+  a_split <- key[key$split == "res0.1_A", ]
+  expect_equal(a_split$high_side[a_split$gene == "LA1"], "res0.5_A1")
+  expect_equal(a_split$high_side[a_split$gene == "LA2"], "res0.5_A2")
+  # LA1 is only expressed in A cells, so as a root backup gene its high side is A
+  root_la1 <- key[key$split == "root" & key$gene == "LA1", ]
+  if (nrow(root_la1)) expect_equal(root_la1$high_side, "res0.1_A")
 })
 
 test_that("resolution columns can be given directly and repeated partitions are skipped", {

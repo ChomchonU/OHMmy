@@ -16,9 +16,9 @@ find_hierarchical_markers(
   min_purity = 0.8,
   min_cells = 20,
   specific_auc = 0.8,
-  max_candidate_genes = 50,
+  max_candidate_genes = 100,
   max_depth = NULL,
-  n_backup = 3,
+  n_backup = 10,
   cv_folds = 10,
   seed = 42,
   sample_name = "Sample",
@@ -57,13 +57,13 @@ labelled \code{"unstable"} (they are still tested). Default is 0.8.}
 \code{"specific"}. Default is 0.8.}
 
 \item{max_candidate_genes}{Integer. Top-ranked markers per child offered to
-\code{rpart}. Default is 50.}
+\code{rpart}. Default is 100.}
 
 \item{max_depth}{Integer or \code{NULL}. Maximum number of questions on any path of a
 split's key before pruning. \code{NULL} (default) uses the number of children of
 the split (at most 30).}
 
-\item{n_backup}{Integer. Backup (surrogate) genes reported per question. Default 3.}
+\item{n_backup}{Integer. Backup (surrogate) genes reported per question. Default 10.}
 
 \item{cv_folds}{Integer. Cross-validation folds for pruning. Default is 10.}
 

@@ -80,11 +80,11 @@
 #' @param specific_auc Numeric. AUC against all other cells needed for
 #'   \code{"specific"}. Default is 0.8.
 #' @param max_candidate_genes Integer. Top-ranked markers per child offered to
-#'   \code{rpart}. Default is 50.
+#'   \code{rpart}. Default is 100.
 #' @param max_depth Integer or \code{NULL}. Maximum number of questions on any path of a
 #'   split's key before pruning. \code{NULL} (default) uses the number of children of
 #'   the split (at most 30).
-#' @param n_backup Integer. Backup (surrogate) genes reported per question. Default 3.
+#' @param n_backup Integer. Backup (surrogate) genes reported per question. Default 10.
 #' @param cv_folds Integer. Cross-validation folds for pruning. Default is 10.
 #' @param seed Integer. Seed for the cross-validation folds (the global random state
 #'   is restored afterwards). Default is 42.
@@ -149,9 +149,9 @@ find_hierarchical_markers <- function(seurat_obj,
                                       min_purity = 0.8,
                                       min_cells = 20,
                                       specific_auc = 0.8,
-                                      max_candidate_genes = 50,
+                                      max_candidate_genes = 100,
                                       max_depth = NULL,
-                                      n_backup = 3,
+                                      n_backup = 10,
                                       cv_folds = 10,
                                       seed = 42,
                                       sample_name = "Sample",

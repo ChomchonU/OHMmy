@@ -126,7 +126,9 @@ A list with:
 
 - `splits`: one row per split: `split`, `layer`, `children`,
   `skipped_children` (too few cells), `n_cells`, `n_markers`,
-  `n_key_genes`, `cv_accuracy`, `train_accuracy`, `status`.
+  `n_key_genes`, `cv_accuracy`, `train_accuracy`,
+  `accuracy_all_parent_cells` (the key on every cell of the parent,
+  counting moved and skipped cells as wrong), `status`.
 
 - `markers`: every gene passing the filters, per split and child:
   `split`, `child`, `gene`, `rank`, `auc`, `auc_vs_all`, `p_val`,
@@ -141,10 +143,21 @@ A list with:
   adjusted agreement with the key gene), `importance`, then `marker_of`
   and the ranking columns of `markers` for that gene.
 
-- `confusion`: per split, a table of true vs key-predicted child.
+- `confusion`: per split, a table of every parent cell's true child (or
+  `"moved elsewhere"` / `"skipped (< min_cells)"`) vs the child its key
+  predicts.
 
-- `plots`: `tree` (the resolution tree with key genes at each split) and
-  `dotplot` (key genes across the clusters of the highest resolution).
+- `confusion_full`: every cell's cluster at the highest resolution vs
+  the final cluster reached by walking the whole key from the root.
+
+- `key_accuracy`: share of all cells the whole key sorts into their own
+  final cluster.
+
+- `plots`: `tree` (the resolution tree with key genes at each split),
+  `dotplot` (key genes across the clusters of the highest resolution),
+  `confusion` (per-split heatmaps) and `confusion_full` (whole-key
+  heatmap); heatmap colour = share of the true cluster's cells, numbers
+  = cells.
 
 - `res_cols` and `parameters`.
 
@@ -197,6 +210,24 @@ data therefore decide how many genes each split needs. For every
 question, the chosen gene (`role = "key"`) and up to `n_backup`
 surrogate genes that sort the cells almost the same way
 (`role = "backup"`) are reported with all ranking values.
+
+**5. Checking the key on all cells.** Two confusion views are given,
+both using the keys built from these same cells (so their accuracy is
+optimistic, like `train_accuracy`; `cv_accuracy` is the honest one):
+
+- per split (`confusion`): every cell of the parent, sorted by that
+  split's key. Cells the key was not trained on keep their own row:
+  `"moved elsewhere"` (they went to a child of another parent) or
+  `"skipped (< min_cells)"`;
+
+- whole key (`confusion_full`, `key_accuracy`): every cell of the object
+  goes from the root through each split's key down to a final cluster,
+  and is compared with its cluster at the highest resolution. A cell
+  that reaches a split without a key stops there
+  (`"stopped at <node>"`).
+
+Saved images are sized from their content (number of clusters, genes,
+splits), up to 100 inches per side.
 
 Expression is read from the `data` layer of `assay`; split Seurat v5
 layers are joined on a local copy.

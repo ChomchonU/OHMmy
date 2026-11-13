@@ -169,7 +169,8 @@ is restored afterwards). Default is 42.</p></dd>
 <li><p><code>splits</code>: one row per split: <code>split</code>, <code>layer</code>,
 <code>children</code>, <code>skipped_children</code> (too few cells), <code>n_cells</code>,
 <code>n_markers</code>, <code>n_key_genes</code>, <code>cv_accuracy</code>,
-<code>train_accuracy</code>, <code>status</code>.</p></li>
+<code>train_accuracy</code>, <code>accuracy_all_parent_cells</code> (the key on every cell
+of the parent, counting moved and skipped cells as wrong), <code>status</code>.</p></li>
 <li><p><code>markers</code>: every gene passing the filters, per split and child:
 <code>split</code>, <code>child</code>, <code>gene</code>, <code>rank</code>, <code>auc</code>,
 <code>auc_vs_all</code>, <code>p_val</code>, <code>p_val_adj</code>, <code>avg_log2FC</code>,
@@ -182,9 +183,17 @@ is restored afterwards). Default is 42.</p></dd>
 predicted for cells at or above the threshold), <code>agreement</code> (backup genes:
 rpart's adjusted agreement with the key gene), <code>importance</code>, then
 <code>marker_of</code> and the ranking columns of <code>markers</code> for that gene.</p></li>
-<li><p><code>confusion</code>: per split, a table of true vs key-predicted child.</p></li>
-<li><p><code>plots</code>: <code>tree</code> (the resolution tree with key genes at each split)
-and <code>dotplot</code> (key genes across the clusters of the highest resolution).</p></li>
+<li><p><code>confusion</code>: per split, a table of every parent cell's true child (or
+<code>"moved elsewhere"</code> / <code>"skipped (&lt; min_cells)"</code>) vs the child its key
+predicts.</p></li>
+<li><p><code>confusion_full</code>: every cell's cluster at the highest resolution vs the
+final cluster reached by walking the whole key from the root.</p></li>
+<li><p><code>key_accuracy</code>: share of all cells the whole key sorts into their own
+final cluster.</p></li>
+<li><p><code>plots</code>: <code>tree</code> (the resolution tree with key genes at each split),
+<code>dotplot</code> (key genes across the clusters of the highest resolution),
+<code>confusion</code> (per-split heatmaps) and <code>confusion_full</code> (whole-key heatmap);
+heatmap colour = share of the true cluster's cells, numbers = cells.</p></li>
 <li><p><code>res_cols</code> and <code>parameters</code>.</p></li>
 </ul></div>
     <div class="section level2">
@@ -223,6 +232,17 @@ tree whose error is within one standard error of the best). The data therefore
 decide how many genes each split needs. For every question, the chosen gene
 (<code>role = "key"</code>) and up to <code>n_backup</code> surrogate genes that sort the cells
 almost the same way (<code>role = "backup"</code>) are reported with all ranking values.</p>
+<p><strong>5. Checking the key on all cells.</strong> Two confusion views are given, both using
+the keys built from these same cells (so their accuracy is optimistic, like
+<code>train_accuracy</code>; <code>cv_accuracy</code> is the honest one):</p><ul><li><p>per split (<code>confusion</code>): every cell of the parent, sorted by that split's
+key. Cells the key was not trained on keep their own row: <code>"moved elsewhere"</code>
+(they went to a child of another parent) or <code>"skipped (&lt; min_cells)"</code>;</p></li>
+<li><p>whole key (<code>confusion_full</code>, <code>key_accuracy</code>): every cell of the
+object goes from the root through each split's key down to a final cluster, and
+is compared with its cluster at the highest resolution. A cell that reaches a
+split without a key stops there (<code>"stopped at &lt;node&gt;"</code>).</p></li>
+</ul><p>Saved images are sized from their content (number of clusters, genes, splits), up to
+100 inches per side.</p>
 <p>Expression is read from the <code>data</code> layer of <code>assay</code>; split Seurat v5
 layers are joined on a local copy.</p>
     </div>

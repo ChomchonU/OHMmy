@@ -186,7 +186,7 @@ pipeline per sample at resolution 1.8.</p>
 <code class="sourceCode R"><span><span class="va">soup_list</span><span class="op">$</span><span class="va">PBMC_A</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">seurat_list</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/nlevels.html" class="external-link">nlevels</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">seurat_clusters</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; PBMC_A PBMC_B </span></span>
-<span><span class="co">#&gt;      7      8</span></span></code></pre></div>
+<span><span class="co">#&gt;      7      9</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="estimate-and-remove-contamination">Estimate and remove contamination<a class="anchor" aria-label="anchor" href="#estimate-and-remove-contamination"></a>
@@ -220,8 +220,8 @@ for <strong>every</strong> sample;</li>
 <code class="sourceCode R"><span><span class="va">get_rho</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">soup_objs</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">soup_objs</span>, <span class="kw">function</span><span class="op">(</span><span class="va">sc</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">sc</span><span class="op">$</span><span class="va">metaData</span><span class="op">$</span><span class="va">rho</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>auto <span class="op">=</span> <span class="fu">get_rho</span><span class="op">(</span><span class="va">est_auto</span><span class="op">$</span><span class="va">soup_list_all</span><span class="op">)</span>, selective <span class="op">=</span> <span class="fu">get_rho</span><span class="op">(</span><span class="va">est_manual</span><span class="op">$</span><span class="va">soup_list_all</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;           PBMC_A PBMC_B</span></span>
-<span><span class="co">#&gt; auto       0.061  0.064</span></span>
-<span><span class="co">#&gt; selective  0.061  0.114</span></span></code></pre></div>
+<span><span class="co">#&gt; auto       0.061  0.055</span></span>
+<span><span class="co">#&gt; selective  0.061  0.105</span></span></code></pre></div>
 <p><code>autoEstCont()</code> estimates about 6 % contamination. The
 selective override raises only <code>PBMC_B</code>. The estimated soup
 profile shows which genes dominate the ambient pool:</p>
@@ -249,14 +249,14 @@ column):</p>
 <code class="sourceCode R"><span><span class="va">clean_list</span></span>
 <span><span class="co">#&gt; $PBMC_A</span></span>
 <span><span class="co">#&gt; An object of class Seurat </span></span>
-<span><span class="co">#&gt; 12330 features across 1326 samples within 1 assay </span></span>
-<span><span class="co">#&gt; Active assay: RNA (12330 features, 0 variable features)</span></span>
+<span><span class="co">#&gt; 12326 features across 1326 samples within 1 assay </span></span>
+<span><span class="co">#&gt; Active assay: RNA (12326 features, 0 variable features)</span></span>
 <span><span class="co">#&gt;  1 layer present: counts</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $PBMC_B</span></span>
 <span><span class="co">#&gt; An object of class Seurat </span></span>
-<span><span class="co">#&gt; 12309 features across 1373 samples within 1 assay </span></span>
-<span><span class="co">#&gt; Active assay: RNA (12309 features, 0 variable features)</span></span>
+<span><span class="co">#&gt; 12317 features across 1373 samples within 1 assay </span></span>
+<span><span class="co">#&gt; Active assay: RNA (12317 features, 0 variable features)</span></span>
 <span><span class="co">#&gt;  1 layer present: counts</span></span></code></pre></div>
 </div>
 </div>
@@ -294,13 +294,13 @@ remain:</p>
 <span><span class="va">sweep</span></span>
 <span><span class="co">#&gt;         multiFac sample   rho    umis pct_removed</span></span>
 <span><span class="co">#&gt; PBMC_A         0 PBMC_A 0.061 2998574    6.221562</span></span>
-<span><span class="co">#&gt; PBMC_B         0 PBMC_B 0.064 2984158    6.544191</span></span>
-<span><span class="co">#&gt; PBMC_A1        5 PBMC_A 0.111 2838852   11.216763</span></span>
-<span><span class="co">#&gt; PBMC_B1        5 PBMC_B 0.114 2824733   11.536953</span></span>
-<span><span class="co">#&gt; PBMC_A2       10 PBMC_A 0.161 2678992   16.216280</span></span>
-<span><span class="co">#&gt; PBMC_B2       10 PBMC_B 0.164 2664263   16.562443</span></span>
-<span><span class="co">#&gt; PBMC_A3       20 PBMC_A 0.261 2358165   26.249934</span></span>
-<span><span class="co">#&gt; PBMC_B3       20 PBMC_B 0.264 2344432   26.578690</span></span>
+<span><span class="co">#&gt; PBMC_B         0 PBMC_B 0.055 3012519    5.656001</span></span>
+<span><span class="co">#&gt; PBMC_A1        5 PBMC_A 0.111 2838224   11.236403</span></span>
+<span><span class="co">#&gt; PBMC_B1        5 PBMC_B 0.105 2852899   10.654870</span></span>
+<span><span class="co">#&gt; PBMC_A2       10 PBMC_A 0.161 2678323   16.237202</span></span>
+<span><span class="co">#&gt; PBMC_B2       10 PBMC_B 0.155 2692632   15.674002</span></span>
+<span><span class="co">#&gt; PBMC_A3       20 PBMC_A 0.261 2358145   26.250559</span></span>
+<span><span class="co">#&gt; PBMC_B3       20 PBMC_B 0.255 2373682   25.662659</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">sweep</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">rho</span>, <span class="va">pct_removed</span>, colour <span class="op">=</span> <span class="va">sample</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span> <span class="op">+</span></span>
@@ -318,7 +318,7 @@ penalty to those samples. All other samples keep their auto-estimated
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">get_rho</span><span class="op">(</span><span class="va">override</span><span class="op">$</span><span class="va">soup_objects</span><span class="op">)</span></span>
 <span><span class="co">#&gt; PBMC_A PBMC_B </span></span>
-<span><span class="co">#&gt;  0.061  0.164</span></span></code></pre></div>
+<span><span class="co">#&gt;  0.061  0.155</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="one-step-wrapper">One-step wrapper<a class="anchor" aria-label="anchor" href="#one-step-wrapper"></a>
@@ -334,7 +334,7 @@ and returns the same structure as
 <span><span class="co">#&gt; [1] "final_seurat"      "soup_objects"      "seurat_clustering"</span></span>
 <span><span class="fu">get_rho</span><span class="op">(</span><span class="va">one_step</span><span class="op">$</span><span class="va">soup_objects</span><span class="op">)</span></span>
 <span><span class="co">#&gt; PBMC_A PBMC_B </span></span>
-<span><span class="co">#&gt;  0.061  0.064</span></span></code></pre></div>
+<span><span class="co">#&gt;  0.061  0.055</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -376,8 +376,8 @@ convention (<code>&lt;sample&gt;_&lt;barcode&gt;</code>):</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">corrected</span></span>
 <span><span class="co">#&gt; An object of class Seurat </span></span>
-<span><span class="co">#&gt; 12998 features across 2699 samples within 1 assay </span></span>
-<span><span class="co">#&gt; Active assay: RNA (12998 features, 0 variable features)</span></span>
+<span><span class="co">#&gt; 13003 features across 2699 samples within 1 assay </span></span>
+<span><span class="co">#&gt; Active assay: RNA (13003 features, 0 variable features)</span></span>
 <span><span class="co">#&gt;  1 layer present: counts</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="did-it-work">Did it work?<a class="anchor" aria-label="anchor" href="#did-it-work"></a>
@@ -403,10 +403,10 @@ UMIs:</p>
 <span>           pct_nonmono_before <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu">detect</span><span class="op">(</span><span class="va">before</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>           pct_nonmono_after  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu">detect</span><span class="op">(</span><span class="va">after</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          gene pct_nonmono_before pct_nonmono_after</span></span>
-<span><span class="co">#&gt; LYZ       LYZ               43.4               2.0</span></span>
+<span><span class="co">#&gt; LYZ       LYZ               43.4               4.4</span></span>
 <span><span class="co">#&gt; S100A8 S100A8                9.4               0.7</span></span>
-<span><span class="co">#&gt; S100A9 S100A9               16.4               1.0</span></span>
-<span><span class="co">#&gt; FTL       FTL               98.3              89.3</span></span>
+<span><span class="co">#&gt; S100A9 S100A9               16.4               1.1</span></span>
+<span><span class="co">#&gt; FTL       FTL               98.3              90.9</span></span>
 <span></span>
 <span><span class="va">plot_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  nCount <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">original</span><span class="op">$</span><span class="va">nCount_RNA</span><span class="op">[</span><span class="va">cells</span><span class="op">]</span>, <span class="va">corrected</span><span class="op">$</span><span class="va">nCount_RNA</span><span class="op">)</span>,</span>

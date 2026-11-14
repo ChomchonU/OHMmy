@@ -52,7 +52,7 @@ idx <- data.frame(
     rep("Visualization", 13),
     rep("Lineage resolution", 1),
     rep("Statistics", 4),
-    rep("Markers & DE", 7)
+    rep("Markers & DE", 8)
   ),
   Function = c(
     "get_sample_names", "load_counts", "create_soup_channels", "create_seurat_for_clustering",
@@ -69,13 +69,14 @@ idx <- data.frame(
     "score_consensus",
     "plot_metadata_stats", "plot_cell_abundance", "plot_cluster_distributions",
     "plot_gene_pair_correlations",
-    "FindTopMarkersAndHeatmap", "find_hierarchical_markers", "run_global_gsea", "run_global_ora",
+    "FindTopMarkersAndHeatmap", "find_hierarchical_markers", "track_cluster_markers", "run_global_gsea",
+    "run_global_ora",
     "generate_volcano_trio", "get_top_mixed_genes", "generate_and_save_heatmap"
   ),
   Article = c(
     rep("SoupX", 10), rep("Processing", 5), rep("Diagnostics", 5),
     rep("Advanced visualization", 11), rep("Differential expression", 2),
-    "Advanced visualization", rep("Statistics", 4), rep("Differential expression", 7)
+    "Advanced visualization", rep("Statistics", 4), rep("Differential expression", 8)
   )
 )
 idx$Function <- paste0("`", idx$Function, "()`")

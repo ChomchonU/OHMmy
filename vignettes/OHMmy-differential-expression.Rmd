@@ -34,6 +34,7 @@ This article goes from cluster markers to pathways and pseudo-bulk differential 
 |----|----|
 | Cluster markers | `FindTopMarkersAndHeatmap()` |
 | Markers across resolutions, dichotomous key | `find_hierarchical_markers()` |
+| Track markers down the tree, suggest cluster labels | `track_cluster_markers()` |
 | Marker tables across conditions | `plot_gene_markers_with_dendro()`, `plot_split_dotplots_by_gene_cluster()` |
 | Pathway enrichment | `run_global_gsea()`, `run_global_ora()` |
 | Pseudo-bulk DESeq2 visualisation | `generate_volcano_trio()`, `get_top_mixed_genes()`, `generate_and_save_heatmap()` |
@@ -149,6 +150,45 @@ hm$plots$tree
 
 ```{r hier-dot, fig.width = 9, fig.height = 5}
 hm$plots$dotplot
+```
+
+A single key gene can drop out: it reads 0 in a cell that does express it, and the cell is sent the wrong way. With the **vote**, the key gene and its backup genes decide together. Each backup gene counts by its `agreement` with the key gene, and only backups with `agreement >= vote_min_agreement` (0.3) vote. `hm$vote$splits` compares the one-gene key with the vote, overall and on "possible dropouts" (cells of a key question's high side that have no expression of its key gene). Every marker also carries `auc_vs_all` and `global`: a marker that is not global is only higher than its siblings, not high compared with the whole object.
+
+```{r hier-vote}
+hm$vote$splits
+c(one_gene = hm$key_accuracy, vote = hm$vote$key_accuracy)
+```
+
+### Tracking markers down the tree to annotate clusters
+
+`track_cluster_markers()` reuses the result above and follows each marker down the tree. `gene_paths` shows where each gene first marks a cluster, in how many of the final clusters below it the gene is still detected, and where it is lost (`stops_at`). `annotation` suggests a label for every cluster, built from the top marker of each split on the way from the root (for example `CST3+ > FCGR3A+`). A label is `ambiguous` when a step has no marker, a weak marker, only relative markers or low purity, and `reason` says which. The labels are suggestions to be checked against known biology.
+
+```{r track-markers, results = "hide"}
+tm <- track_cluster_markers(
+  seurat_obj  = pbmc,
+  hier        = hm,
+  sample_name = "pbmc3k",
+  output_dir  = file.path(out_dir, "track_markers")
+)
+```
+
+```{r track-show}
+tm$annotation %>%
+  filter(is_final) %>%
+  dplyr::select(node, path_label, status, reason, own_markers)
+tm$gene_paths %>%
+  dplyr::select(gene, start_node, kind, auc_at_start, n_final, n_final_on, stops_at) %>%
+  head(10)
+```
+
+```{r track-tree, fig.width = 12, fig.height = 6}
+tm$plots$tree
+```
+
+The heatmap shows every tracked gene at every cluster, coloured by its AUC against all other cells. A lineage marker appears as a block that switches on at a branch and stays on below it.
+
+```{r track-heatmap, fig.width = 10, fig.height = 14}
+tm$plots$heatmap
 ```
 
 ## 2. Comparing marker tables across conditions

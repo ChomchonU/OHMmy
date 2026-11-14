@@ -48,6 +48,22 @@
   (`confusion_full`, `key_accuracy`). Both are drawn as heatmaps and saved
   (CSV + JPEG), and every saved image is sized from its content (clusters,
   genes, splits), up to 100 inches per side.
+  A **vote** makes the key robust to dropouts: at each question the key gene and
+  its backup genes decide together (backups weighted by their agreement; only
+  those with `agreement >= vote_min_agreement`, default 0.3, vote; ties follow
+  the key gene). `vote$splits` compares the one-gene key with the vote, also on
+  cells that may have lost the key gene; `vote$confusion_full`,
+  `vote$key_accuracy` and a heatmap give the whole key with the vote. Every
+  marker now has `auc_vs_all` (before: only clusters that do not split further)
+  and a `global` flag (`auc_vs_all >= min_global_auc`, default 0.7).
+* New `track_cluster_markers()` helps annotate clusters. It reuses (or runs)
+  `find_hierarchical_markers()`, follows each marker down the resolution tree
+  (`gene_paths`: where it starts, where it stays detected, where it is lost),
+  profiles the tracked genes at every cluster (`node_profile`: AUC against
+  siblings and against all cells, global or relative), and suggests a path
+  label per cluster from the top marker of each split above it
+  (`annotation`, `suggested` or `ambiguous` with a reason). Plots: labelled
+  tree, tracking heatmap, dot plot of label genes.
 * `plot_dot_dendro_multi()` attaches the matrix and `hclust` trees behind its
   dendrograms to its returned data frame as attributes.
 * `ProcessSeuratLOG()` and `ProcessSeuratSCT()` gain `force_norm` and `force_scale`

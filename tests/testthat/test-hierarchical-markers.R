@@ -1,37 +1,6 @@
 # find_hierarchical_markers(): resolution tree, sibling markers, patterns and keys ------
 
-# A small object with a known resolution tree:
-#   res 0.1: A, B
-#   res 0.5: A1, A2, B            (B passes through unchanged)
-#   res 1  : A1, A2, B1, B2       (B splits; 20 A2-like cells are labelled B2 -> B2 purity 0.75)
-# Planted markers: LA (all of A), LA1, LA2, LB (all of B), LB1, LB2; the rest is noise.
-hierarchy_seurat <- function(cells_per_group = 60, n_noise = 200) {
-  set.seed(7)
-  groups <- rep(c("A1", "A2", "B1", "B2"), each = cells_per_group)
-  marker_rate <- function(on) ifelse(on, 8, 0.05)
-  counts <- rbind(
-    LA  = stats::rpois(length(groups), marker_rate(groups %in% c("A1", "A2"))),
-    LA1 = stats::rpois(length(groups), marker_rate(groups == "A1")),
-    LA2 = stats::rpois(length(groups), marker_rate(groups == "A2")),
-    LB  = stats::rpois(length(groups), marker_rate(groups %in% c("B1", "B2"))),
-    LB1 = stats::rpois(length(groups), marker_rate(groups == "B1")),
-    LB2 = stats::rpois(length(groups), marker_rate(groups == "B2")),
-    matrix(stats::rpois(n_noise * length(groups), 2), n_noise,
-           dimnames = list(paste0("NOISE", seq_len(n_noise)), NULL))
-  )
-  colnames(counts) <- paste0("cell", seq_along(groups))
-  obj <- suppressWarnings(SeuratObject::CreateSeuratObject(methods::as(counts, "dgCMatrix")))
-  obj <- suppressMessages(Seurat::NormalizeData(obj, verbose = FALSE))
-
-  obj$RNA_snn_res.0.1 <- ifelse(groups %in% c("A1", "A2"), "A", "B")
-  obj$RNA_snn_res.0.5 <- ifelse(groups %in% c("B1", "B2"), "B", groups)
-  res1 <- groups
-  res1[which(groups == "A2")[seq_len(20)]] <- "B2"     # mixed cluster: cells from two parents
-  obj$RNA_snn_res.1 <- res1
-  obj$true_group <- groups
-  obj
-}
-
+# Fixture hierarchy_seurat() (known resolution tree) lives in helper-fixtures.R
 hier_obj <- hierarchy_seurat()
 hier_res <- suppressMessages(find_hierarchical_markers(hier_obj, pipeline = "RNA_snn", verbose = FALSE))
 
@@ -87,7 +56,7 @@ test_that("patterns: lineage, specific, unstable, and the trajectory columns", {
   expect_true(is.na(row("res0.1_A", "res0.5_A1", "LA1")$also_marks_children))
   expect_gte(row("res0.1_A", "res0.5_A1", "LA1")$auc_vs_all, 0.8)
   expect_equal(row("res0.5_B", "res1_B2", "LB2")$pattern, "unstable")  # purity 0.75 < 0.8
-  expect_true(all(is.na(m$auc_vs_all[m$child %in% c("res0.1_A", "res0.1_B")])))
+  expect_gte(row("root", "res0.1_A", "LA")$auc_vs_all, 0.95)          # filled for every cluster now
   # plain columns (no dim attributes), so the tables print and save cleanly
   expect_null(dim(m$pattern))
   expect_type(m$pattern, "character")
@@ -200,8 +169,50 @@ test_that("plots are returned and tables/plots are saved", {
   out <- test_out_dir("hier_markers")
   suppressMessages(find_hierarchical_markers(hier_obj, pipeline = "RNA_snn", sample_name = "toy",
                                              output_dir = out, verbose = FALSE))
-  expect_length(written_files(out, "^toy_HierMarkers_.*\\.csv$"), 6)
-  expect_length(written_files(out, "^toy_HierMarkers_.*\\.jpg$"), 4)
+  expect_length(written_files(out, "^toy_HierMarkers_.*\\.csv$"), 8)
+  expect_length(written_files(out, "^toy_HierMarkers_.*\\.jpg$"), 5)
   conf_csv <- utils::read.csv(written_files(out, "confusion_splits\\.csv$"))
   expect_named(conf_csv, c("split", "true_child", "predicted_child", "n_cells", "share_of_true"))
+})
+
+test_that("auc_vs_all and global are filled for every marker", {
+  m <- hier_res$markers
+  expect_false(anyNA(m$auc_vs_all))
+  expect_equal(m$global, m$auc_vs_all >= 0.7)
+  expect_equal(names(m)[5:7], c("auc", "auc_vs_all", "global"))
+  expect_true("global" %in% names(hier_res$key))
+})
+
+test_that("the vote: weights, majority and ties follow the key gene", {
+  # One question at rpart node 1: at or above 1 -> node 3 (class "high"), below -> node 2 ("low")
+  frame <- data.frame(var = c("g1", "<leaf>", "<leaf>"), yval = c(1, 1, 2), row.names = c("1", "2", "3"))
+  model <- list(fit = list(frame = frame), classes = c("low", "high"),
+                questions = list("1" = data.frame(gene = c("g1", "g2", "g3"), threshold = 1,
+                                                  high_node = 3L, weight = c(1, 0.8, 0.8))))
+  expr <- matrix(c(0, 2, 2,     # key gene dropped out, both backups high -> high (1.6 vs 1)
+                   2, 0, 0,     # key high, both backups low            -> low  (1.6 vs 1)
+                   2, 2, 0),    # key + one backup high                 -> high (1.8 vs 0.8)
+                 nrow = 3, dimnames = list(c("g1", "g2", "g3"), c("c1", "c2", "c3")))
+  expect_equal(as.character(OHMmy:::.predict_vote(model, expr, c("c1", "c2", "c3"))), c("high", "low", "high"))
+
+  model$questions[["1"]]$weight <- c(1, 0.5, 0.5)
+  tie <- matrix(c(0, 2, 2), nrow = 3, dimnames = list(c("g1", "g2", "g3"), "c4"))   # 1 vs 1: key gene decides
+  expect_equal(as.character(OHMmy:::.predict_vote(model, tie, "c4")), "low")
+})
+
+test_that("with only the key gene voting, the vote equals the one-gene key", {
+  res <- suppressMessages(find_hierarchical_markers(hier_obj, pipeline = "RNA_snn", verbose = FALSE,
+                                                    vote_min_agreement = 2))
+  expect_true(all(res$key$votes == (res$key$role == "key")))
+  expect_equal(res$vote$splits$accuracy_vote, res$vote$splits$accuracy_one_gene)
+  expect_equal(res$vote$confusion_full, res$confusion_full)
+  expect_equal(res$vote$splits$accuracy_one_gene, res$splits$train_accuracy[res$splits$status == "ok"])
+})
+
+test_that("vote outputs are complete", {
+  v <- hier_res$vote
+  expect_named(v, c("splits", "confusion_full", "key_accuracy"))
+  expect_equal(sum(v$confusion_full), ncol(hier_obj))
+  expect_true(all(v$splits$n_voting_genes >= 1))
+  expect_s3_class(hier_res$plots$confusion_full_vote, "ggplot")
 })

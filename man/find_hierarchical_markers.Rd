@@ -23,7 +23,9 @@ find_hierarchical_markers(
   seed = 42,
   sample_name = "Sample",
   output_dir = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  vote_min_agreement = 0.3,
+  min_global_auc = 0.7
 )
 }
 \arguments{
@@ -76,6 +78,12 @@ is restored afterwards). Default is 42.}
 (JPEG) are saved there. Default is \code{NULL} (nothing saved).}
 
 \item{verbose}{Logical. Print progress messages. Default is \code{TRUE}.}
+
+\item{vote_min_agreement}{Numeric. Backup genes vote only when their agreement
+with the key gene is at least this. Default is 0.3.}
+
+\item{min_global_auc}{Numeric. A marker is \code{global} when its AUC against all
+other cells is at least this. Default is 0.7.}
 }
 \value{
 A list with:
@@ -90,7 +98,7 @@ A list with:
 of the parent, counting moved and skipped cells as wrong), \code{status}.
 \item \code{markers}: every gene passing the filters, per split and child:
 \code{split}, \code{child}, \code{gene}, \code{rank}, \code{auc},
-\code{auc_vs_all}, \code{p_val}, \code{p_val_adj}, \code{avg_log2FC},
+\code{auc_vs_all}, \code{global}, \code{p_val}, \code{p_val_adj}, \code{avg_log2FC},
 \code{pct.1}, \code{pct.2}, \code{pct_diff}, \code{mean_child},
 \code{mean_siblings}, \code{also_marks_parent}, \code{also_marks_children},
 \code{pattern}.
@@ -98,7 +106,8 @@ of the parent, counting moved and skipped cells as wrong), \code{status}.
 \code{rpart_node}, \code{role}, \code{gene}, \code{threshold},
 \code{rule} (e.g. \code{"GZMK >= 1.2 -> res0.5_3"}), \code{high_side} (the child
 predicted for cells at or above the threshold), \code{agreement} (backup genes:
-rpart's adjusted agreement with the key gene), \code{importance}, then
+rpart's adjusted agreement with the key gene), \code{votes} (the gene takes part
+in the vote), \code{importance}, then
 \code{marker_of} and the ranking columns of \code{markers} for that gene.
 \item \code{confusion}: per split, a table of every parent cell's true child (or
 \code{"moved elsewhere"} / \code{"skipped (< min_cells)"}) vs the child its key
@@ -107,10 +116,16 @@ predicts.
 final cluster reached by walking the whole key from the root.
 \item \code{key_accuracy}: share of all cells the whole key sorts into their own
 final cluster.
+\item \code{vote}: \code{splits} (per split: \code{n_voting_genes},
+\code{accuracy_one_gene}, \code{accuracy_vote}, \code{n_possible_dropouts},
+\code{accuracy_one_gene_dropouts}, \code{accuracy_vote_dropouts}; on the cells
+each key was built from), \code{confusion_full} and \code{key_accuracy} (the
+whole key with the vote).
 \item \code{plots}: \code{tree} (the resolution tree with key genes at each split),
 \code{dotplot} (key genes across the clusters of the highest resolution),
-\code{confusion} (per-split heatmaps) and \code{confusion_full} (whole-key heatmap);
-heatmap colour = share of the true cluster's cells, numbers = cells.
+\code{confusion} (per-split heatmaps), \code{confusion_full} (whole-key heatmap)
+and \code{confusion_full_vote} (the same with the vote); heatmap colour = share
+of the true cluster's cells, numbers = cells.
 \item \code{res_cols} and \code{parameters}.
 }
 }
@@ -154,6 +169,10 @@ separates it from all other cells (\code{auc_vs_all >= specific_auc});
 its sub-clusters (shared by all of them);
 \item \code{"split"}: any other marker of this split.
 }
+Every marker also gets \code{auc_vs_all} (the child against all other cells of the
+object) and \code{global} (\code{auc_vs_all >= min_global_auc}). A marker that is not
+global is only higher than the siblings ("relative"): use it with care to name a
+cell type.
 
 \strong{4. Key.} For each split, \code{rpart} is given the top
 \code{max_candidate_genes} ranked markers of every child, grown to
@@ -162,6 +181,15 @@ tree whose error is within one standard error of the best). The data therefore
 decide how many genes each split needs. For every question, the chosen gene
 (\code{role = "key"}) and up to \code{n_backup} surrogate genes that sort the cells
 almost the same way (\code{role = "backup"}) are reported with all ranking values.
+
+\strong{Vote.} A single key gene that drops out (reads 0 in a cell that expresses
+it) sends the cell the wrong way. The vote lets the key gene and its backup genes
+decide together: at each question every voting gene gives its weight (1 for the key
+gene, its \code{agreement} for a backup gene; only backups with
+\code{agreement >= vote_min_agreement} vote) to the branch its own threshold points
+to; the heavier branch wins and ties follow the key gene. \code{vote$splits}
+compares the one-gene key with the vote, also on "possible dropouts": cells of a
+key question's high side with no expression of its key gene.
 
 \strong{5. Checking the key on all cells.} Two confusion views are given, both using
 the keys built from these same cells (so their accuracy is optimistic, like

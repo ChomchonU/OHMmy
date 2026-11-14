@@ -60,6 +60,10 @@ HIER_IMAGE <- list(
 #'     its sub-clusters (shared by all of them);
 #'   \item \code{"split"}: any other marker of this split.
 #' }
+#' Every marker also gets \code{auc_vs_all} (the child against all other cells of the
+#' object) and \code{global} (\code{auc_vs_all >= min_global_auc}). A marker that is not
+#' global is only higher than the siblings ("relative"): use it with care to name a
+#' cell type.
 #'
 #' \strong{4. Key.} For each split, \code{rpart} is given the top
 #' \code{max_candidate_genes} ranked markers of every child, grown to
@@ -68,6 +72,15 @@ HIER_IMAGE <- list(
 #' decide how many genes each split needs. For every question, the chosen gene
 #' (\code{role = "key"}) and up to \code{n_backup} surrogate genes that sort the cells
 #' almost the same way (\code{role = "backup"}) are reported with all ranking values.
+#'
+#' \strong{Vote.} A single key gene that drops out (reads 0 in a cell that expresses
+#' it) sends the cell the wrong way. The vote lets the key gene and its backup genes
+#' decide together: at each question every voting gene gives its weight (1 for the key
+#' gene, its \code{agreement} for a backup gene; only backups with
+#' \code{agreement >= vote_min_agreement} vote) to the branch its own threshold points
+#' to; the heavier branch wins and ties follow the key gene. \code{vote$splits}
+#' compares the one-gene key with the vote, also on "possible dropouts": cells of a
+#' key question's high side with no expression of its key gene.
 #'
 #' \strong{5. Checking the key on all cells.} Two confusion views are given, both using
 #' the keys built from these same cells (so their accuracy is optimistic, like
@@ -122,6 +135,10 @@ HIER_IMAGE <- list(
 #' @param output_dir Character or \code{NULL}. If given, the tables (CSV) and plots
 #'   (JPEG) are saved there. Default is \code{NULL} (nothing saved).
 #' @param verbose Logical. Print progress messages. Default is \code{TRUE}.
+#' @param vote_min_agreement Numeric. Backup genes vote only when their agreement
+#'   with the key gene is at least this. Default is 0.3.
+#' @param min_global_auc Numeric. A marker is \code{global} when its AUC against all
+#'   other cells is at least this. Default is 0.7.
 #'
 #' @return A list with:
 #' \itemize{
@@ -135,7 +152,7 @@ HIER_IMAGE <- list(
 #'     of the parent, counting moved and skipped cells as wrong), \code{status}.
 #'   \item \code{markers}: every gene passing the filters, per split and child:
 #'     \code{split}, \code{child}, \code{gene}, \code{rank}, \code{auc},
-#'     \code{auc_vs_all}, \code{p_val}, \code{p_val_adj}, \code{avg_log2FC},
+#'     \code{auc_vs_all}, \code{global}, \code{p_val}, \code{p_val_adj}, \code{avg_log2FC},
 #'     \code{pct.1}, \code{pct.2}, \code{pct_diff}, \code{mean_child},
 #'     \code{mean_siblings}, \code{also_marks_parent}, \code{also_marks_children},
 #'     \code{pattern}.
@@ -143,7 +160,8 @@ HIER_IMAGE <- list(
 #'     \code{rpart_node}, \code{role}, \code{gene}, \code{threshold},
 #'     \code{rule} (e.g. \code{"GZMK >= 1.2 -> res0.5_3"}), \code{high_side} (the child
 #'     predicted for cells at or above the threshold), \code{agreement} (backup genes:
-#'     rpart's adjusted agreement with the key gene), \code{importance}, then
+#'     rpart's adjusted agreement with the key gene), \code{votes} (the gene takes part
+#'     in the vote), \code{importance}, then
 #'     \code{marker_of} and the ranking columns of \code{markers} for that gene.
 #'   \item \code{confusion}: per split, a table of every parent cell's true child (or
 #'     \code{"moved elsewhere"} / \code{"skipped (< min_cells)"}) vs the child its key
@@ -152,10 +170,16 @@ HIER_IMAGE <- list(
 #'     final cluster reached by walking the whole key from the root.
 #'   \item \code{key_accuracy}: share of all cells the whole key sorts into their own
 #'     final cluster.
+#'   \item \code{vote}: \code{splits} (per split: \code{n_voting_genes},
+#'     \code{accuracy_one_gene}, \code{accuracy_vote}, \code{n_possible_dropouts},
+#'     \code{accuracy_one_gene_dropouts}, \code{accuracy_vote_dropouts}; on the cells
+#'     each key was built from), \code{confusion_full} and \code{key_accuracy} (the
+#'     whole key with the vote).
 #'   \item \code{plots}: \code{tree} (the resolution tree with key genes at each split),
 #'     \code{dotplot} (key genes across the clusters of the highest resolution),
-#'     \code{confusion} (per-split heatmaps) and \code{confusion_full} (whole-key heatmap);
-#'     heatmap colour = share of the true cluster's cells, numbers = cells.
+#'     \code{confusion} (per-split heatmaps), \code{confusion_full} (whole-key heatmap)
+#'     and \code{confusion_full_vote} (the same with the vote); heatmap colour = share
+#'     of the true cluster's cells, numbers = cells.
 #'   \item \code{res_cols} and \code{parameters}.
 #' }
 #'
@@ -195,7 +219,9 @@ find_hierarchical_markers <- function(seurat_obj,
                                       seed = 42,
                                       sample_name = "Sample",
                                       output_dir = NULL,
-                                      verbose = TRUE) {
+                                      verbose = TRUE,
+                                      vote_min_agreement = 0.3,
+                                      min_global_auc = 0.7) {
   if (!inherits(seurat_obj, "Seurat")) stop("`seurat_obj` must be a Seurat object.", call. = FALSE)
   if (!assay %in% SeuratObject::Assays(seurat_obj)) {
     stop("Assay '", assay, "' not found in `seurat_obj`.", call. = FALSE)
@@ -235,13 +261,13 @@ find_hierarchical_markers <- function(seurat_obj,
   rownames(markers) <- NULL
 
   # 3. Patterns along the tree
-  markers <- .add_auc_vs_all(markers, per_split, expr, tree)
+  markers <- .add_auc_vs_all(markers, per_split, expr, min_global_auc)
   markers <- .label_marker_patterns(markers, tree, min_purity, specific_auc)
 
   # 4. Dichotomous key per split
   keys <- lapply(split_nodes, function(split_node) {
     .key_for_split(per_split[[split_node]], markers, expr, split_node, max_candidate_genes,
-                   max_depth, n_backup, cv_folds, seed)
+                   max_depth, n_backup, cv_folds, seed, vote_min_agreement)
   })
   names(keys) <- split_nodes
   key <- do.call(rbind, lapply(keys, `[[`, "key"))
@@ -253,14 +279,20 @@ find_hierarchical_markers <- function(seurat_obj,
   # 5. The whole key on every cell: root -> ... -> final cluster
   true_final <- cell_nodes[, ncol(cell_nodes)]
   predicted_final <- .walk_key(tree, keys, expr, rownames(cell_nodes))
-  confusion_full <- table(true = factor(true_final, levels = intersect(tree$node, true_final)),
-                          predicted = factor(predicted_final,
-                                             levels = c(intersect(tree$node, predicted_final),
-                                                        setdiff(predicted_final, tree$node))))
+  confusion_full <- .full_confusion(true_final, predicted_final, tree)
   key_accuracy <- mean(predicted_final == true_final)
   say("Whole key sorts ", round(100 * key_accuracy, 1), "% of cells into their own final cluster.")
 
-  # 6. Plots
+  # 6. The same with the vote: key gene + backup genes decide together at every question
+  predicted_final_vote <- .walk_key(tree, keys, expr, rownames(cell_nodes), use_vote = TRUE)
+  vote <- list(
+    splits = .vote_split_table(keys),
+    confusion_full = .full_confusion(true_final, predicted_final_vote, tree),
+    key_accuracy = mean(predicted_final_vote == true_final)
+  )
+  say("With the vote: ", round(100 * vote$key_accuracy, 1), "%.")
+
+  # 7. Plots
   confusion <- lapply(keys, `[[`, "confusion")
   plots <- list(
     tree           = .plot_resolution_tree(tree, key, sample_name),
@@ -271,17 +303,22 @@ find_hierarchical_markers <- function(seurat_obj,
     confusion_full = .plot_confusion(.confusion_long(confusion_full, "true_cluster", "predicted_cluster"),
                                      "true_cluster", "predicted_cluster",
                                      paste0(sample_name, " - whole key on all cells (accuracy ",
-                                            round(100 * key_accuracy, 1), "%)"))
+                                            round(100 * key_accuracy, 1), "%)")),
+    confusion_full_vote = .plot_confusion(.confusion_long(vote$confusion_full, "true_cluster", "predicted_cluster"),
+                                          "true_cluster", "predicted_cluster",
+                                          paste0(sample_name, " - whole key with the vote (accuracy ",
+                                                 round(100 * vote$key_accuracy, 1), "%)"))
   )
 
   out <- list(
     tree = tree, splits = splits, markers = markers, key = key,
     confusion = confusion, confusion_full = confusion_full, key_accuracy = key_accuracy,
-    plots = plots, res_cols = res_cols,
+    vote = vote, plots = plots, res_cols = res_cols,
     parameters = list(assay = assay, padj_max = padj_max, min_log2fc = min_log2fc, min_pct = min_pct,
                       min_pct_diff = min_pct_diff, min_purity = min_purity, min_cells = min_cells,
                       specific_auc = specific_auc, max_candidate_genes = max_candidate_genes,
-                      max_depth = max_depth, n_backup = n_backup, cv_folds = cv_folds, seed = seed)
+                      max_depth = max_depth, n_backup = n_backup, cv_folds = cv_folds, seed = seed,
+                      vote_min_agreement = vote_min_agreement, min_global_auc = min_global_auc)
   )
 
   if (!is.null(output_dir)) .save_hierarchical_markers(out, output_dir, sample_name, say)
@@ -506,7 +543,8 @@ find_hierarchical_markers <- function(seurat_obj,
 #' @noRd
 .empty_marker_table <- function() {
   data.frame(split = character(), child = character(), gene = character(), rank = integer(),
-             auc = numeric(), auc_vs_all = numeric(), p_val = numeric(), p_val_adj = numeric(),
+             auc = numeric(), auc_vs_all = numeric(), global = logical(), p_val = numeric(),
+             p_val_adj = numeric(),
              avg_log2FC = numeric(), pct.1 = numeric(), pct.2 = numeric(), pct_diff = numeric(),
              mean_child = numeric(), mean_siblings = numeric(), stringsAsFactors = FALSE)
 }
@@ -514,20 +552,40 @@ find_hierarchical_markers <- function(seurat_obj,
 #' AUC of each marker of a child that does not split further, against all other cells
 #' @keywords internal
 #' @noRd
-.add_auc_vs_all <- function(markers, per_split, expr, tree) {
-  if (nrow(markers) == 0) return(markers)
-  tops <- .chain_tops(tree)
-  has_own_split <- unique(tops[tree$node[tree$n_children >= 2]])
-  leaf_rows <- which(!markers$child %in% has_own_split)
+.add_auc_vs_all <- function(markers, per_split, expr, min_global_auc) {
+  markers$global <- logical(nrow(markers))
+  if (nrow(markers) == 0) return(.move_column(markers, "global", after = "auc_vs_all"))
 
-  for (child in unique(markers$child[leaf_rows])) {
-    rows <- leaf_rows[markers$child[leaf_rows] == child]
-    child_cells <- per_split[[markers$split[rows[1]]]]$cells[[child]]
-    in_child <- colnames(expr) %in% child_cells
-    values <- as.matrix(expr[markers$gene[rows], , drop = FALSE])
-    markers$auc_vs_all[rows] <- apply(values, 1, function(x) .auc(x[in_child], x[!in_child]))
+  # Each gene is ranked once over all cells; every child's AUC then comes from its rank sum
+  child_positions <- lapply(seq_len(nrow(markers)), function(i) {
+    match(per_split[[markers$split[i]]]$cells[[markers$child[i]]], colnames(expr))
+  })
+  for (gene in unique(markers$gene)) {
+    ranks <- rank(as.numeric(expr[gene, ]))
+    for (i in which(markers$gene == gene)) {
+      markers$auc_vs_all[i] <- .auc_from_ranks(ranks, child_positions[[i]])
+    }
   }
-  markers
+  markers$global <- markers$auc_vs_all >= min_global_auc
+  .move_column(markers, "global", after = "auc_vs_all")
+}
+
+#' AUC of a group against all other cells, from ranks of all cells
+#' @keywords internal
+#' @noRd
+.auc_from_ranks <- function(ranks, in_group) {
+  n1 <- length(in_group)
+  n2 <- length(ranks) - n1
+  if (n1 == 0 || n2 == 0) return(NA_real_)
+  (sum(ranks[in_group]) - n1 * (n1 + 1) / 2) / (n1 * n2)
+}
+
+#' Move one column of a data frame to just after another
+#' @keywords internal
+#' @noRd
+.move_column <- function(df, column, after) {
+  others <- setdiff(names(df), column)
+  df[, append(others, column, after = match(after, others)), drop = FALSE]
 }
 
 #' Trajectory columns and pattern label of every marker row
@@ -570,8 +628,8 @@ find_hierarchical_markers <- function(seurat_obj,
 #' @keywords internal
 #' @noRd
 .key_for_split <- function(split_info, markers, expr, split_node, max_candidate_genes, max_depth,
-                           n_backup, cv_folds, seed) {
-  empty <- list(key = NULL, confusion = NULL, model = NULL, cv_accuracy = NA_real_,
+                           n_backup, cv_folds, seed, vote_min_agreement) {
+  empty <- list(key = NULL, confusion = NULL, model = NULL, vote = NULL, cv_accuracy = NA_real_,
                 train_accuracy = NA_real_, accuracy_all = NA_real_)
   split_markers <- markers[markers$split == split_node, , drop = FALSE]
   if (length(split_info$tested) < 2 || nrow(split_markers) == 0) return(empty)
@@ -596,18 +654,128 @@ find_hierarchical_markers <- function(seurat_obj,
   pruned <- .prune_one_se(fit)
 
   predicted <- stats::predict(pruned, type = "class")
-  key <- .key_rows(pruned, gene_of, levels(child), split_node, split_markers)
+  key <- .key_rows(pruned, gene_of, levels(child), split_node, split_markers, vote_min_agreement)
+
+  model <- list(fit = pruned, genes = candidates, safe_names = safe_names, classes = levels(child),
+                questions = .vote_questions(key))
+  if (!is.null(key)) key[c(".high_node", ".threshold_exact")] <- NULL
 
   # The key on every cell of the parent, including cells it was not trained on
-  model <- list(fit = pruned, genes = candidates, safe_names = safe_names)
   true_all <- split_info$parent_cells
   predicted_all <- .predict_split(model, expr, names(true_all))
   true_levels <- c(split_info$tested, intersect(c(HIER_SKIPPED_LABEL, HIER_MOVED_LABEL), true_all))
   confusion <- table(true = factor(true_all, levels = true_levels), predicted = predicted_all)
 
-  list(key = key, confusion = confusion, model = model, cv_accuracy = attr(pruned, "cv_accuracy"),
-       train_accuracy = mean(as.character(predicted) == as.character(child)),
+  # One gene per question vs the vote, overall and on cells where a key gene may have dropped out
+  predicted_vote <- .predict_vote(model, expr, cells)
+  dropout <- .possible_dropouts(key, expr, cells, child)
+  correct_one <- as.character(predicted) == as.character(child)
+  correct_vote <- as.character(predicted_vote) == as.character(child)
+  vote <- data.frame(
+    split = split_node,
+    n_voting_genes = if (is.null(key)) 0L else sum(key$votes),
+    accuracy_one_gene = mean(correct_one), accuracy_vote = mean(correct_vote),
+    n_possible_dropouts = sum(dropout),
+    accuracy_one_gene_dropouts = if (any(dropout)) mean(correct_one[dropout]) else NA_real_,
+    accuracy_vote_dropouts = if (any(dropout)) mean(correct_vote[dropout]) else NA_real_,
+    stringsAsFactors = FALSE
+  )
+
+  list(key = key, confusion = confusion, model = model, vote = vote,
+       cv_accuracy = attr(pruned, "cv_accuracy"),
+       train_accuracy = mean(correct_one),
        accuracy_all = mean(as.character(predicted_all) == unname(true_all)))
+}
+
+#' The voting genes of every question of a key, grouped by rpart node
+#'
+#' Weight: 1 for the key gene, its adjusted agreement for a backup gene. The key gene
+#' is listed first in each question; it breaks ties.
+#' @keywords internal
+#' @noRd
+.vote_questions <- function(key) {
+  if (is.null(key)) return(list())
+  voters <- key[key$votes, , drop = FALSE]
+  voters <- voters[order(voters$rpart_node, voters$role != "key"), , drop = FALSE]
+  questions <- lapply(split(voters, voters$rpart_node), function(q) {
+    data.frame(gene = q$gene, threshold = q$.threshold_exact, high_node = q$.high_node,
+               weight = ifelse(q$role == "key", 1, q$agreement), stringsAsFactors = FALSE)
+  })
+  questions
+}
+
+#' Child predicted by the vote of one split's key for the given cells
+#'
+#' Cells start at the top question of the rpart tree. At each question every voting
+#' gene sends its weight to the branch its threshold points to (at or above the
+#' threshold: the gene's high branch); the heavier branch wins, ties follow the key
+#' gene. Cells stop at a leaf and get its child.
+#' @keywords internal
+#' @noRd
+.predict_vote <- function(model, expr, cells) {
+  frame <- model$fit$frame
+  frame_nodes <- as.integer(rownames(frame))
+  is_leaf <- frame$var == "<leaf>"
+  position <- rep(1L, length(cells))
+
+  repeat {
+    active <- !is_leaf[match(position, frame_nodes)]
+    if (!any(active)) break
+    for (node in unique(position[active])) {
+      here <- which(position == node)
+      q <- model$questions[[as.character(node)]]
+      values <- as.matrix(expr[q$gene, cells[here], drop = FALSE])       # genes x cells
+      goes_high <- values >= q$threshold
+      low_node <- ifelse(q$high_node %% 2 == 0, q$high_node + 1L, q$high_node - 1L)
+      target <- ifelse(goes_high, q$high_node, low_node)
+      left <- 2L * node
+      weight_left <- colSums((target == left) * q$weight)
+      weight_right <- colSums((target != left) * q$weight)
+      position[here] <- ifelse(weight_left > weight_right, left,
+                        ifelse(weight_right > weight_left, left + 1L, target[1, ]))
+    }
+  }
+  factor(model$classes[frame$yval[match(position, frame_nodes)]], levels = model$classes)
+}
+
+#' Cells that may have lost a key gene to dropout: they belong to the high side of a key
+#' question but have no expression of its key gene
+#' @keywords internal
+#' @noRd
+.possible_dropouts <- function(key, expr, cells, child) {
+  flagged <- rep(FALSE, length(cells))
+  if (is.null(key)) return(flagged)
+  key_rows <- key[key$role == "key", , drop = FALSE]
+  for (i in seq_len(nrow(key_rows))) {
+    zero <- as.numeric(expr[key_rows$gene[i], cells]) == 0
+    flagged <- flagged | (zero & as.character(child) == key_rows$high_side[i])
+  }
+  flagged
+}
+
+#' One row per split comparing the one-gene key with the vote
+#' @keywords internal
+#' @noRd
+.vote_split_table <- function(keys) {
+  rows <- Filter(Negate(is.null), lapply(keys, `[[`, "vote"))
+  if (length(rows) == 0) {
+    return(data.frame(split = character(), n_voting_genes = integer(), accuracy_one_gene = numeric(),
+                      accuracy_vote = numeric(), n_possible_dropouts = integer(),
+                      accuracy_one_gene_dropouts = numeric(), accuracy_vote_dropouts = numeric(),
+                      stringsAsFactors = FALSE))
+  }
+  out <- do.call(rbind, rows)
+  rownames(out) <- NULL
+  out
+}
+
+#' Confusion table of true vs predicted final clusters, in tree order
+#' @keywords internal
+#' @noRd
+.full_confusion <- function(true_final, predicted_final, tree) {
+  table(true = factor(true_final, levels = intersect(tree$node, true_final)),
+        predicted = factor(predicted_final, levels = c(intersect(tree$node, predicted_final),
+                                                       setdiff(predicted_final, tree$node))))
 }
 
 #' Child predicted by one split's key for the given cells
@@ -625,7 +793,8 @@ find_hierarchical_markers <- function(seurat_obj,
 #' passes them on unchanged. Cells that reach a split without a key stop there.
 #' @keywords internal
 #' @noRd
-.walk_key <- function(tree, keys, expr, cells) {
+.walk_key <- function(tree, keys, expr, cells, use_vote = FALSE) {
+  predict_child <- if (use_vote) .predict_vote else .predict_split
   children_of <- split(tree$node, tree$parent)
   position <- stats::setNames(rep("root", length(cells)), cells)
   finished <- rep(FALSE, length(cells))
@@ -641,7 +810,7 @@ find_hierarchical_markers <- function(seurat_obj,
         position[here] <- paste("stopped at", node)
         finished[here] <- TRUE
       } else {
-        position[here] <- as.character(.predict_split(keys[[node]]$model, expr, cells[here]))
+        position[here] <- as.character(predict_child(keys[[node]]$model, expr, cells[here]))
       }
     }
   }
@@ -689,7 +858,7 @@ find_hierarchical_markers <- function(seurat_obj,
 #' on the high side is the majority class of that branch.
 #' @keywords internal
 #' @noRd
-.key_rows <- function(fit, gene_of, classes, split_node, split_markers) {
+.key_rows <- function(fit, gene_of, classes, split_node, split_markers, vote_min_agreement) {
   frame <- fit$frame
   questions <- which(frame$var != "<leaf>")
   if (length(questions) == 0) return(NULL)
@@ -717,7 +886,9 @@ find_hierarchical_markers <- function(seurat_obj,
         gene = gene, threshold = signif(block[i, "index"], 4),
         rule = paste0(gene, " >= ", signif(block[i, "index"], 3), " -> ", high_side),
         high_side = high_side, agreement = if (i == 1) NA_real_ else block[i, "adj"],
+        votes = i == 1 || block[i, "adj"] >= vote_min_agreement,
         importance = if (safe_name %in% names(importance)) unname(importance[[safe_name]]) else NA_real_,
+        .high_node = as.integer(high_node), .threshold_exact = block[i, "index"],   # for the vote; dropped later
         stringsAsFactors = FALSE
       )
     }
@@ -731,7 +902,7 @@ find_hierarchical_markers <- function(seurat_obj,
 #' @keywords internal
 #' @noRd
 .ranking_values <- function(key, split_markers) {
-  value_cols <- c("rank", "auc", "auc_vs_all", "p_val", "p_val_adj", "avg_log2FC", "pct.1", "pct.2",
+  value_cols <- c("rank", "auc", "auc_vs_all", "global", "p_val", "p_val_adj", "avg_log2FC", "pct.1", "pct.2",
                   "pct_diff", "mean_child", "mean_siblings", "also_marks_parent",
                   "also_marks_children", "pattern")
   picked <- lapply(seq_len(nrow(key)), function(i) {
@@ -751,9 +922,9 @@ find_hierarchical_markers <- function(seurat_obj,
 .empty_key_table <- function(markers) {
   cbind(data.frame(split = character(), rpart_node = integer(), role = character(), gene = character(),
                    threshold = numeric(), rule = character(), high_side = character(),
-                   agreement = numeric(), importance = numeric(), marker_of = character(),
+                   agreement = numeric(), votes = logical(), importance = numeric(), marker_of = character(),
                    stringsAsFactors = FALSE),
-        markers[0, c("rank", "auc", "auc_vs_all", "p_val", "p_val_adj", "avg_log2FC", "pct.1", "pct.2",
+        markers[0, c("rank", "auc", "auc_vs_all", "global", "p_val", "p_val_adj", "avg_log2FC", "pct.1", "pct.2",
                      "pct_diff", "mean_child", "mean_siblings", "also_marks_parent",
                      "also_marks_children", "pattern")])
 }
@@ -789,14 +960,15 @@ find_hierarchical_markers <- function(seurat_obj,
   out
 }
 
-#' Resolution tree drawn top-down, with each split's key genes under it
+#' Horizontal position of every tree node: final clusters left to right, parents
+#' centred above their children
 #' @keywords internal
 #' @noRd
-.plot_resolution_tree <- function(tree, key, sample_name) {
+.tree_x_positions <- function(tree) {
   children_of <- split(tree$node, tree$parent)
   x <- stats::setNames(numeric(nrow(tree)), tree$node)
   next_x <- 0
-  place <- function(node) {                     # leaves left to right, parents centred above
+  place <- function(node) {
     kids <- children_of[[node]]
     if (length(kids) == 0) {
       next_x <<- next_x + 1
@@ -807,6 +979,23 @@ find_hierarchical_markers <- function(seurat_obj,
     }
   }
   place("root")
+  x
+}
+
+#' Width and height (inches) of a saved image, kept between a readable minimum and
+#' HIER_IMAGE$max_inches
+#' @keywords internal
+#' @noRd
+.bounded_size <- function(width, height, min_width, min_height) {
+  c(width  = min(HIER_IMAGE$max_inches, max(min_width, width)),
+    height = min(HIER_IMAGE$max_inches, max(min_height, height)))
+}
+
+#' Resolution tree drawn top-down, with each split's key genes under it
+#' @keywords internal
+#' @noRd
+.plot_resolution_tree <- function(tree, key, sample_name) {
+  x <- .tree_x_positions(tree)
 
   nodes <- data.frame(node = tree$node, x = x[tree$node], y = -tree$layer,
                       n_cells = tree$n_cells, label = ifelse(tree$node == "root", "all cells", tree$cluster),
@@ -871,7 +1060,9 @@ find_hierarchical_markers <- function(seurat_obj,
   tables <- list(
     tree = out$tree, splits = out$splits, markers = out$markers, key = out$key,
     confusion_splits = .split_confusion_long(out$confusion),
-    confusion_full   = .confusion_long(out$confusion_full, "true_cluster", "predicted_cluster")
+    confusion_full   = .confusion_long(out$confusion_full, "true_cluster", "predicted_cluster"),
+    vote_splits      = out$vote$splits,
+    confusion_full_vote = .confusion_long(out$vote$confusion_full, "true_cluster", "predicted_cluster")
   )
   for (table_name in names(tables)) {
     utils::write.csv(tables[[table_name]], paste0(stem, "_", table_name, ".csv"), row.names = FALSE)
@@ -879,7 +1070,7 @@ find_hierarchical_markers <- function(seurat_obj,
 
   sizes <- .image_sizes(out)
   file_suffix <- c(tree = "tree", dotplot = "dotplot", confusion = "confusion_splits",
-                   confusion_full = "confusion_full")
+                   confusion_full = "confusion_full", confusion_full_vote = "confusion_full_vote")
   for (plot_name in names(file_suffix)) {
     if (is.null(out$plots[[plot_name]])) next
     ggsave(paste0(stem, "_", file_suffix[[plot_name]], ".jpg"), out$plots[[plot_name]],
@@ -895,10 +1086,7 @@ find_hierarchical_markers <- function(seurat_obj,
 #' @keywords internal
 #' @noRd
 .image_sizes <- function(out) {
-  bounded <- function(width, height, min_width, min_height) {
-    c(width  = min(HIER_IMAGE$max_inches, max(min_width, width)),
-      height = min(HIER_IMAGE$max_inches, max(min_height, height)))
-  }
+  bounded <- .bounded_size
   n_layers <- max(out$tree$layer)
   n_final_clusters <- sum(out$tree$n_children == 0)
   n_top_clusters <- sum(out$tree$layer == n_layers)
@@ -918,7 +1106,9 @@ find_hierarchical_markers <- function(seurat_obj,
     confusion = bounded(1.5 + facet_cols * facet_side,
                         1 + ceiling(n_facets / facet_cols) * facet_side, 5, 4),
     confusion_full = bounded(3 + HIER_IMAGE$per_confusion_class * ncol(out$confusion_full),
-                             2 + HIER_IMAGE$per_confusion_class * nrow(out$confusion_full), 5, 4)
+                             2 + HIER_IMAGE$per_confusion_class * nrow(out$confusion_full), 5, 4),
+    confusion_full_vote = bounded(3 + HIER_IMAGE$per_confusion_class * ncol(out$vote$confusion_full),
+                                  2 + HIER_IMAGE$per_confusion_class * nrow(out$vote$confusion_full), 5, 4)
   )
 }
 

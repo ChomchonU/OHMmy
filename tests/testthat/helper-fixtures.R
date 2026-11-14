@@ -128,3 +128,35 @@ mock_contamination_inputs <- function() {
   })
   list(samples = samples, toc = toc, soup = soup, seur = seur)
 }
+
+# A small object with a known resolution tree:
+#   res 0.1: A, B
+#   res 0.5: A1, A2, B            (B passes through unchanged)
+#   res 1  : A1, A2, B1, B2       (B splits; 20 A2-like cells are labelled B2 -> B2 purity 0.75)
+# Planted markers: LA (all of A), LA1, LA2, LB (all of B), LB1, LB2; the rest is noise.
+hierarchy_seurat <- function(cells_per_group = 60, n_noise = 200) {
+  set.seed(7)
+  groups <- rep(c("A1", "A2", "B1", "B2"), each = cells_per_group)
+  marker_rate <- function(on) ifelse(on, 8, 0.05)
+  counts <- rbind(
+    LA  = stats::rpois(length(groups), marker_rate(groups %in% c("A1", "A2"))),
+    LA1 = stats::rpois(length(groups), marker_rate(groups == "A1")),
+    LA2 = stats::rpois(length(groups), marker_rate(groups == "A2")),
+    LB  = stats::rpois(length(groups), marker_rate(groups %in% c("B1", "B2"))),
+    LB1 = stats::rpois(length(groups), marker_rate(groups == "B1")),
+    LB2 = stats::rpois(length(groups), marker_rate(groups == "B2")),
+    matrix(stats::rpois(n_noise * length(groups), 2), n_noise,
+           dimnames = list(paste0("NOISE", seq_len(n_noise)), NULL))
+  )
+  colnames(counts) <- paste0("cell", seq_along(groups))
+  obj <- suppressWarnings(SeuratObject::CreateSeuratObject(methods::as(counts, "dgCMatrix")))
+  obj <- suppressMessages(Seurat::NormalizeData(obj, verbose = FALSE))
+
+  obj$RNA_snn_res.0.1 <- ifelse(groups %in% c("A1", "A2"), "A", "B")
+  obj$RNA_snn_res.0.5 <- ifelse(groups %in% c("B1", "B2"), "B", groups)
+  res1 <- groups
+  res1[which(groups == "A2")[seq_len(20)]] <- "B2"     # mixed cluster: cells from two parents
+  obj$RNA_snn_res.1 <- res1
+  obj$true_group <- groups
+  obj
+}

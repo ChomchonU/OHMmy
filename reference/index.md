@@ -145,3 +145,6 @@
 
 - [`score_consensus()`](https://chomchonu.github.io/OHMmy/reference/score_consensus.md)
   : Calculate Consensus Labels for CD8 vs NK Cells
+
+- [`track_cluster_markers()`](https://chomchonu.github.io/OHMmy/reference/track_cluster_markers.md)
+  : Track Markers Down the Resolution Tree to Annotate Clusters

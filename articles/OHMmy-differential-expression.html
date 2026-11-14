@@ -56,7 +56,7 @@
                         <h4 data-toc-skip class="author">Chomchon
 Uansiri</h4>
             
-            <h4 data-toc-skip class="date">2026-11-13</h4>
+            <h4 data-toc-skip class="date">2026-11-14</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ChomchonU/OHMmy/blob/master/vignettes/OHMmy-differential-expression.Rmd" class="external-link"><code>vignettes/OHMmy-differential-expression.Rmd</code></a></small>
       <div class="d-none name"><code>OHMmy-differential-expression.Rmd</code></div>
@@ -88,19 +88,23 @@ differential expression.</p>
 <td><code><a href="../reference/find_hierarchical_markers.html">find_hierarchical_markers()</a></code></td>
 </tr>
 <tr class="odd">
+<td>Track markers down the tree, suggest cluster labels</td>
+<td><code><a href="../reference/track_cluster_markers.html">track_cluster_markers()</a></code></td>
+</tr>
+<tr class="even">
 <td>Marker tables across conditions</td>
 <td>
 <code><a href="../reference/plot_gene_markers_with_dendro.html">plot_gene_markers_with_dendro()</a></code>,
 <code><a href="../reference/plot_split_dotplots_by_gene_cluster.html">plot_split_dotplots_by_gene_cluster()</a></code>
 </td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Pathway enrichment</td>
 <td>
 <code><a href="../reference/run_global_gsea.html">run_global_gsea()</a></code>, <code><a href="../reference/run_global_ora.html">run_global_ora()</a></code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Pseudo-bulk DESeq2 visualisation</td>
 <td>
 <code><a href="../reference/generate_volcano_trio.html">generate_volcano_trio()</a></code>,
@@ -161,21 +165,21 @@ markers.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice_head</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">cluster</span>, <span class="va">gene</span>, <span class="va">avg_log2FC</span>, <span class="va">pct.1</span>, <span class="va">pct.2</span>, <span class="va">p_val_adj</span>, <span class="va">score</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 21 × 7</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Groups:   cluster [7]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 24 × 7</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Groups:   cluster [8]</span></span></span>
 <span><span class="co">#&gt;    cluster gene   avg_log2FC pct.1 pct.2 p_val_adj        score</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> CD4 T   CD3D         1.84 0.875 0.238         0 <span style="text-decoration: underline;">11</span>707<span style="text-decoration: underline;">548</span>842.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> CD4 T   MAL          4.22 0.273 0.023         0 <span style="text-decoration: underline;">10</span>544<span style="text-decoration: underline;">703</span>625.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> CD4 T   IL7R         2.14 0.664 0.195         0 <span style="text-decoration: underline;">10</span>059<span style="text-decoration: underline;">451</span>479.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> CD8 T   GZMK         4.57 0.587 0.053         0 <span style="text-decoration: underline;">24</span>411<span style="text-decoration: underline;">707</span>948.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> CD8 T   CCL5         3.25 0.953 0.235         0 <span style="text-decoration: underline;">23</span>328<span style="text-decoration: underline;">815</span>222.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> CD8 T   NKG7         2.55 0.973 0.213         0 <span style="text-decoration: underline;">19</span>406<span style="text-decoration: underline;">875</span>071.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> NK      GZMB         5.89 0.972 0.072         0 <span style="text-decoration: underline;">52</span>972<span style="text-decoration: underline;">497</span>610.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> NK      FGFBP2       5.40 0.922 0.064         0 <span style="text-decoration: underline;">46</span>355<span style="text-decoration: underline;">989</span>739.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> NK      PRF1         5.11 0.972 0.11          0 <span style="text-decoration: underline;">44</span>009<span style="text-decoration: underline;">493</span>902.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> CD4 T   CD3D         1.86 0.876 0.239         0 <span style="text-decoration: underline;">11</span>832<span style="text-decoration: underline;">733</span>243.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> CD4 T   MAL          4.18 0.273 0.024         0 <span style="text-decoration: underline;">10</span>408<span style="text-decoration: underline;">717</span>439.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> CD4 T   IL7R         2.07 0.662 0.198         0  <span style="text-decoration: underline;">9</span>627<span style="text-decoration: underline;">326</span>382.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> CD8 T   CCL5         3.31 0.986 0.235         0 <span style="text-decoration: underline;">24</span>860<span style="text-decoration: underline;">743</span>868.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> CD8 T   GZMK         4.28 0.568 0.058         0 <span style="text-decoration: underline;">21</span>819<span style="text-decoration: underline;">033</span>699.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> CD8 T   NKG7         2.47 0.968 0.218         0 <span style="text-decoration: underline;">18</span>515<span style="text-decoration: underline;">415</span>364.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> NK      GZMB         5.93 0.943 0.069         0 <span style="text-decoration: underline;">51</span>839<span style="text-decoration: underline;">175</span>856.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> NK      GNLY         6.10 0.949 0.131         0 <span style="text-decoration: underline;">49</span>870<span style="text-decoration: underline;">973</span>178.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> NK      FGFBP2       5.31 0.866 0.062         0 <span style="text-decoration: underline;">42</span>699<span style="text-decoration: underline;">888</span>960.</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> B       CD79A        6.85 0.938 0.042         0 <span style="text-decoration: underline;">61</span>335<span style="text-decoration: underline;">103</span>114.</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 11 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 14 more rows</span></span></span>
 <span><span class="va">mk</span><span class="op">$</span><span class="va">heatmap</span></span></code></pre></div>
 <p><img src="OHMmy-differential-expression_files/figure-html/markers-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="section level3">
@@ -270,23 +274,21 @@ resolutions</td>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hm</span><span class="op">$</span><span class="va">splits</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"split"</span>, <span class="st">"children"</span>, <span class="st">"n_markers"</span>, <span class="st">"n_key_genes"</span>, <span class="st">"cv_accuracy"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;      split                               children n_markers n_key_genes</span></span>
-<span><span class="co">#&gt; 1     root res0.2_0, res0.2_1, res0.2_2, res0.2_3       142           3</span></span>
-<span><span class="co">#&gt; 2 res0.2_0                     res0.6_0, res0.6_1         5           1</span></span>
-<span><span class="co">#&gt; 3 res0.2_1           res0.6_2, res0.6_5, res0.6_7        86           5</span></span>
-<span><span class="co">#&gt; 4 res0.2_2                     res0.6_4, res0.6_6        34           3</span></span>
-<span><span class="co">#&gt; 5 res0.6_0                    res1.2_0, res1.2_10        14           2</span></span>
-<span><span class="co">#&gt; 6 res0.6_1                     res1.2_1, res1.2_8         1           0</span></span>
-<span><span class="co">#&gt; 7 res0.6_2                     res1.2_4, res1.2_5        30           1</span></span>
-<span><span class="co">#&gt; 8 res0.6_5                    res1.2_6, res1.2_11         0           0</span></span>
+<span><span class="co">#&gt; 1     root res0.2_0, res0.2_1, res0.2_2, res0.2_3       148           4</span></span>
+<span><span class="co">#&gt; 2 res0.2_0           res0.6_0, res0.6_1, res0.6_8         5           1</span></span>
+<span><span class="co">#&gt; 3 res0.2_1           res0.6_2, res0.6_5, res0.6_7        95           2</span></span>
+<span><span class="co">#&gt; 4 res0.2_2                     res0.6_4, res0.6_6        31           2</span></span>
+<span><span class="co">#&gt; 5 res0.6_0                    res1.2_0, res1.2_10        17           0</span></span>
+<span><span class="co">#&gt; 6 res0.6_1                     res1.2_1, res1.2_7         1           0</span></span>
+<span><span class="co">#&gt; 7 res0.6_2                     res1.2_4, res1.2_5        32           2</span></span>
 <span><span class="co">#&gt;   cv_accuracy</span></span>
-<span><span class="co">#&gt; 1   0.9624716</span></span>
-<span><span class="co">#&gt; 2   0.6907216</span></span>
-<span><span class="co">#&gt; 3   0.9144928</span></span>
-<span><span class="co">#&gt; 4   0.9402299</span></span>
-<span><span class="co">#&gt; 5   0.9580537</span></span>
+<span><span class="co">#&gt; 1   0.9632297</span></span>
+<span><span class="co">#&gt; 2   0.6816221</span></span>
+<span><span class="co">#&gt; 3   0.9329359</span></span>
+<span><span class="co">#&gt; 4   0.8960739</span></span>
+<span><span class="co">#&gt; 5   0.9603960</span></span>
 <span><span class="co">#&gt; 6   1.0000000</span></span>
-<span><span class="co">#&gt; 7   0.7088608</span></span>
-<span><span class="co">#&gt; 8          NA</span></span>
+<span><span class="co">#&gt; 7   0.7112527</span></span>
 <span><span class="va">hm</span><span class="op">$</span><span class="va">markers</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">split</span>, <span class="va">child</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice_head</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -295,16 +297,16 @@ resolutions</td>
 <span><span class="co">#&gt; <span style="color: #949494;"># Groups:   split, child [13]</span></span></span>
 <span><span class="co">#&gt;    split    child    gene      rank   auc p_val_adj pct.1 pct.2 pattern </span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> res0.2_0 res0.6_0 ANXA1        1 0.718         0 0.79  0.423 lineage </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> res0.2_0 res0.6_0 S100A11      2 0.702         0 0.61  0.22  lineage </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> res0.2_1 res0.6_2 S100A8       1 0.951         0 0.973 0.467 lineage </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> res0.2_1 res0.6_2 LGALS2       2 0.879         0 0.904 0.349 lineage </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> res0.2_1 res0.6_5 FCGR3A       1 0.936         0 0.904 0.129 lineage </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> res0.2_1 res0.6_5 RHOC         2 0.854         0 0.809 0.178 lineage </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> res0.2_1 res0.6_7 HLA-DQA1     1 0.937         0 0.941 0.27  specific</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> res0.2_1 res0.6_7 HLA-DQB1     2 0.931         0 0.941 0.302 specific</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> res0.2_2 res0.6_4 CD3D         1 0.889         0 0.844 0.099 split   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> res0.2_2 res0.6_4 RPL36A       2 0.784         0 0.905 0.582 split   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> res0.2_0 res0.6_0 ANXA1        1 0.722         0 0.786 0.415 lineage </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> res0.2_0 res0.6_0 S100A11      2 0.705         0 0.607 0.214 lineage </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> res0.2_1 res0.6_2 S100A8       1 0.947         0 0.973 0.495 lineage </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> res0.2_1 res0.6_2 LGALS2       2 0.870         0 0.904 0.381 lineage </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> res0.2_1 res0.6_5 FCGR3A       1 0.979         0 0.982 0.128 specific</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> res0.2_1 res0.6_5 IFITM2       2 0.937         0 1     0.693 specific</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> res0.2_1 res0.6_7 HLA-DQB1     1 0.969         0 1     0.308 specific</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> res0.2_1 res0.6_7 HLA-DQA1     2 0.959         0 0.968 0.273 specific</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> res0.2_2 res0.6_4 CD3D         1 0.901         0 0.88  0.108 split   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> res0.2_2 res0.6_4 GZMK         2 0.734         0 0.572 0.127 split   </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 15 more rows</span></span></span></code></pre></div>
 <p>For each split, a decision tree (<strong>rpart</strong>) is grown on
 the top-ranked markers and pruned by cross-validation, so each split
@@ -316,280 +318,367 @@ same ranking columns as <code>hm$markers</code>.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hm</span><span class="op">$</span><span class="va">key</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">split</span>, <span class="va">role</span>, <span class="va">gene</span>, <span class="va">rule</span>, <span class="va">agreement</span>, <span class="va">rank</span>, <span class="va">auc</span>, <span class="va">pct.1</span>, <span class="va">pct.2</span>, <span class="va">pattern</span><span class="op">)</span></span>
-<span><span class="co">#&gt;        split   role          gene                              rule   agreement</span></span>
-<span><span class="co">#&gt; 1       root    key          CST3          CST3 &gt;= 2.71 -&gt; res0.2_1          NA</span></span>
-<span><span class="co">#&gt; 2       root backup           LYZ           LYZ &gt;= 2.91 -&gt; res0.2_1 0.864583333</span></span>
-<span><span class="co">#&gt; 3       root backup          AIF1          AIF1 &gt;= 2.33 -&gt; res0.2_1 0.831845238</span></span>
-<span><span class="co">#&gt; 4       root backup          LST1           LST1 &gt;= 2.2 -&gt; res0.2_1 0.824404762</span></span>
-<span><span class="co">#&gt; 5       root backup        TYROBP        TYROBP &gt;= 2.87 -&gt; res0.2_1 0.813988095</span></span>
-<span><span class="co">#&gt; 6       root backup        S100A9        S100A9 &gt;= 2.29 -&gt; res0.2_1 0.797619048</span></span>
-<span><span class="co">#&gt; 7       root backup          FCN1          FCN1 &gt;= 2.07 -&gt; res0.2_1 0.744047619</span></span>
-<span><span class="co">#&gt; 8       root backup        LGALS1        LGALS1 &gt;= 2.88 -&gt; res0.2_1 0.724702381</span></span>
-<span><span class="co">#&gt; 9       root backup          TYMP          TYMP &gt;= 1.92 -&gt; res0.2_1 0.709821429</span></span>
-<span><span class="co">#&gt; 10      root backup          CTSS          CTSS &gt;= 2.51 -&gt; res0.2_1 0.699404762</span></span>
-<span><span class="co">#&gt; 11      root backup         COTL1         COTL1 &gt;= 2.76 -&gt; res0.2_1 0.690476190</span></span>
-<span><span class="co">#&gt; 12      root    key          NKG7          NKG7 &gt;= 2.35 -&gt; res0.2_2          NA</span></span>
-<span><span class="co">#&gt; 13      root backup          CST7          CST7 &gt;= 1.73 -&gt; res0.2_2 0.683720930</span></span>
-<span><span class="co">#&gt; 14      root backup          GZMA          GZMA &gt;= 1.71 -&gt; res0.2_2 0.632558140</span></span>
-<span><span class="co">#&gt; 15      root backup          CCL5          CCL5 &gt;= 2.56 -&gt; res0.2_2 0.567441860</span></span>
-<span><span class="co">#&gt; 16      root backup          PRF1          PRF1 &gt;= 1.63 -&gt; res0.2_2 0.525581395</span></span>
-<span><span class="co">#&gt; 17      root backup          CTSW          CTSW &gt;= 2.31 -&gt; res0.2_2 0.520930233</span></span>
-<span><span class="co">#&gt; 18      root backup          GZMB           GZMB &gt;= 1.7 -&gt; res0.2_2 0.479069767</span></span>
-<span><span class="co">#&gt; 19      root backup        FGFBP2        FGFBP2 &gt;= 1.55 -&gt; res0.2_2 0.474418605</span></span>
-<span><span class="co">#&gt; 20      root backup          GNLY           GNLY &gt;= 2.2 -&gt; res0.2_2 0.472093023</span></span>
-<span><span class="co">#&gt; 21      root backup          GZMM          GZMM &gt;= 1.76 -&gt; res0.2_2 0.325581395</span></span>
-<span><span class="co">#&gt; 22      root backup          SRGN          SRGN &gt;= 2.38 -&gt; res0.2_2 0.300000000</span></span>
-<span><span class="co">#&gt; 23      root    key       HLA-DRA       HLA-DRA &gt;= 3.24 -&gt; res0.2_3          NA</span></span>
-<span><span class="co">#&gt; 24      root backup      HLA-DPB1      HLA-DPB1 &gt;= 2.62 -&gt; res0.2_3 0.894117647</span></span>
-<span><span class="co">#&gt; 25      root backup      HLA-DRB1      HLA-DRB1 &gt;= 2.54 -&gt; res0.2_3 0.867647059</span></span>
-<span><span class="co">#&gt; 26      root backup         CD79A         CD79A &gt;= 1.83 -&gt; res0.2_3 0.867647059</span></span>
-<span><span class="co">#&gt; 27      root backup      HLA-DPA1      HLA-DPA1 &gt;= 2.44 -&gt; res0.2_3 0.847058824</span></span>
-<span><span class="co">#&gt; 28      root backup         CD79B         CD79B &gt;= 1.89 -&gt; res0.2_3 0.826470588</span></span>
-<span><span class="co">#&gt; 29      root backup      HLA-DQA1      HLA-DQA1 &gt;= 1.73 -&gt; res0.2_3 0.820588235</span></span>
-<span><span class="co">#&gt; 30      root backup         MS4A1         MS4A1 &gt;= 1.67 -&gt; res0.2_3 0.752941176</span></span>
-<span><span class="co">#&gt; 31      root backup      HLA-DRB5      HLA-DRB5 &gt;= 1.77 -&gt; res0.2_3 0.723529412</span></span>
-<span><span class="co">#&gt; 32      root backup      HLA-DQB1      HLA-DQB1 &gt;= 1.84 -&gt; res0.2_3 0.723529412</span></span>
-<span><span class="co">#&gt; 33      root backup         TCL1A         TCL1A &gt;= 1.77 -&gt; res0.2_3 0.567647059</span></span>
-<span><span class="co">#&gt; 34  res0.2_0    key       S100A11      S100A11 &gt;= 0.512 -&gt; res0.6_0          NA</span></span>
-<span><span class="co">#&gt; 35  res0.2_0 backup         ANXA1         ANXA1 &gt;= 2.26 -&gt; res0.6_0 0.139393939</span></span>
-<span><span class="co">#&gt; 36  res0.2_0 backup       S100A10        S100A10 &gt;= 2.5 -&gt; res0.6_0 0.098989899</span></span>
-<span><span class="co">#&gt; 37  res0.2_0 backup         CLIC1        CLIC1 &gt;= 0.531 -&gt; res0.6_0 0.068686869</span></span>
-<span><span class="co">#&gt; 38  res0.2_0 backup          KLF6          KLF6 &gt;= 2.55 -&gt; res0.6_0 0.050505051</span></span>
-<span><span class="co">#&gt; 39  res0.2_1    key        FCGR3A        FCGR3A &gt;= 2.03 -&gt; res0.6_5          NA</span></span>
-<span><span class="co">#&gt; 40  res0.2_1 backup          RHOC          RHOC &gt;= 1.83 -&gt; res0.6_5 0.398692810</span></span>
-<span><span class="co">#&gt; 41  res0.2_1 backup         MS4A7         MS4A7 &gt;= 2.21 -&gt; res0.6_5 0.352941176</span></span>
-<span><span class="co">#&gt; 42  res0.2_1 backup        S100A8        S100A8 &gt;= 1.71 -&gt; res0.6_2 0.320261438</span></span>
-<span><span class="co">#&gt; 43  res0.2_1 backup        LGALS2        LGALS2 &gt;= 1.41 -&gt; res0.6_2 0.300653595</span></span>
-<span><span class="co">#&gt; 44  res0.2_1 backup          HES4         HES4 &gt;= 0.517 -&gt; res0.6_5 0.261437908</span></span>
-<span><span class="co">#&gt; 45  res0.2_1 backup         CD79B         CD79B &gt;= 1.01 -&gt; res0.6_5 0.248366013</span></span>
-<span><span class="co">#&gt; 46  res0.2_1 backup RP11-290F20.3 RP11-290F20.3 &gt;= 2.23 -&gt; res0.6_5 0.169934641</span></span>
-<span><span class="co">#&gt; 47  res0.2_1 backup          CTSC          CTSC &gt;= 1.99 -&gt; res0.6_5 0.130718954</span></span>
-<span><span class="co">#&gt; 48  res0.2_1 backup        IFITM1        IFITM1 &gt;= 2.04 -&gt; res0.6_5 0.098039216</span></span>
-<span><span class="co">#&gt; 49  res0.2_1 backup        LILRA3       LILRA3 &gt;= 0.437 -&gt; res0.6_5 0.098039216</span></span>
-<span><span class="co">#&gt; 50  res0.2_1    key        S100A8        S100A8 &gt;= 1.84 -&gt; res0.6_2          NA</span></span>
-<span><span class="co">#&gt; 51  res0.2_1 backup      HLA-DQA1      HLA-DQA1 &gt;= 2.78 -&gt; res0.6_7 0.246376812</span></span>
-<span><span class="co">#&gt; 52  res0.2_1 backup      HLA-DQB1      HLA-DQB1 &gt;= 2.56 -&gt; res0.6_7 0.188405797</span></span>
-<span><span class="co">#&gt; 53  res0.2_1 backup        FCER1A       FCER1A &gt;= 0.408 -&gt; res0.6_7 0.144927536</span></span>
-<span><span class="co">#&gt; 54  res0.2_1 backup      HLA-DQA2      HLA-DQA2 &gt;= 2.07 -&gt; res0.6_7 0.130434783</span></span>
-<span><span class="co">#&gt; 55  res0.2_1 backup        TAGLN2        TAGLN2 &gt;= 3.74 -&gt; res0.6_7 0.130434783</span></span>
-<span><span class="co">#&gt; 56  res0.2_1 backup        CDKN2D        CDKN2D &gt;= 3.07 -&gt; res0.6_7 0.115942029</span></span>
-<span><span class="co">#&gt; 57  res0.2_1 backup      SERPINF1     SERPINF1 &gt;= 0.462 -&gt; res0.6_7 0.115942029</span></span>
-<span><span class="co">#&gt; 58  res0.2_1 backup         RAP1B         RAP1B &gt;= 2.38 -&gt; res0.6_7 0.101449275</span></span>
-<span><span class="co">#&gt; 59  res0.2_1 backup          CD1C          CD1C &gt;= 1.71 -&gt; res0.6_7 0.101449275</span></span>
-<span><span class="co">#&gt; 60  res0.2_1 backup        TUBA1B         TUBA1B &gt;= 2.5 -&gt; res0.6_7 0.086956522</span></span>
-<span><span class="co">#&gt; 61  res0.2_1    key        FCER1A       FCER1A &gt;= 0.584 -&gt; res0.6_7          NA</span></span>
-<span><span class="co">#&gt; 62  res0.2_1 backup      HLA-DQA1      HLA-DQA1 &gt;= 2.74 -&gt; res0.6_7 0.250000000</span></span>
-<span><span class="co">#&gt; 63  res0.2_1 backup       CLEC10A       CLEC10A &gt;= 1.86 -&gt; res0.6_7 0.250000000</span></span>
-<span><span class="co">#&gt; 64  res0.2_1 backup      HLA-DQB1      HLA-DQB1 &gt;= 2.94 -&gt; res0.6_7 0.166666667</span></span>
-<span><span class="co">#&gt; 65  res0.2_1 backup      SERPINF1     SERPINF1 &gt;= 0.522 -&gt; res0.6_7 0.083333333</span></span>
-<span><span class="co">#&gt; 66  res0.2_1    key      HLA-DQB1       HLA-DQB1 &gt;= 1.9 -&gt; res0.6_7          NA</span></span>
-<span><span class="co">#&gt; 67  res0.2_1 backup      HLA-DQA1      HLA-DQA1 &gt;= 2.43 -&gt; res0.6_7 0.653846154</span></span>
-<span><span class="co">#&gt; 68  res0.2_1 backup       CLEC10A      CLEC10A &gt;= 0.448 -&gt; res0.6_7 0.615384615</span></span>
-<span><span class="co">#&gt; 69  res0.2_1 backup        FCER1A       FCER1A &gt;= 0.408 -&gt; res0.6_7 0.538461538</span></span>
-<span><span class="co">#&gt; 70  res0.2_1 backup      HLA-DQA2      HLA-DQA2 &gt;= 1.37 -&gt; res0.6_7 0.538461538</span></span>
-<span><span class="co">#&gt; 71  res0.2_1 backup       HLA-DMB       HLA-DMB &gt;= 1.39 -&gt; res0.6_7 0.538461538</span></span>
-<span><span class="co">#&gt; 72  res0.2_1 backup          CD1C         CD1C &gt;= 0.482 -&gt; res0.6_7 0.500000000</span></span>
-<span><span class="co">#&gt; 73  res0.2_1 backup       HLA-DMA       HLA-DMA &gt;= 1.84 -&gt; res0.6_7 0.423076923</span></span>
-<span><span class="co">#&gt; 74  res0.2_1 backup          PPA1          PPA1 &gt;= 1.35 -&gt; res0.6_7 0.384615385</span></span>
-<span><span class="co">#&gt; 75  res0.2_1 backup          LSP1          LSP1 &gt;= 1.95 -&gt; res0.6_7 0.384615385</span></span>
-<span><span class="co">#&gt; 76  res0.2_1 backup         C1QBP        C1QBP &gt;= 0.475 -&gt; res0.6_7 0.384615385</span></span>
-<span><span class="co">#&gt; 77  res0.2_1    key        LGALS2        LGALS2 &gt;= 1.99 -&gt; res0.6_2          NA</span></span>
-<span><span class="co">#&gt; 78  res0.2_1 backup        S100A8        S100A8 &gt;= 3.92 -&gt; res0.6_2 0.181818182</span></span>
-<span><span class="co">#&gt; 79  res0.2_1 backup          CD14          CD14 &gt;= 2.43 -&gt; res0.6_2 0.181818182</span></span>
-<span><span class="co">#&gt; 80  res0.2_1 backup          PPA1          PPA1 &gt;= 2.26 -&gt; res0.6_2 0.181818182</span></span>
-<span><span class="co">#&gt; 81  res0.2_2    key          GZMB          GZMB &gt;= 3.02 -&gt; res0.6_6          NA</span></span>
-<span><span class="co">#&gt; 82  res0.2_2 backup          PRF1          PRF1 &gt;= 3.11 -&gt; res0.6_6 0.506756757</span></span>
-<span><span class="co">#&gt; 83  res0.2_2 backup          GNLY          GNLY &gt;= 3.67 -&gt; res0.6_6 0.506756757</span></span>
-<span><span class="co">#&gt; 84  res0.2_2 backup        FCER1G        FCER1G &gt;= 1.69 -&gt; res0.6_6 0.506756757</span></span>
-<span><span class="co">#&gt; 85  res0.2_2 backup        TYROBP         TYROBP &gt;= 2.3 -&gt; res0.6_6 0.493243243</span></span>
-<span><span class="co">#&gt; 86  res0.2_2 backup          CD3D         CD3D &gt;= 0.705 -&gt; res0.6_4 0.452702703</span></span>
-<span><span class="co">#&gt; 87  res0.2_2 backup        FCGR3A        FCGR3A &gt;= 1.79 -&gt; res0.6_6 0.445945946</span></span>
-<span><span class="co">#&gt; 88  res0.2_2 backup        FGFBP2        FGFBP2 &gt;= 2.59 -&gt; res0.6_6 0.432432432</span></span>
-<span><span class="co">#&gt; 89  res0.2_2 backup         SPON2         SPON2 &gt;= 1.52 -&gt; res0.6_6 0.425675676</span></span>
-<span><span class="co">#&gt; 90  res0.2_2 backup        IGFBP7        IGFBP7 &gt;= 1.53 -&gt; res0.6_6 0.378378378</span></span>
-<span><span class="co">#&gt; 91  res0.2_2 backup         CD247         CD247 &gt;= 2.44 -&gt; res0.6_6 0.371621622</span></span>
-<span><span class="co">#&gt; 92  res0.2_2    key        IGFBP7        IGFBP7 &gt;= 1.77 -&gt; res0.6_6          NA</span></span>
-<span><span class="co">#&gt; 93  res0.2_2 backup        FGFBP2        FGFBP2 &gt;= 4.02 -&gt; res0.6_6 0.166666667</span></span>
-<span><span class="co">#&gt; 94  res0.2_2 backup          PRF1          PRF1 &gt;= 3.45 -&gt; res0.6_6 0.083333333</span></span>
-<span><span class="co">#&gt; 95  res0.2_2 backup        TYROBP        TYROBP &gt;= 3.08 -&gt; res0.6_6 0.083333333</span></span>
-<span><span class="co">#&gt; 96  res0.2_2 backup        FCER1G        FCER1G &gt;= 2.62 -&gt; res0.6_6 0.083333333</span></span>
-<span><span class="co">#&gt; 97  res0.2_2 backup         SPON2         SPON2 &gt;= 2.52 -&gt; res0.6_6 0.083333333</span></span>
-<span><span class="co">#&gt; 98  res0.2_2 backup         APMAP         APMAP &gt;= 2.68 -&gt; res0.6_6 0.083333333</span></span>
-<span><span class="co">#&gt; 99  res0.2_2    key          CD3D          CD3D &gt;= 2.09 -&gt; res0.6_4          NA</span></span>
-<span><span class="co">#&gt; 100 res0.2_2 backup          GNLY         GNLY &gt;= 0.888 -&gt; res0.6_6 0.450000000</span></span>
-<span><span class="co">#&gt; 101 res0.2_2 backup        TYROBP       TYROBP &gt;= 0.781 -&gt; res0.6_6 0.200000000</span></span>
-<span><span class="co">#&gt; 102 res0.2_2 backup           VIM           VIM &gt;= 2.78 -&gt; res0.6_4 0.100000000</span></span>
-<span><span class="co">#&gt; 103 res0.2_2 backup          GZMB          GZMB &gt;= 3.07 -&gt; res0.6_6 0.100000000</span></span>
-<span><span class="co">#&gt; 104 res0.2_2 backup          PRF1          PRF1 &gt;= 1.81 -&gt; res0.6_6 0.100000000</span></span>
-<span><span class="co">#&gt; 105 res0.2_2 backup        RPL36A        RPL36A &gt;= 3.05 -&gt; res0.6_4 0.050000000</span></span>
-<span><span class="co">#&gt; 106 res0.2_2 backup          CD3E          CD3E &gt;= 3.06 -&gt; res0.6_4 0.050000000</span></span>
-<span><span class="co">#&gt; 107 res0.6_0    key         ISG15        ISG15 &gt;= 2.76 -&gt; res1.2_10          NA</span></span>
-<span><span class="co">#&gt; 108 res0.6_0 backup         IFIT3        IFIT3 &gt;= 2.14 -&gt; res1.2_10 0.352941176</span></span>
-<span><span class="co">#&gt; 109 res0.6_0 backup         IFIT1        IFIT1 &gt;= 2.04 -&gt; res1.2_10 0.264705882</span></span>
-<span><span class="co">#&gt; 110 res0.6_0 backup          IFI6         IFI6 &gt;= 2.77 -&gt; res1.2_10 0.235294118</span></span>
-<span><span class="co">#&gt; 111 res0.6_0 backup           MX1          MX1 &gt;= 2.74 -&gt; res1.2_10 0.176470588</span></span>
-<span><span class="co">#&gt; 112 res0.6_0 backup          MT2A         MT2A &gt;= 2.77 -&gt; res1.2_10 0.147058824</span></span>
-<span><span class="co">#&gt; 113 res0.6_0 backup          OAS1         OAS1 &gt;= 2.11 -&gt; res1.2_10 0.117647059</span></span>
-<span><span class="co">#&gt; 114 res0.6_0 backup        UBE2L6       UBE2L6 &gt;= 2.63 -&gt; res1.2_10 0.117647059</span></span>
-<span><span class="co">#&gt; 115 res0.6_0 backup         IFI35        IFI35 &gt;= 1.95 -&gt; res1.2_10 0.088235294</span></span>
-<span><span class="co">#&gt; 116 res0.6_0 backup        IFI44L       IFI44L &gt;= 3.04 -&gt; res1.2_10 0.058823529</span></span>
-<span><span class="co">#&gt; 117 res0.6_0 backup         STAT1        STAT1 &gt;= 2.61 -&gt; res1.2_10 0.058823529</span></span>
-<span><span class="co">#&gt; 118 res0.6_0    key          IFI6         IFI6 &gt;= 1.68 -&gt; res1.2_10          NA</span></span>
-<span><span class="co">#&gt; 119 res0.6_0 backup           MX1           MX1 &gt;= 1.6 -&gt; res1.2_10 0.400000000</span></span>
-<span><span class="co">#&gt; 120 res0.6_0 backup         ISG15        ISG15 &gt;= 3.29 -&gt; res1.2_10 0.200000000</span></span>
-<span><span class="co">#&gt; 121 res0.6_0 backup          MT2A         MT2A &gt;= 1.52 -&gt; res1.2_10 0.200000000</span></span>
-<span><span class="co">#&gt; 122 res0.6_0 backup        IFI44L      IFI44L &gt;= 0.701 -&gt; res1.2_10 0.200000000</span></span>
-<span><span class="co">#&gt; 123 res0.6_2    key          CPVL         CPVL &gt;= 0.551 -&gt; res1.2_5          NA</span></span>
-<span><span class="co">#&gt; 124 res0.6_2 backup      HLA-DRB5      HLA-DRB5 &gt;= 2.37 -&gt; res1.2_5 0.116022099</span></span>
-<span><span class="co">#&gt; 125 res0.6_2 backup      HLA-DQB1     HLA-DQB1 &gt;= 0.579 -&gt; res1.2_5 0.104972376</span></span>
-<span><span class="co">#&gt; 126 res0.6_2 backup     HNRNPA2B1     HNRNPA2B1 &gt;= 1.84 -&gt; res1.2_5 0.049723757</span></span>
-<span><span class="co">#&gt; 127 res0.6_2 backup      HLA-DPB1      HLA-DPB1 &gt;= 3.78 -&gt; res1.2_5 0.044198895</span></span>
-<span><span class="co">#&gt; 128 res0.6_2 backup       HLA-DMB       HLA-DMB &gt;= 1.76 -&gt; res1.2_5 0.044198895</span></span>
-<span><span class="co">#&gt; 129 res0.6_2 backup      APOBEC3A      APOBEC3A &gt;= 2.87 -&gt; res1.2_5 0.016574586</span></span>
-<span><span class="co">#&gt; 130 res0.6_2 backup           CFP           CFP &gt;= 3.01 -&gt; res1.2_5 0.016574586</span></span>
-<span><span class="co">#&gt; 131 res0.6_2 backup       RNASET2       RNASET2 &gt;= 3.09 -&gt; res1.2_5 0.005524862</span></span>
-<span><span class="co">#&gt; 132 res0.6_2 backup        TUBA1B        TUBA1B &gt;= 2.64 -&gt; res1.2_5 0.005524862</span></span>
-<span><span class="co">#&gt; 133 res0.6_2 backup          CTSB          CTSB &gt;= 2.99 -&gt; res1.2_5 0.005524862</span></span>
+<span><span class="co">#&gt;        split   role          gene                              rule  agreement</span></span>
+<span><span class="co">#&gt; 1       root    key          CST3          CST3 &gt;= 2.71 -&gt; res0.2_1         NA</span></span>
+<span><span class="co">#&gt; 2       root backup           LYZ           LYZ &gt;= 2.91 -&gt; res0.2_1 0.86458333</span></span>
+<span><span class="co">#&gt; 3       root backup          AIF1          AIF1 &gt;= 2.33 -&gt; res0.2_1 0.83184524</span></span>
+<span><span class="co">#&gt; 4       root backup          LST1           LST1 &gt;= 2.2 -&gt; res0.2_1 0.82440476</span></span>
+<span><span class="co">#&gt; 5       root backup        TYROBP        TYROBP &gt;= 2.87 -&gt; res0.2_1 0.81398810</span></span>
+<span><span class="co">#&gt; 6       root backup        S100A9        S100A9 &gt;= 2.29 -&gt; res0.2_1 0.79761905</span></span>
+<span><span class="co">#&gt; 7       root backup          FCN1          FCN1 &gt;= 2.07 -&gt; res0.2_1 0.74404762</span></span>
+<span><span class="co">#&gt; 8       root backup        LGALS1        LGALS1 &gt;= 2.88 -&gt; res0.2_1 0.72470238</span></span>
+<span><span class="co">#&gt; 9       root backup          TYMP          TYMP &gt;= 1.92 -&gt; res0.2_1 0.70982143</span></span>
+<span><span class="co">#&gt; 10      root backup          CTSS          CTSS &gt;= 2.51 -&gt; res0.2_1 0.69940476</span></span>
+<span><span class="co">#&gt; 11      root backup         COTL1         COTL1 &gt;= 2.76 -&gt; res0.2_1 0.69047619</span></span>
+<span><span class="co">#&gt; 12      root    key          NKG7           NKG7 &gt;= 2.3 -&gt; res0.2_2         NA</span></span>
+<span><span class="co">#&gt; 13      root backup          CST7          CST7 &gt;= 1.73 -&gt; res0.2_2 0.67727273</span></span>
+<span><span class="co">#&gt; 14      root backup          GZMA           GZMA &gt;= 1.7 -&gt; res0.2_2 0.63409091</span></span>
+<span><span class="co">#&gt; 15      root backup          CCL5          CCL5 &gt;= 2.56 -&gt; res0.2_2 0.57272727</span></span>
+<span><span class="co">#&gt; 16      root backup          CTSW          CTSW &gt;= 2.31 -&gt; res0.2_2 0.53181818</span></span>
+<span><span class="co">#&gt; 17      root backup          PRF1          PRF1 &gt;= 1.63 -&gt; res0.2_2 0.52727273</span></span>
+<span><span class="co">#&gt; 18      root backup          GZMB           GZMB &gt;= 1.7 -&gt; res0.2_2 0.46818182</span></span>
+<span><span class="co">#&gt; 19      root backup          GNLY           GNLY &gt;= 2.2 -&gt; res0.2_2 0.46590909</span></span>
+<span><span class="co">#&gt; 20      root backup        FGFBP2        FGFBP2 &gt;= 1.55 -&gt; res0.2_2 0.46363636</span></span>
+<span><span class="co">#&gt; 21      root backup          GZMM          GZMM &gt;= 1.76 -&gt; res0.2_2 0.32727273</span></span>
+<span><span class="co">#&gt; 22      root backup          SRGN          SRGN &gt;= 2.38 -&gt; res0.2_2 0.29318182</span></span>
+<span><span class="co">#&gt; 23      root    key       HLA-DRA       HLA-DRA &gt;= 3.24 -&gt; res0.2_3         NA</span></span>
+<span><span class="co">#&gt; 24      root backup      HLA-DPB1      HLA-DPB1 &gt;= 2.62 -&gt; res0.2_3 0.89380531</span></span>
+<span><span class="co">#&gt; 25      root backup         CD79A         CD79A &gt;= 1.83 -&gt; res0.2_3 0.87020649</span></span>
+<span><span class="co">#&gt; 26      root backup      HLA-DRB1      HLA-DRB1 &gt;= 2.53 -&gt; res0.2_3 0.86725664</span></span>
+<span><span class="co">#&gt; 27      root backup      HLA-DPA1      HLA-DPA1 &gt;= 2.44 -&gt; res0.2_3 0.84660767</span></span>
+<span><span class="co">#&gt; 28      root backup         CD79B         CD79B &gt;= 1.89 -&gt; res0.2_3 0.82595870</span></span>
+<span><span class="co">#&gt; 29      root backup      HLA-DQA1      HLA-DQA1 &gt;= 1.73 -&gt; res0.2_3 0.82005900</span></span>
+<span><span class="co">#&gt; 30      root backup         MS4A1         MS4A1 &gt;= 1.67 -&gt; res0.2_3 0.75811209</span></span>
+<span><span class="co">#&gt; 31      root backup      HLA-DRB5      HLA-DRB5 &gt;= 1.77 -&gt; res0.2_3 0.72566372</span></span>
+<span><span class="co">#&gt; 32      root backup      HLA-DQB1      HLA-DQB1 &gt;= 1.84 -&gt; res0.2_3 0.72271386</span></span>
+<span><span class="co">#&gt; 33      root backup         TCL1A         TCL1A &gt;= 1.77 -&gt; res0.2_3 0.56637168</span></span>
+<span><span class="co">#&gt; 34      root    key        TYROBP        TYROBP &gt;= 2.48 -&gt; res0.2_1         NA</span></span>
+<span><span class="co">#&gt; 35      root backup          LST1           LST1 &gt;= 2.8 -&gt; res0.2_1 0.81818182</span></span>
+<span><span class="co">#&gt; 36      root backup        S100A9        S100A9 &gt;= 3.73 -&gt; res0.2_1 0.72727273</span></span>
+<span><span class="co">#&gt; 37      root backup        S100A8        S100A8 &gt;= 3.35 -&gt; res0.2_1 0.72727273</span></span>
+<span><span class="co">#&gt; 38      root backup           LYZ           LYZ &gt;= 3.82 -&gt; res0.2_1 0.63636364</span></span>
+<span><span class="co">#&gt; 39      root backup        FCER1G         FCER1G &gt;= 2.5 -&gt; res0.2_1 0.63636364</span></span>
+<span><span class="co">#&gt; 40      root backup          AIF1          AIF1 &gt;= 3.07 -&gt; res0.2_1 0.45454545</span></span>
+<span><span class="co">#&gt; 41      root backup          FCN1          FCN1 &gt;= 2.88 -&gt; res0.2_1 0.45454545</span></span>
+<span><span class="co">#&gt; 42      root backup           CFD           CFD &gt;= 2.04 -&gt; res0.2_1 0.45454545</span></span>
+<span><span class="co">#&gt; 43      root backup         GSTP1         GSTP1 &gt;= 2.78 -&gt; res0.2_1 0.45454545</span></span>
+<span><span class="co">#&gt; 44      root backup          SPI1           SPI1 &gt;= 2.1 -&gt; res0.2_1 0.45454545</span></span>
+<span><span class="co">#&gt; 45  res0.2_0    key       S100A11      S100A11 &gt;= 0.512 -&gt; res0.6_0         NA</span></span>
+<span><span class="co">#&gt; 46  res0.2_0 backup         ANXA1         ANXA1 &gt;= 2.26 -&gt; res0.6_0 0.13967611</span></span>
+<span><span class="co">#&gt; 47  res0.2_0 backup       S100A10        S100A10 &gt;= 2.5 -&gt; res0.6_0 0.09919028</span></span>
+<span><span class="co">#&gt; 48  res0.2_0 backup         CLIC1        CLIC1 &gt;= 0.531 -&gt; res0.6_0 0.07489879</span></span>
+<span><span class="co">#&gt; 49  res0.2_0 backup          KLF6          KLF6 &gt;= 2.55 -&gt; res0.6_0 0.05263158</span></span>
+<span><span class="co">#&gt; 50  res0.2_1    key        FCGR3A        FCGR3A &gt;= 2.03 -&gt; res0.6_5         NA</span></span>
+<span><span class="co">#&gt; 51  res0.2_1 backup        IFITM2        IFITM2 &gt;= 3.03 -&gt; res0.6_5 0.52631579</span></span>
+<span><span class="co">#&gt; 52  res0.2_1 backup        S100A8        S100A8 &gt;= 1.71 -&gt; res0.6_2 0.42105263</span></span>
+<span><span class="co">#&gt; 53  res0.2_1 backup          RHOC          RHOC &gt;= 1.83 -&gt; res0.6_5 0.41447368</span></span>
+<span><span class="co">#&gt; 54  res0.2_1 backup        LGALS2        LGALS2 &gt;= 1.41 -&gt; res0.6_2 0.40789474</span></span>
+<span><span class="co">#&gt; 55  res0.2_1 backup        CDKN1C       CDKN1C &gt;= 0.437 -&gt; res0.6_5 0.38157895</span></span>
+<span><span class="co">#&gt; 56  res0.2_1 backup         MS4A7         MS4A7 &gt;= 2.21 -&gt; res0.6_5 0.35526316</span></span>
+<span><span class="co">#&gt; 57  res0.2_1 backup          HES4         HES4 &gt;= 0.517 -&gt; res0.6_5 0.25657895</span></span>
+<span><span class="co">#&gt; 58  res0.2_1 backup         CD79B         CD79B &gt;= 1.01 -&gt; res0.6_5 0.24342105</span></span>
+<span><span class="co">#&gt; 59  res0.2_1 backup RP11-290F20.3 RP11-290F20.3 &gt;= 2.23 -&gt; res0.6_5 0.17105263</span></span>
+<span><span class="co">#&gt; 60  res0.2_1 backup        LILRB1       LILRB1 &gt;= 0.993 -&gt; res0.6_5 0.15131579</span></span>
+<span><span class="co">#&gt; 61  res0.2_1    key        FCER1A       FCER1A &gt;= 0.408 -&gt; res0.6_7         NA</span></span>
+<span><span class="co">#&gt; 62  res0.2_1 backup      HLA-DQA1      HLA-DQA1 &gt;= 2.88 -&gt; res0.6_7 0.48484848</span></span>
+<span><span class="co">#&gt; 63  res0.2_1 backup      HLA-DQB1      HLA-DQB1 &gt;= 2.92 -&gt; res0.6_7 0.39393939</span></span>
+<span><span class="co">#&gt; 64  res0.2_1 backup          CD1C          CD1C &gt;= 1.41 -&gt; res0.6_7 0.30303030</span></span>
+<span><span class="co">#&gt; 65  res0.2_1 backup       CLEC10A       CLEC10A &gt;= 1.86 -&gt; res0.6_7 0.27272727</span></span>
+<span><span class="co">#&gt; 66  res0.2_1 backup      HLA-DQA2      HLA-DQA2 &gt;= 2.07 -&gt; res0.6_7 0.15151515</span></span>
+<span><span class="co">#&gt; 67  res0.2_1 backup         CXCR4          CXCR4 &gt;= 2.9 -&gt; res0.6_7 0.03030303</span></span>
+<span><span class="co">#&gt; 68  res0.2_2    key          GNLY          GNLY &gt;= 3.53 -&gt; res0.6_6         NA</span></span>
+<span><span class="co">#&gt; 69  res0.2_2 backup          CD3D         CD3D &gt;= 0.705 -&gt; res0.6_4 0.58169935</span></span>
+<span><span class="co">#&gt; 70  res0.2_2 backup        TYROBP        TYROBP &gt;= 1.97 -&gt; res0.6_6 0.57516340</span></span>
+<span><span class="co">#&gt; 71  res0.2_2 backup        FCER1G        FCER1G &gt;= 1.91 -&gt; res0.6_6 0.56209150</span></span>
+<span><span class="co">#&gt; 72  res0.2_2 backup          GZMB          GZMB &gt;= 3.33 -&gt; res0.6_6 0.52287582</span></span>
+<span><span class="co">#&gt; 73  res0.2_2 backup        IGFBP7        IGFBP7 &gt;= 0.59 -&gt; res0.6_6 0.40522876</span></span>
+<span><span class="co">#&gt; 74  res0.2_2 backup          PRF1          PRF1 &gt;= 2.91 -&gt; res0.6_6 0.39869281</span></span>
+<span><span class="co">#&gt; 75  res0.2_2 backup        FCGR3A        FCGR3A &gt;= 1.94 -&gt; res0.6_6 0.37908497</span></span>
+<span><span class="co">#&gt; 76  res0.2_2 backup          IL32          IL32 &gt;= 1.55 -&gt; res0.6_4 0.34640523</span></span>
+<span><span class="co">#&gt; 77  res0.2_2 backup         SPON2         SPON2 &gt;= 1.46 -&gt; res0.6_6 0.31372549</span></span>
+<span><span class="co">#&gt; 78  res0.2_2 backup         KLRD1         KLRD1 &gt;= 1.74 -&gt; res0.6_6 0.30718954</span></span>
+<span><span class="co">#&gt; 79  res0.2_2    key        TYROBP        TYROBP &gt;= 2.85 -&gt; res0.6_6         NA</span></span>
+<span><span class="co">#&gt; 80  res0.2_2 backup        FCER1G        FCER1G &gt;= 2.56 -&gt; res0.6_6 0.61538462</span></span>
+<span><span class="co">#&gt; 81  res0.2_2 backup         CD247         CD247 &gt;= 2.93 -&gt; res0.6_6 0.30769231</span></span>
+<span><span class="co">#&gt; 82  res0.2_2 backup          GZMB          GZMB &gt;= 3.63 -&gt; res0.6_6 0.15384615</span></span>
+<span><span class="co">#&gt; 83  res0.2_2 backup        FCGR3A        FCGR3A &gt;= 3.01 -&gt; res0.6_6 0.15384615</span></span>
+<span><span class="co">#&gt; 84  res0.2_2 backup        FGFBP2        FGFBP2 &gt;= 4.02 -&gt; res0.6_6 0.15384615</span></span>
+<span><span class="co">#&gt; 85  res0.2_2 backup           CD7           CD7 &gt;= 2.86 -&gt; res0.6_6 0.15384615</span></span>
+<span><span class="co">#&gt; 86  res0.2_2 backup        IGFBP7        IGFBP7 &gt;= 2.76 -&gt; res0.6_6 0.15384615</span></span>
+<span><span class="co">#&gt; 87  res0.2_2 backup         SPON2         SPON2 &gt;= 3.31 -&gt; res0.6_6 0.07692308</span></span>
+<span><span class="co">#&gt; 88  res0.2_2 backup         CLIC3          CLIC3 &gt;= 2.5 -&gt; res0.6_6 0.07692308</span></span>
+<span><span class="co">#&gt; 89  res0.2_2 backup         KLRD1         KLRD1 &gt;= 2.47 -&gt; res0.6_6 0.07692308</span></span>
+<span><span class="co">#&gt; 90  res0.6_2    key          CPVL         CPVL &gt;= 0.551 -&gt; res1.2_5         NA</span></span>
+<span><span class="co">#&gt; 91  res0.6_2 backup      HLA-DRB5      HLA-DRB5 &gt;= 2.37 -&gt; res1.2_5 0.11111111</span></span>
+<span><span class="co">#&gt; 92  res0.6_2 backup      HLA-DQB1     HLA-DQB1 &gt;= 0.579 -&gt; res1.2_5 0.10555556</span></span>
+<span><span class="co">#&gt; 93  res0.6_2 backup          RNH1          RNH1 &gt;= 2.07 -&gt; res1.2_5 0.06111111</span></span>
+<span><span class="co">#&gt; 94  res0.6_2 backup     HNRNPA2B1     HNRNPA2B1 &gt;= 1.84 -&gt; res1.2_5 0.05000000</span></span>
+<span><span class="co">#&gt; 95  res0.6_2 backup      HLA-DPB1      HLA-DPB1 &gt;= 3.11 -&gt; res1.2_5 0.04444444</span></span>
+<span><span class="co">#&gt; 96  res0.6_2 backup       HLA-DMB       HLA-DMB &gt;= 1.76 -&gt; res1.2_5 0.03888889</span></span>
+<span><span class="co">#&gt; 97  res0.6_2 backup           CFP           CFP &gt;= 3.01 -&gt; res1.2_5 0.01666667</span></span>
+<span><span class="co">#&gt; 98  res0.6_2 backup      APOBEC3A      APOBEC3A &gt;= 2.87 -&gt; res1.2_5 0.01666667</span></span>
+<span><span class="co">#&gt; 99  res0.6_2 backup         PSME2          PSME2 &gt;= 2.8 -&gt; res1.2_5 0.01111111</span></span>
+<span><span class="co">#&gt; 100 res0.6_2 backup           BID           BID &gt;= 3.35 -&gt; res1.2_5 0.01111111</span></span>
+<span><span class="co">#&gt; 101 res0.6_2    key          LSP1         LSP1 &gt;= 0.566 -&gt; res1.2_5         NA</span></span>
+<span><span class="co">#&gt; 102 res0.6_2 backup      HLA-DPB1     HLA-DPB1 &gt;= 0.516 -&gt; res1.2_5 0.15094340</span></span>
+<span><span class="co">#&gt; 103 res0.6_2 backup      SERPINA1     SERPINA1 &gt;= 0.551 -&gt; res1.2_5 0.09433962</span></span>
+<span><span class="co">#&gt; 104 res0.6_2 backup          SPI1         SPI1 &gt;= 0.516 -&gt; res1.2_5 0.07547170</span></span>
+<span><span class="co">#&gt; 105 res0.6_2 backup          ENO1         ENO1 &gt;= 0.627 -&gt; res1.2_5 0.07547170</span></span>
+<span><span class="co">#&gt; 106 res0.6_2 backup          CPVL          CPVL &gt;= 3.11 -&gt; res1.2_4 0.05660377</span></span>
+<span><span class="co">#&gt; 107 res0.6_2 backup      APOBEC3A      APOBEC3A &gt;= 3.61 -&gt; res1.2_4 0.03773585</span></span>
+<span><span class="co">#&gt; 108 res0.6_2 backup     HNRNPA2B1    HNRNPA2B1 &gt;= 0.583 -&gt; res1.2_5 0.01886792</span></span>
+<span><span class="co">#&gt; 109 res0.6_2 backup       HLA-DMB       HLA-DMB &gt;= 2.38 -&gt; res1.2_4 0.01886792</span></span>
+<span><span class="co">#&gt; 110 res0.6_2 backup          CTSB          CTSB &gt;= 2.85 -&gt; res1.2_4 0.01886792</span></span>
+<span><span class="co">#&gt; 111 res0.6_2 backup          CAP1          CAP1 &gt;= 2.19 -&gt; res1.2_4 0.01886792</span></span>
 <span><span class="co">#&gt;     rank       auc pct.1 pct.2  pattern</span></span>
-<span><span class="co">#&gt; 1      1 0.9909703 0.986 0.190  lineage</span></span>
-<span><span class="co">#&gt; 2      2 0.9785064 0.984 0.470  lineage</span></span>
-<span><span class="co">#&gt; 3      5 0.9642770 0.949 0.171  lineage</span></span>
-<span><span class="co">#&gt; 4      4 0.9647825 0.946 0.148  lineage</span></span>
-<span><span class="co">#&gt; 5      3 0.9771501 0.975 0.193  lineage</span></span>
-<span><span class="co">#&gt; 6      7 0.9523279 0.932 0.154  lineage</span></span>
-<span><span class="co">#&gt; 7     14 0.9224374 0.868 0.094  lineage</span></span>
-<span><span class="co">#&gt; 8      6 0.9564559 0.965 0.304  lineage</span></span>
-<span><span class="co">#&gt; 9     11 0.9391334 0.917 0.147  lineage</span></span>
-<span><span class="co">#&gt; 10    12 0.9339438 0.941 0.375  lineage</span></span>
-<span><span class="co">#&gt; 11     8 0.9468544 0.971 0.509  lineage</span></span>
-<span><span class="co">#&gt; 12     1 0.9831001 0.979 0.163  lineage</span></span>
-<span><span class="co">#&gt; 13     2 0.9166861 0.854 0.065  lineage</span></span>
-<span><span class="co">#&gt; 14     4 0.9154534 0.856 0.066  lineage</span></span>
-<span><span class="co">#&gt; 15     5 0.9063490 0.882 0.204  lineage</span></span>
-<span><span class="co">#&gt; 16     6 0.8169571 0.661 0.055    split</span></span>
-<span><span class="co">#&gt; 17     3 0.9165286 0.891 0.181  lineage</span></span>
-<span><span class="co">#&gt; 18     9 0.7569552 0.535 0.038    split</span></span>
-<span><span class="co">#&gt; 19    11 0.7509507 0.517 0.029    split</span></span>
-<span><span class="co">#&gt; 20    12 0.7411150 0.538 0.109    split</span></span>
-<span><span class="co">#&gt; 21     7 0.7914019 0.672 0.159  lineage</span></span>
-<span><span class="co">#&gt; 22    34 0.8146516 0.900 0.492  lineage</span></span>
-<span><span class="co">#&gt; 23     2 0.9611631 1.000 0.495 specific</span></span>
-<span><span class="co">#&gt; 24     4 0.9328918 0.985 0.449 specific</span></span>
-<span><span class="co">#&gt; 25     7 0.9045690 0.980 0.382 specific</span></span>
-<span><span class="co">#&gt; 26     1 0.9650263 0.936 0.042 specific</span></span>
-<span><span class="co">#&gt; 27     9 0.8966681 0.980 0.421 specific</span></span>
-<span><span class="co">#&gt; 28     3 0.9417994 0.912 0.143 specific</span></span>
-<span><span class="co">#&gt; 29     6 0.9189845 0.886 0.119 specific</span></span>
-<span><span class="co">#&gt; 30     5 0.9212290 0.857 0.053 specific</span></span>
-<span><span class="co">#&gt; 31    10 0.8309098 0.851 0.277 specific</span></span>
-<span><span class="co">#&gt; 32     8 0.9024511 0.860 0.149 specific</span></span>
-<span><span class="co">#&gt; 33    11 0.8059306 0.623 0.022 specific</span></span>
-<span><span class="co">#&gt; 34     2 0.7020618 0.610 0.220  lineage</span></span>
-<span><span class="co">#&gt; 35     1 0.7178288 0.790 0.423  lineage</span></span>
-<span><span class="co">#&gt; 36     5 0.6738379 0.780 0.472  lineage</span></span>
-<span><span class="co">#&gt; 37     3 0.6776068 0.643 0.290  lineage</span></span>
-<span><span class="co">#&gt; 38     4 0.6753922 0.775 0.443  lineage</span></span>
-<span><span class="co">#&gt; 39     1 0.9364576 0.904 0.129  lineage</span></span>
-<span><span class="co">#&gt; 40     2 0.8542727 0.809 0.178  lineage</span></span>
-<span><span class="co">#&gt; 41     4 0.7838999 0.736 0.256  lineage</span></span>
-<span><span class="co">#&gt; 42     1 0.9510589 0.973 0.467  lineage</span></span>
-<span><span class="co">#&gt; 43     2 0.8785279 0.904 0.349  lineage</span></span>
-<span><span class="co">#&gt; 44     6 0.7426648 0.551 0.066  lineage</span></span>
-<span><span class="co">#&gt; 45    10 0.7268807 0.534 0.094  lineage</span></span>
-<span><span class="co">#&gt; 46     5 0.7617517 0.758 0.283  lineage</span></span>
-<span><span class="co">#&gt; 47    15 0.6984232 0.657 0.299  lineage</span></span>
-<span><span class="co">#&gt; 48     7 0.7399710 0.646 0.174  lineage</span></span>
-<span><span class="co">#&gt; 49    20 0.6792980 0.500 0.129  lineage</span></span>
-<span><span class="co">#&gt; 50     1 0.9510589 0.973 0.467  lineage</span></span>
-<span><span class="co">#&gt; 51     1 0.9366033 0.941 0.270 specific</span></span>
-<span><span class="co">#&gt; 52     2 0.9305282 0.941 0.302 specific</span></span>
-<span><span class="co">#&gt; 53     3 0.9079986 0.824 0.011 specific</span></span>
-<span><span class="co">#&gt; 54     4 0.8589266 0.794 0.142 specific</span></span>
-<span><span class="co">#&gt; 55    21 0.7350924 1.000 0.573    split</span></span>
-<span><span class="co">#&gt; 56    31 0.6516415 0.528 0.217  lineage</span></span>
-<span><span class="co">#&gt; 57    16 0.7456286 0.500 0.008    split</span></span>
-<span><span class="co">#&gt; 58    11 0.7120787 0.646 0.248  lineage</span></span>
-<span><span class="co">#&gt; 59    11 0.7569943 0.529 0.020    split</span></span>
-<span><span class="co">#&gt; 60    22 0.7339939 0.853 0.459    split</span></span>
-<span><span class="co">#&gt; 61     3 0.9079986 0.824 0.011 specific</span></span>
-<span><span class="co">#&gt; 62     1 0.9366033 0.941 0.270 specific</span></span>
-<span><span class="co">#&gt; 63     6 0.8143158 0.676 0.056 specific</span></span>
-<span><span class="co">#&gt; 64     2 0.9305282 0.941 0.302 specific</span></span>
-<span><span class="co">#&gt; 65    16 0.7456286 0.500 0.008    split</span></span>
-<span><span class="co">#&gt; 66     2 0.9305282 0.941 0.302 specific</span></span>
-<span><span class="co">#&gt; 67     1 0.9366033 0.941 0.270 specific</span></span>
-<span><span class="co">#&gt; 68     6 0.8143158 0.676 0.056 specific</span></span>
-<span><span class="co">#&gt; 69     3 0.9079986 0.824 0.011 specific</span></span>
-<span><span class="co">#&gt; 70     4 0.8589266 0.794 0.142 specific</span></span>
-<span><span class="co">#&gt; 71     7 0.7785599 0.882 0.303 specific</span></span>
-<span><span class="co">#&gt; 72    11 0.7569943 0.529 0.020    split</span></span>
-<span><span class="co">#&gt; 73     5 0.8358590 1.000 0.509 specific</span></span>
-<span><span class="co">#&gt; 74     8 0.7724175 0.765 0.230    split</span></span>
-<span><span class="co">#&gt; 75     9 0.7710276 1.000 0.668 specific</span></span>
-<span><span class="co">#&gt; 76    14 0.7542817 0.853 0.316    split</span></span>
-<span><span class="co">#&gt; 77     2 0.8785279 0.904 0.349  lineage</span></span>
-<span><span class="co">#&gt; 78     1 0.9510589 0.973 0.467  lineage</span></span>
-<span><span class="co">#&gt; 79     3 0.7954626 0.665 0.165  lineage</span></span>
-<span><span class="co">#&gt; 80     8 0.7724175 0.765 0.230    split</span></span>
-<span><span class="co">#&gt; 81     1 0.9446616 0.972 0.333 specific</span></span>
-<span><span class="co">#&gt; 82     2 0.9183432 0.972 0.520 specific</span></span>
-<span><span class="co">#&gt; 83     4 0.8904810 0.950 0.340 specific</span></span>
-<span><span class="co">#&gt; 84     5 0.8885391 0.844 0.129    split</span></span>
-<span><span class="co">#&gt; 85     3 0.9097795 0.908 0.214    split</span></span>
-<span><span class="co">#&gt; 86     1 0.8885029 0.844 0.099    split</span></span>
-<span><span class="co">#&gt; 87     7 0.8709292 0.872 0.255 specific</span></span>
-<span><span class="co">#&gt; 88     6 0.8761760 0.922 0.327 specific</span></span>
-<span><span class="co">#&gt; 89     9 0.8265909 0.745 0.160 specific</span></span>
-<span><span class="co">#&gt; 90    11 0.7740869 0.567 0.027    split</span></span>
-<span><span class="co">#&gt; 91     8 0.8368191 0.872 0.456 specific</span></span>
-<span><span class="co">#&gt; 92    11 0.7740869 0.567 0.027    split</span></span>
-<span><span class="co">#&gt; 93     6 0.8761760 0.922 0.327 specific</span></span>
-<span><span class="co">#&gt; 94     2 0.9183432 0.972 0.520 specific</span></span>
-<span><span class="co">#&gt; 95     3 0.9097795 0.908 0.214    split</span></span>
-<span><span class="co">#&gt; 96     5 0.8885391 0.844 0.129    split</span></span>
-<span><span class="co">#&gt; 97     9 0.8265909 0.745 0.160 specific</span></span>
-<span><span class="co">#&gt; 98    18 0.7107879 0.652 0.262    split</span></span>
-<span><span class="co">#&gt; 99     1 0.8885029 0.844 0.099    split</span></span>
-<span><span class="co">#&gt; 100    4 0.8904810 0.950 0.340 specific</span></span>
-<span><span class="co">#&gt; 101    3 0.9097795 0.908 0.214    split</span></span>
-<span><span class="co">#&gt; 102    5 0.7046726 0.735 0.390    split</span></span>
-<span><span class="co">#&gt; 103    1 0.9446616 0.972 0.333 specific</span></span>
-<span><span class="co">#&gt; 104    2 0.9183432 0.972 0.520 specific</span></span>
-<span><span class="co">#&gt; 105    2 0.7842548 0.905 0.582    split</span></span>
-<span><span class="co">#&gt; 106    7 0.6904521 0.718 0.376    split</span></span>
-<span><span class="co">#&gt; 107    1 0.8987633 0.900 0.387 specific</span></span>
-<span><span class="co">#&gt; 108    5 0.7733804 0.600 0.072    split</span></span>
-<span><span class="co">#&gt; 109    6 0.7499411 0.533 0.055    split</span></span>
-<span><span class="co">#&gt; 110    3 0.8469376 0.800 0.322 specific</span></span>
-<span><span class="co">#&gt; 111    2 0.8747055 0.833 0.201 specific</span></span>
-<span><span class="co">#&gt; 112    7 0.7393698 0.633 0.260    split</span></span>
-<span><span class="co">#&gt; 113    4 0.7758245 0.633 0.125    split</span></span>
-<span><span class="co">#&gt; 114   11 0.7102768 0.633 0.304    split</span></span>
-<span><span class="co">#&gt; 115   12 0.7048292 0.500 0.118    split</span></span>
-<span><span class="co">#&gt; 116    9 0.7316254 0.667 0.281    split</span></span>
-<span><span class="co">#&gt; 117   10 0.7158716 0.567 0.178    split</span></span>
-<span><span class="co">#&gt; 118    3 0.8469376 0.800 0.322 specific</span></span>
-<span><span class="co">#&gt; 119    2 0.8747055 0.833 0.201 specific</span></span>
-<span><span class="co">#&gt; 120    1 0.8987633 0.900 0.387 specific</span></span>
-<span><span class="co">#&gt; 121    7 0.7393698 0.633 0.260    split</span></span>
-<span><span class="co">#&gt; 122    9 0.7316254 0.667 0.281    split</span></span>
-<span><span class="co">#&gt; 123    3 0.6988579 0.628 0.204    split</span></span>
-<span><span class="co">#&gt; 124    2 0.7370397 0.884 0.520 specific</span></span>
-<span><span class="co">#&gt; 125    4 0.6903883 0.533 0.135    split</span></span>
-<span><span class="co">#&gt; 126    7 0.6642577 0.704 0.335    split</span></span>
-<span><span class="co">#&gt; 127    1 0.7465875 0.930 0.629    split</span></span>
-<span><span class="co">#&gt; 128   12 0.6539973 0.518 0.189    split</span></span>
-<span><span class="co">#&gt; 129    8 0.6614253 0.618 0.291    split</span></span>
-<span><span class="co">#&gt; 130    9 0.6597899 0.849 0.491 specific</span></span>
-<span><span class="co">#&gt; 131   14 0.6477935 0.729 0.396    split</span></span>
-<span><span class="co">#&gt; 132   19 0.6378712 0.518 0.218    split</span></span>
-<span><span class="co">#&gt; 133   20 0.6359159 0.709 0.396    split</span></span></code></pre></div>
+<span><span class="co">#&gt; 1      1 0.9949351 0.994 0.195  lineage</span></span>
+<span><span class="co">#&gt; 2      2 0.9895390 0.997 0.471  lineage</span></span>
+<span><span class="co">#&gt; 3      5 0.9754928 0.969 0.172  lineage</span></span>
+<span><span class="co">#&gt; 4      4 0.9774979 0.969 0.148  lineage</span></span>
+<span><span class="co">#&gt; 5      3 0.9889981 0.996 0.194  lineage</span></span>
+<span><span class="co">#&gt; 6      7 0.9632456 0.951 0.155  lineage</span></span>
+<span><span class="co">#&gt; 7     14 0.9334386 0.888 0.095  lineage</span></span>
+<span><span class="co">#&gt; 8      6 0.9680162 0.984 0.304  lineage</span></span>
+<span><span class="co">#&gt; 9     10 0.9466673 0.931 0.150  lineage</span></span>
+<span><span class="co">#&gt; 10    11 0.9459411 0.957 0.375  lineage</span></span>
+<span><span class="co">#&gt; 11     8 0.9530627 0.981 0.510  lineage</span></span>
+<span><span class="co">#&gt; 12     1 0.9845224 0.982 0.162  lineage</span></span>
+<span><span class="co">#&gt; 13     2 0.9167120 0.854 0.065  lineage</span></span>
+<span><span class="co">#&gt; 14     3 0.9150898 0.856 0.066  lineage</span></span>
+<span><span class="co">#&gt; 15     5 0.9059202 0.882 0.204    split</span></span>
+<span><span class="co">#&gt; 16     4 0.9143440 0.886 0.182  lineage</span></span>
+<span><span class="co">#&gt; 17     6 0.8167675 0.661 0.055    split</span></span>
+<span><span class="co">#&gt; 18    10 0.7557194 0.533 0.038    split</span></span>
+<span><span class="co">#&gt; 19    12 0.7438352 0.542 0.108    split</span></span>
+<span><span class="co">#&gt; 20    11 0.7496957 0.515 0.029    split</span></span>
+<span><span class="co">#&gt; 21     7 0.7900273 0.670 0.160  lineage</span></span>
+<span><span class="co">#&gt; 22    36 0.8097987 0.900 0.496  lineage</span></span>
+<span><span class="co">#&gt; 23     2 0.9609129 1.000 0.494 specific</span></span>
+<span><span class="co">#&gt; 24     4 0.9320859 0.985 0.449 specific</span></span>
+<span><span class="co">#&gt; 25     1 0.9636077 0.933 0.042 specific</span></span>
+<span><span class="co">#&gt; 26     7 0.9060587 0.983 0.381 specific</span></span>
+<span><span class="co">#&gt; 27     9 0.8971996 0.980 0.421 specific</span></span>
+<span><span class="co">#&gt; 28     3 0.9400781 0.910 0.143 specific</span></span>
+<span><span class="co">#&gt; 29     5 0.9191331 0.887 0.118 specific</span></span>
+<span><span class="co">#&gt; 30     6 0.9169364 0.849 0.054 specific</span></span>
+<span><span class="co">#&gt; 31    10 0.8325472 0.855 0.276 specific</span></span>
+<span><span class="co">#&gt; 32     8 0.9011672 0.858 0.148 specific</span></span>
+<span><span class="co">#&gt; 33    11 0.8058110 0.622 0.022 specific</span></span>
+<span><span class="co">#&gt; 34     3 0.9889981 0.996 0.194  lineage</span></span>
+<span><span class="co">#&gt; 35     4 0.9774979 0.969 0.148  lineage</span></span>
+<span><span class="co">#&gt; 36     7 0.9632456 0.951 0.155  lineage</span></span>
+<span><span class="co">#&gt; 37    17 0.9038055 0.835 0.086    split</span></span>
+<span><span class="co">#&gt; 38     2 0.9895390 0.997 0.471  lineage</span></span>
+<span><span class="co">#&gt; 39     9 0.9491426 0.957 0.154  lineage</span></span>
+<span><span class="co">#&gt; 40     5 0.9754928 0.969 0.172  lineage</span></span>
+<span><span class="co">#&gt; 41    14 0.9334386 0.888 0.095  lineage</span></span>
+<span><span class="co">#&gt; 42    18 0.8909943 0.799 0.036  lineage</span></span>
+<span><span class="co">#&gt; 43    19 0.8760032 0.887 0.314  lineage</span></span>
+<span><span class="co">#&gt; 44    32 0.8313882 0.697 0.049  lineage</span></span>
+<span><span class="co">#&gt; 45     2 0.7048490 0.607 0.214  lineage</span></span>
+<span><span class="co">#&gt; 46     1 0.7215937 0.786 0.415  lineage</span></span>
+<span><span class="co">#&gt; 47     4 0.6809188 0.773 0.469  lineage</span></span>
+<span><span class="co">#&gt; 48     5 0.6794412 0.634 0.285  lineage</span></span>
+<span><span class="co">#&gt; 49     3 0.6845992 0.775 0.432  lineage</span></span>
+<span><span class="co">#&gt; 50     1 0.9790409 0.982 0.128 specific</span></span>
+<span><span class="co">#&gt; 51     2 0.9369052 1.000 0.693 specific</span></span>
+<span><span class="co">#&gt; 52     1 0.9471677 0.973 0.495  lineage</span></span>
+<span><span class="co">#&gt; 53     3 0.8806640 0.859 0.175 specific</span></span>
+<span><span class="co">#&gt; 54     2 0.8699831 0.904 0.381  lineage</span></span>
+<span><span class="co">#&gt; 55    13 0.7490157 0.521 0.022    split</span></span>
+<span><span class="co">#&gt; 56     4 0.8184689 0.798 0.258 specific</span></span>
+<span><span class="co">#&gt; 57     8 0.7648966 0.595 0.067    split</span></span>
+<span><span class="co">#&gt; 58    12 0.7490761 0.577 0.093    split</span></span>
+<span><span class="co">#&gt; 59     6 0.7952394 0.822 0.285 specific</span></span>
+<span><span class="co">#&gt; 60    23 0.7070190 0.509 0.085    split</span></span>
+<span><span class="co">#&gt; 61     3 0.9318044 0.871 0.011 specific</span></span>
+<span><span class="co">#&gt; 62     2 0.9586946 0.968 0.273 specific</span></span>
+<span><span class="co">#&gt; 63     1 0.9690776 1.000 0.308 specific</span></span>
+<span><span class="co">#&gt; 64     9 0.7826361 0.581 0.020    split</span></span>
+<span><span class="co">#&gt; 65     5 0.8468750 0.742 0.058 specific</span></span>
+<span><span class="co">#&gt; 66     4 0.8997480 0.871 0.144 specific</span></span>
+<span><span class="co">#&gt; 67    12 0.7581149 0.839 0.288    split</span></span>
+<span><span class="co">#&gt; 68     1 0.9301440 0.949 0.315 specific</span></span>
+<span><span class="co">#&gt; 69     1 0.9006393 0.880 0.108    split</span></span>
+<span><span class="co">#&gt; 70     3 0.9177629 0.898 0.178    split</span></span>
+<span><span class="co">#&gt; 71     4 0.8955968 0.828 0.098    split</span></span>
+<span><span class="co">#&gt; 72     2 0.9253439 0.943 0.312 specific</span></span>
+<span><span class="co">#&gt; 73    12 0.7636158 0.535 0.014    split</span></span>
+<span><span class="co">#&gt; 74     5 0.8767885 0.936 0.518 specific</span></span>
+<span><span class="co">#&gt; 75     6 0.8386758 0.822 0.250 specific</span></span>
+<span><span class="co">#&gt; 76     5 0.7093834 0.957 0.529 specific</span></span>
+<span><span class="co">#&gt; 77    10 0.8061825 0.707 0.149 specific</span></span>
+<span><span class="co">#&gt; 78    18 0.7001985 0.548 0.185    split</span></span>
+<span><span class="co">#&gt; 79     3 0.9177629 0.898 0.178    split</span></span>
+<span><span class="co">#&gt; 80     4 0.8955968 0.828 0.098    split</span></span>
+<span><span class="co">#&gt; 81     9 0.8135096 0.847 0.442 specific</span></span>
+<span><span class="co">#&gt; 82     2 0.9253439 0.943 0.312 specific</span></span>
+<span><span class="co">#&gt; 83     6 0.8386758 0.822 0.250 specific</span></span>
+<span><span class="co">#&gt; 84     7 0.8371527 0.866 0.322 specific</span></span>
+<span><span class="co">#&gt; 85    11 0.7834395 0.854 0.453 specific</span></span>
+<span><span class="co">#&gt; 86    12 0.7636158 0.535 0.014    split</span></span>
+<span><span class="co">#&gt; 87    10 0.8061825 0.707 0.149 specific</span></span>
+<span><span class="co">#&gt; 88    14 0.7307186 0.554 0.127    split</span></span>
+<span><span class="co">#&gt; 89    18 0.7001985 0.548 0.185    split</span></span>
+<span><span class="co">#&gt; 90     3 0.6991144 0.625 0.203    split</span></span>
+<span><span class="co">#&gt; 91     2 0.7307934 0.885 0.517    split</span></span>
+<span><span class="co">#&gt; 92     4 0.6871771 0.525 0.133    split</span></span>
+<span><span class="co">#&gt; 93    21 0.6339945 0.650 0.332    split</span></span>
+<span><span class="co">#&gt; 94     8 0.6706642 0.710 0.328    split</span></span>
+<span><span class="co">#&gt; 95     1 0.7520664 0.930 0.624    split</span></span>
+<span><span class="co">#&gt; 96    17 0.6423801 0.505 0.196    split</span></span>
+<span><span class="co">#&gt; 97     9 0.6598432 0.845 0.487 specific</span></span>
+<span><span class="co">#&gt; 98    10 0.6559594 0.615 0.295    split</span></span>
+<span><span class="co">#&gt; 99    24 0.6327306 0.780 0.480    split</span></span>
+<span><span class="co">#&gt; 100   32 0.6120572 0.600 0.288    split</span></span>
+<span><span class="co">#&gt; 101    7 0.6742528 0.825 0.446    split</span></span>
+<span><span class="co">#&gt; 102    1 0.7520664 0.930 0.624    split</span></span>
+<span><span class="co">#&gt; 103   18 0.6417897 0.900 0.572 specific</span></span>
+<span><span class="co">#&gt; 104   11 0.6534133 0.830 0.476 specific</span></span>
+<span><span class="co">#&gt; 105   14 0.6470480 0.830 0.458    split</span></span>
+<span><span class="co">#&gt; 106    3 0.6991144 0.625 0.203    split</span></span>
+<span><span class="co">#&gt; 107   10 0.6559594 0.615 0.295    split</span></span>
+<span><span class="co">#&gt; 108    8 0.6706642 0.710 0.328    split</span></span>
+<span><span class="co">#&gt; 109   17 0.6423801 0.505 0.196    split</span></span>
+<span><span class="co">#&gt; 110   20 0.6363561 0.710 0.391    split</span></span>
+<span><span class="co">#&gt; 111   22 0.6332288 0.575 0.247    split</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hm</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">tree</span></span></code></pre></div>
 <p><img src="OHMmy-differential-expression_files/figure-html/hier-tree-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hm</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">dotplot</span></span></code></pre></div>
 <p><img src="OHMmy-differential-expression_files/figure-html/hier-dot-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p>A single key gene can drop out: it reads 0 in a cell that does
+express it, and the cell is sent the wrong way. With the
+<strong>vote</strong>, the key gene and its backup genes decide
+together. Each backup gene counts by its <code>agreement</code> with the
+key gene, and only backups with
+<code>agreement &gt;= vote_min_agreement</code> (0.3) vote.
+<code>hm$vote$splits</code> compares the one-gene key with the vote,
+overall and on “possible dropouts” (cells of a key question’s high side
+that have no expression of its key gene). Every marker also carries
+<code>auc_vs_all</code> and <code>global</code>: a marker that is not
+global is only higher than its siblings, not high compared with the
+whole object.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hm</span><span class="op">$</span><span class="va">vote</span><span class="op">$</span><span class="va">splits</span></span>
+<span><span class="co">#&gt;      split n_voting_genes accuracy_one_gene accuracy_vote n_possible_dropouts</span></span>
+<span><span class="co">#&gt; 1     root             43         0.9681577     0.9583017                  14</span></span>
+<span><span class="co">#&gt; 2 res0.2_0              1         0.6893874     0.6893874                 246</span></span>
+<span><span class="co">#&gt; 3 res0.2_1             11         0.9388972     0.9388972                   7</span></span>
+<span><span class="co">#&gt; 4 res0.2_2             14         0.9237875     0.9538106                  21</span></span>
+<span><span class="co">#&gt; 5 res0.6_0              0         0.9603960     0.9603960                   0</span></span>
+<span><span class="co">#&gt; 6 res0.6_1              0         0.7462406     0.7462406                   0</span></span>
+<span><span class="co">#&gt; 7 res0.6_2              2         0.7600849     0.7600849                  93</span></span>
+<span><span class="co">#&gt;   accuracy_one_gene_dropouts accuracy_vote_dropouts</span></span>
+<span><span class="co">#&gt; 1                  0.3571429              0.4285714</span></span>
+<span><span class="co">#&gt; 2                  0.0000000              0.0000000</span></span>
+<span><span class="co">#&gt; 3                  0.0000000              0.1428571</span></span>
+<span><span class="co">#&gt; 4                  0.6666667              0.5714286</span></span>
+<span><span class="co">#&gt; 5                         NA                     NA</span></span>
+<span><span class="co">#&gt; 6                         NA                     NA</span></span>
+<span><span class="co">#&gt; 7                  0.0000000              0.0000000</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>one_gene <span class="op">=</span> <span class="va">hm</span><span class="op">$</span><span class="va">key_accuracy</span>, vote <span class="op">=</span> <span class="va">hm</span><span class="op">$</span><span class="va">vote</span><span class="op">$</span><span class="va">key_accuracy</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  one_gene      vote </span></span>
+<span><span class="co">#&gt; 0.7156937 0.7024261</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="tracking-markers-down-the-tree-to-annotate-clusters">Tracking markers down the tree to annotate clusters<a class="anchor" aria-label="anchor" href="#tracking-markers-down-the-tree-to-annotate-clusters"></a>
+</h3>
+<p><code><a href="../reference/track_cluster_markers.html">track_cluster_markers()</a></code> reuses the result above and
+follows each marker down the tree. <code>gene_paths</code> shows where
+each gene first marks a cluster, in how many of the final clusters below
+it the gene is still detected, and where it is lost
+(<code>stops_at</code>). <code>annotation</code> suggests a label for
+every cluster, built from the top marker of each split on the way from
+the root (for example <code>CST3+ &gt; FCGR3A+</code>). A label is
+<code>ambiguous</code> when a step has no marker, a weak marker, only
+relative markers or low purity, and <code>reason</code> says which. The
+labels are suggestions to be checked against known biology.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/track_cluster_markers.html">track_cluster_markers</a></span><span class="op">(</span></span>
+<span>  seurat_obj  <span class="op">=</span> <span class="va">pbmc</span>,</span>
+<span>  hier        <span class="op">=</span> <span class="va">hm</span>,</span>
+<span>  sample_name <span class="op">=</span> <span class="st">"pbmc3k"</span>,</span>
+<span>  output_dir  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"track_markers"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tm</span><span class="op">$</span><span class="va">annotation</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_final</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">node</span>, <span class="va">path_label</span>, <span class="va">status</span>, <span class="va">reason</span>, <span class="va">own_markers</span><span class="op">)</span></span>
+<span><span class="co">#&gt;         node                  path_label    status</span></span>
+<span><span class="co">#&gt; 1   res0.6_8                   LDHB+ &gt; ? ambiguous</span></span>
+<span><span class="co">#&gt; 2   res1.2_0          LDHB+ &gt; ANXA1+ &gt; ? ambiguous</span></span>
+<span><span class="co">#&gt; 3   res1.2_1          LDHB+ &gt; ? &gt; RGS10+ ambiguous</span></span>
+<span><span class="co">#&gt; 4   res1.2_2                      CD79A+ suggested</span></span>
+<span><span class="co">#&gt; 5   res1.2_3               NKG7+ &gt; CD3D+ suggested</span></span>
+<span><span class="co">#&gt; 6   res1.2_4         CST3+ &gt; S100A8+ &gt; ? ambiguous</span></span>
+<span><span class="co">#&gt; 7   res1.2_5 CST3+ &gt; S100A8+ &gt; HLA-DPB1+ ambiguous</span></span>
+<span><span class="co">#&gt; 8   res1.2_6             CST3+ &gt; FCGR3A+ suggested</span></span>
+<span><span class="co">#&gt; 9   res1.2_7               LDHB+ &gt; ? &gt; ? ambiguous</span></span>
+<span><span class="co">#&gt; 10  res1.2_8               NKG7+ &gt; GNLY+ suggested</span></span>
+<span><span class="co">#&gt; 11  res1.2_9           CST3+ &gt; HLA-DQB1+ suggested</span></span>
+<span><span class="co">#&gt; 12 res1.2_10      LDHB+ &gt; ANXA1+ &gt; IFI6+ ambiguous</span></span>
+<span><span class="co">#&gt;                                                                                reason</span></span>
+<span><span class="co">#&gt; 1                                                   too few cells to test at res0.2_0</span></span>
+<span><span class="co">#&gt; 2  no markers at res0.6_0; weak marker at res0.2_0; only relative markers at res0.2_0</span></span>
+<span><span class="co">#&gt; 3  no markers at res0.2_0; weak marker at res0.6_1; only relative markers at res0.6_1</span></span>
+<span><span class="co">#&gt; 4                                                                                    </span></span>
+<span><span class="co">#&gt; 5                                                                                    </span></span>
+<span><span class="co">#&gt; 6                                                              no markers at res0.6_2</span></span>
+<span><span class="co">#&gt; 7                                                             weak marker at res0.6_2</span></span>
+<span><span class="co">#&gt; 8                                                                                    </span></span>
+<span><span class="co">#&gt; 9                                                    no markers at res0.2_0, res0.6_1</span></span>
+<span><span class="co">#&gt; 10                                                                                   </span></span>
+<span><span class="co">#&gt; 11                                                                                   </span></span>
+<span><span class="co">#&gt; 12                         weak marker at res0.2_0; only relative markers at res0.2_0</span></span>
+<span><span class="co">#&gt;                                      own_markers</span></span>
+<span><span class="co">#&gt; 1                                               </span></span>
+<span><span class="co">#&gt; 2                                               </span></span>
+<span><span class="co">#&gt; 3                                               </span></span>
+<span><span class="co">#&gt; 4      CD79A, HLA-DRA, CD79B, HLA-DPB1, HLA-DQA1</span></span>
+<span><span class="co">#&gt; 5                   CD3D, GZMK, CD8A, IL32, CCL5</span></span>
+<span><span class="co">#&gt; 6                                               </span></span>
+<span><span class="co">#&gt; 7          HLA-DPB1, HLA-DRB5, CPVL, IFITM3, CFP</span></span>
+<span><span class="co">#&gt; 8            FCGR3A, IFITM2, RHOC, MS4A7, NAP1L1</span></span>
+<span><span class="co">#&gt; 9                                               </span></span>
+<span><span class="co">#&gt; 10              GNLY, GZMB, TYROBP, FCER1G, PRF1</span></span>
+<span><span class="co">#&gt; 11 HLA-DQB1, HLA-DQA1, FCER1A, HLA-DQA2, CLEC10A</span></span>
+<span><span class="co">#&gt; 12                 IFI6, MX1, ISG15, ISG20, OAS1</span></span>
+<span><span class="va">tm</span><span class="op">$</span><span class="va">gene_paths</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">gene</span>, <span class="va">start_node</span>, <span class="va">kind</span>, <span class="va">auc_at_start</span>, <span class="va">n_final</span>, <span class="va">n_final_on</span>, <span class="va">stops_at</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;     gene start_node    kind auc_at_start n_final n_final_on</span></span>
+<span><span class="co">#&gt; 1   LDHB   res0.2_0 lineage    0.8632840       5          4</span></span>
+<span><span class="co">#&gt; 2   CD3D   res0.2_0 lineage    0.8168990       5          4</span></span>
+<span><span class="co">#&gt; 3    LTB   res0.2_0 lineage    0.7732978       5          4</span></span>
+<span><span class="co">#&gt; 4   CD3E   res0.2_0 lineage    0.7690841       5          4</span></span>
+<span><span class="co">#&gt; 5   IL7R   res0.2_0 lineage    0.7451996       5          3</span></span>
+<span><span class="co">#&gt; 6   IL32   res0.2_0 lineage    0.7450146       5          4</span></span>
+<span><span class="co">#&gt; 7  NOSIP   res0.2_0 lineage    0.7158996       5          2</span></span>
+<span><span class="co">#&gt; 8    AES   res0.2_0 lineage    0.6783262       5          2</span></span>
+<span><span class="co">#&gt; 9    CD2   res0.2_0 lineage    0.6716014       5          2</span></span>
+<span><span class="co">#&gt; 10   LCK   res0.2_0 lineage    0.6588651       5          3</span></span>
+<span><span class="co">#&gt;                         stops_at</span></span>
+<span><span class="co">#&gt; 1                       res0.6_8</span></span>
+<span><span class="co">#&gt; 2                       res0.6_8</span></span>
+<span><span class="co">#&gt; 3                       res0.6_8</span></span>
+<span><span class="co">#&gt; 4                       res0.6_8</span></span>
+<span><span class="co">#&gt; 5             res0.6_8, res1.2_7</span></span>
+<span><span class="co">#&gt; 6                       res0.6_8</span></span>
+<span><span class="co">#&gt; 7  res0.6_8, res1.2_10, res1.2_7</span></span>
+<span><span class="co">#&gt; 8  res0.6_8, res1.2_10, res1.2_7</span></span>
+<span><span class="co">#&gt; 9             res0.6_1, res0.6_8</span></span>
+<span><span class="co">#&gt; 10            res0.6_1, res0.6_8</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tm</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">tree</span></span></code></pre></div>
+<p><img src="OHMmy-differential-expression_files/figure-html/track-tree-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p>The heatmap shows every tracked gene at every cluster, coloured by
+its AUC against all other cells. A lineage marker appears as a block
+that switches on at a branch and stays on below it.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tm</span><span class="op">$</span><span class="va">plots</span><span class="op">$</span><span class="va">heatmap</span></span></code></pre></div>
+<p><img src="OHMmy-differential-expression_files/figure-html/track-heatmap-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level2">
@@ -603,7 +692,7 @@ the columns <code>gene</code>, <code>cluster</code>,
 <code>pct.1 - pct.2</code>) and an identifier column.</p>
 <p>Here we compute cluster markers separately for each of the six
 severity-by-batch groups of the simulated cohort.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pbmc</span><span class="op">$</span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">severity</span>, <span class="va">pbmc</span><span class="op">$</span><span class="va">batch</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">marker_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">group</span><span class="op">)</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">g</span><span class="op">)</span> <span class="op">{</span></span>
@@ -615,12 +704,12 @@ severity-by-batch groups of the simulated cohort.</p>
 <span></span>
 <span><span class="va">marker_tbl</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">group</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             group    n</span></span>
-<span><span class="co">#&gt; 1 Healthy_Batch_1 3639</span></span>
-<span><span class="co">#&gt; 2 Healthy_Batch_2 2653</span></span>
-<span><span class="co">#&gt; 3    Mild_Batch_1 4279</span></span>
-<span><span class="co">#&gt; 4    Mild_Batch_2 3897</span></span>
-<span><span class="co">#&gt; 5  Severe_Batch_1 4086</span></span>
-<span><span class="co">#&gt; 6  Severe_Batch_2 3867</span></span></code></pre></div>
+<span><span class="co">#&gt; 1 Healthy_Batch_1 3953</span></span>
+<span><span class="co">#&gt; 2 Healthy_Batch_2 3178</span></span>
+<span><span class="co">#&gt; 3    Mild_Batch_1 4264</span></span>
+<span><span class="co">#&gt; 4    Mild_Batch_2 3723</span></span>
+<span><span class="co">#&gt; 5  Severe_Batch_1 4589</span></span>
+<span><span class="co">#&gt; 6  Severe_Batch_2 4170</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="plot_gene_markers_with_dendro">
 <code>plot_gene_markers_with_dendro()</code><a class="anchor" aria-label="anchor" href="#plot_gene_markers_with_dendro"></a>
@@ -631,7 +720,7 @@ shows the difference in detection rate. The clusters in which each gene
 was a marker are written above the dots, and the dendrogram is attached
 beside the plot. <code>genes</code> accepts a vector or a single regular
 expression.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_gene_markers_with_dendro.html">plot_gene_markers_with_dendro</a></span><span class="op">(</span></span>
 <span>  df         <span class="op">=</span> <span class="va">marker_tbl</span>,</span>
 <span>  genes      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD14"</span>, <span class="st">"LYZ"</span>, <span class="st">"S100A8"</span>, <span class="st">"S100A9"</span>, <span class="st">"FCGR3A"</span>, <span class="st">"MS4A7"</span>,</span>
@@ -640,7 +729,7 @@ expression.</p>
 <span>  plot_title <span class="op">=</span> <span class="st">"Canonical markers across cohort groups"</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"marker_dendro"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gm</span><span class="op">$</span><span class="va">combined</span></span></code></pre></div>
 <p><img src="OHMmy-differential-expression_files/figure-html/markers-dendro-show-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
@@ -653,7 +742,7 @@ expression.</p>
 <code>n_splits</code> dot plots and saves a global dendrogram of the
 groups. Here we use a regular expression to select all HLA class II
 genes.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_split_dotplots_by_gene_cluster.html">plot_split_dotplots_by_gene_cluster</a></span><span class="op">(</span></span>
 <span>  df                <span class="op">=</span> <span class="va">marker_tbl</span>,</span>
 <span>  gene_regex        <span class="op">=</span> <span class="st">"^HLA-D"</span>,</span>
@@ -662,7 +751,7 @@ genes.</p>
 <span>  plot_title_prefix <span class="op">=</span> <span class="st">"HLA class II markers"</span>,</span>
 <span>  output_dir        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"split_dot"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-DotPlot_Part1_2026-11-13_15-02-33.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Dendrogram_ALL_2026-11-13_15-02-33.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-DotPlot_Part1_2026-11-14_05-15-09.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Dendrogram_ALL_2026-11-14_05-15-09.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level2">
@@ -675,7 +764,7 @@ column whose name contains <code>cell_type</code>, results are
 additionally summarised per cell type. We therefore compute markers for
 the nine <code>seurat_clusters</code> (two of which are CD4 T) and
 attach their cell type.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hallmark</span> <span class="op">&lt;-</span> <span class="fu">load_hallmark_sets</span><span class="op">(</span><span class="op">)</span>     <span class="co"># MSigDB Hallmark gene sets; NULL if they cannot be downloaded</span></span>
 <span><span class="va">have_sets</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">hallmark</span><span class="op">)</span></span>
 <span></span>
@@ -691,11 +780,11 @@ attach their cell type.</p>
 <span><span class="va">enrich_df</span> <span class="op">&lt;-</span> <span class="va">mk_clusters</span><span class="op">$</span><span class="va">markers</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cluster   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span>,</span>
 <span>         cell_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">pbmc</span><span class="op">$</span><span class="va">cell_type</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">cluster</span>, <span class="va">pbmc</span><span class="op">$</span><span class="va">seurat_clusters</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">enrich_df</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 18943     8</span></span>
+<span><span class="co">#&gt; [1] 19618     8</span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/distinct.html" class="external-link">distinct</a></span><span class="op">(</span><span class="va">enrich_df</span>, <span class="va">cluster</span>, <span class="va">cell_type</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 9 × 2</span></span></span>
 <span><span class="co">#&gt;   cluster cell_type  </span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 0       CD4 T      </span></span>
@@ -705,7 +794,8 @@ attach their cell type.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 4       CD8 T      </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 5       FCGR3A Mono</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 6       NK         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> 7       DC</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> 7       DC         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> 8       Platelet</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="gene-set-enrichment-analysis-run_global_gsea">Gene Set Enrichment Analysis: <code>run_global_gsea()</code><a class="anchor" aria-label="anchor" href="#gene-set-enrichment-analysis-run_global_gsea"></a>
 </h3>
@@ -717,7 +807,7 @@ NES dot plots, a classic enrichment plot for the top pathway of each
 cluster, alphabetical and hierarchically clustered overview dot plots,
 signed-significance plots (global and per cell type), and CSV
 summaries.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gsea_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"gsea"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">gsea_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_global_gsea.html">run_global_gsea</a></span><span class="op">(</span></span>
@@ -728,42 +818,44 @@ summaries.</p>
 <span>  top_n_per_direction <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  top_n_overall       <span class="op">=</span> <span class="fl">4</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gsea_res</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice_min</a></span><span class="op">(</span><span class="va">p.adjust</span>, n <span class="op">=</span> <span class="fl">2</span>, with_ties <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">cluster</span>, <span class="va">cell_type</span>, <span class="va">Description</span>, <span class="va">NES</span>, <span class="va">p.adjust</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 13 × 5</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Groups:   cluster [7]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 15 × 5</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Groups:   cluster [8]</span></span></span>
 <span><span class="co">#&gt;    cluster cell_type   Description                        NES     p.adjust</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0       CD4 T       HALLMARK_ALLOGRAFT_REJECTION     -<span style="color: #BB0000;">1.55</span> 0.044<span style="text-decoration: underline;">1</span>      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1       CD4 T       HALLMARK_KRAS_SIGNALING_UP       -<span style="color: #BB0000;">1.86</span> 0.000<span style="text-decoration: underline;">412</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 1       CD4 T       HALLMARK_ALLOGRAFT_REJECTION     -<span style="color: #BB0000;">1.68</span> 0.000<span style="text-decoration: underline;">412</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 2       CD14 Mono   HALLMARK_ALLOGRAFT_REJECTION     -<span style="color: #BB0000;">2.00</span> 0.000<span style="text-decoration: underline;">653</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 2       CD14 Mono   HALLMARK_MYC_TARGETS_V1          -<span style="color: #BB0000;">1.93</span> 0.001<span style="text-decoration: underline;">39</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 3       B           HALLMARK_COMPLEMENT              -<span style="color: #BB0000;">1.97</span> 0.002<span style="text-decoration: underline;">09</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 3       B           HALLMARK_INFLAMMATORY_RESPONSE   -<span style="color: #BB0000;">1.89</span> 0.002<span style="text-decoration: underline;">09</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 4       CD8 T       HALLMARK_KRAS_SIGNALING_UP       -<span style="color: #BB0000;">2.11</span> 0.000<span style="text-decoration: underline;">580</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 4       CD8 T       HALLMARK_XENOBIOTIC_METABOLISM   -<span style="color: #BB0000;">1.88</span> 0.022<span style="text-decoration: underline;">1</span>      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 5       FCGR3A Mono HALLMARK_ALLOGRAFT_REJECTION     -<span style="color: #BB0000;">2.55</span> 0.000<span style="text-decoration: underline;">000</span>021<span style="text-decoration: underline;">9</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> 5       FCGR3A Mono HALLMARK_COAGULATION              1.95 0.000<span style="text-decoration: underline;">692</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> 6       NK          HALLMARK_TNFA_SIGNALING_VIA_NFKB -<span style="color: #BB0000;">2.48</span> 0.000<span style="text-decoration: underline;">177</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> 6       NK          HALLMARK_G2M_CHECKPOINT           2.09 0.000<span style="text-decoration: underline;">378</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1       CD4 T       HALLMARK_KRAS_SIGNALING_UP       -<span style="color: #BB0000;">1.88</span> 0.000<span style="text-decoration: underline;">473</span>    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1       CD4 T       HALLMARK_ALLOGRAFT_REJECTION     -<span style="color: #BB0000;">1.69</span> 0.000<span style="text-decoration: underline;">877</span>    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 2       CD14 Mono   HALLMARK_ALLOGRAFT_REJECTION     -<span style="color: #BB0000;">2.01</span> 0.000<span style="text-decoration: underline;">413</span>    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 2       CD14 Mono   HALLMARK_MYC_TARGETS_V1          -<span style="color: #BB0000;">1.97</span> 0.001<span style="text-decoration: underline;">37</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 3       B           HALLMARK_COMPLEMENT              -<span style="color: #BB0000;">1.94</span> 0.003<span style="text-decoration: underline;">88</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 3       B           HALLMARK_INFLAMMATORY_RESPONSE   -<span style="color: #BB0000;">1.93</span> 0.003<span style="text-decoration: underline;">88</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 4       CD8 T       HALLMARK_KRAS_SIGNALING_UP       -<span style="color: #BB0000;">2.08</span> 0.001<span style="text-decoration: underline;">96</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 4       CD8 T       HALLMARK_XENOBIOTIC_METABOLISM   -<span style="color: #BB0000;">1.79</span> 0.048<span style="text-decoration: underline;">2</span>      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 5       FCGR3A Mono HALLMARK_ALLOGRAFT_REJECTION     -<span style="color: #BB0000;">2.48</span> 0.000<span style="text-decoration: underline;">000</span>019<span style="text-decoration: underline;">1</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 5       FCGR3A Mono HALLMARK_XENOBIOTIC_METABOLISM    1.74 0.012<span style="text-decoration: underline;">1</span>      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> 6       NK          HALLMARK_TNFA_SIGNALING_VIA_NFKB -<span style="color: #BB0000;">2.37</span> 0.000<span style="text-decoration: underline;">136</span>    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> 6       NK          HALLMARK_G2M_CHECKPOINT           2.19 0.000<span style="text-decoration: underline;">136</span>    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> 7       DC          HALLMARK_DNA_REPAIR              -<span style="color: #BB0000;">1.83</span> 0.040<span style="text-decoration: underline;">8</span>      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> 8       Platelet    HALLMARK_COAGULATION              2.14 0.000<span style="text-decoration: underline;">489</span>    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> 8       Platelet    HALLMARK_MYC_TARGETS_V1          -<span style="color: #BB0000;">2.36</span> 0.001<span style="text-decoration: underline;">46</span></span></span></code></pre></div>
 <p>The clustered overview groups clusters with similar pathway activity.
 The two CD4 T clusters (0 and 1) are neighbours, while CD14 monocytes
 (cluster 2) and platelets (cluster 8) stand apart. Cluster 2 has
 activated inflammatory and TNF-alpha signalling, and cluster 8 has
 activated coagulation. Clusters without significant pathways, here the
 small DC cluster 7, are left out.</p>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261113_151126.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Clustered_Dendro_Dotplot_20261114_052529.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>The signed-significance view puts direction and significance on one
 axis:</p>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Signed_Significance_Dotplot_20261113_151126.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_GSEA_Signed_Significance_Dotplot_20261114_052529.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>Per-cluster outputs for cluster 2 (CD14 monocytes): the NES dot plot
 and the running enrichment score of its top pathway.</p>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_GSEA_NES_Dotplot_20261113_151126.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20261113_151126.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_GSEA_NES_Dotplot_20261114_052529.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_HALLMARK_ALLOGRAFT_REJECTION_Gseaplot_20261114_052529.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="over-representation-analysis-run_global_ora">Over-Representation Analysis: <code>run_global_ora()</code><a class="anchor" aria-label="anchor" href="#over-representation-analysis-run_global_ora"></a>
@@ -776,7 +868,7 @@ and the running enrichment score of its top pathway.</p>
 <code><a href="https://rdrr.io/pkg/clusterProfiler/man/enricher.html" class="external-link">clusterProfiler::enricher()</a></code> against the universe of all
 tested genes. With <code>variable_per_clus = TRUE</code>, the function
 also draws a signed-significance plot for every cell type.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ora_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">out_dir</span>, <span class="st">"ora"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">ora_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_global_ora.html">run_global_ora</a></span><span class="op">(</span></span>
@@ -792,29 +884,31 @@ also draws a signed-significance plot for every cell type.</p>
 <span>  global_height     <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  variable_per_clus <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ora_res</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">cluster</span>, <span class="va">cell_type</span>, <span class="va">Direction</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    cluster   cell_type  Direction n</span></span>
-<span><span class="co">#&gt; 1        0       CD4 T  Activated 7</span></span>
-<span><span class="co">#&gt; 2        0       CD4 T Suppressed 4</span></span>
-<span><span class="co">#&gt; 3        1       CD4 T  Activated 2</span></span>
-<span><span class="co">#&gt; 4        1       CD4 T Suppressed 5</span></span>
-<span><span class="co">#&gt; 5        2   CD14 Mono  Activated 5</span></span>
+<span><span class="co">#&gt; 1        0       CD4 T  Activated 5</span></span>
+<span><span class="co">#&gt; 2        0       CD4 T Suppressed 3</span></span>
+<span><span class="co">#&gt; 3        1       CD4 T  Activated 1</span></span>
+<span><span class="co">#&gt; 4        1       CD4 T Suppressed 4</span></span>
+<span><span class="co">#&gt; 5        2   CD14 Mono  Activated 7</span></span>
 <span><span class="co">#&gt; 6        2   CD14 Mono Suppressed 2</span></span>
 <span><span class="co">#&gt; 7        3           B  Activated 2</span></span>
-<span><span class="co">#&gt; 8        3           B Suppressed 6</span></span>
+<span><span class="co">#&gt; 8        3           B Suppressed 8</span></span>
 <span><span class="co">#&gt; 9        4       CD8 T  Activated 2</span></span>
-<span><span class="co">#&gt; 10       4       CD8 T Suppressed 5</span></span>
-<span><span class="co">#&gt; 11       5 FCGR3A Mono  Activated 4</span></span>
+<span><span class="co">#&gt; 10       4       CD8 T Suppressed 6</span></span>
+<span><span class="co">#&gt; 11       5 FCGR3A Mono  Activated 3</span></span>
 <span><span class="co">#&gt; 12       5 FCGR3A Mono Suppressed 2</span></span>
 <span><span class="co">#&gt; 13       6          NK  Activated 1</span></span>
 <span><span class="co">#&gt; 14       6          NK Suppressed 2</span></span>
-<span><span class="co">#&gt; 15       7          DC Suppressed 1</span></span></code></pre></div>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_Global_Activated_Clustered_Dendro_20261113_151145.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_ORA_Signed_Significance_Dotplot_20261113_151145.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<span><span class="co">#&gt; 15       7          DC Suppressed 1</span></span>
+<span><span class="co">#&gt; 16       8    Platelet  Activated 4</span></span>
+<span><span class="co">#&gt; 17       8    Platelet Suppressed 1</span></span></code></pre></div>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_Global_Activated_Clustered_Dendro_20261114_052548.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_ORA_Signed_Significance_Dotplot_20261114_052548.jpg" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>Per-cluster ORA outputs (cluster 2, CD14 monocytes):</p>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Dotplot_20261113_151145.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Barplot_20261113_151145.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Dotplot_20261114_052548.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"><img src="OHMmy-differential-expression_files/figure-html/saved-Hallmark_2_Barplot_20261114_052548.jpg" class="r-plt" alt="" width="49%" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level2">
@@ -825,7 +919,7 @@ also draws a signed-significance plot for every cell type.</p>
 summed and analysed with DESeq2, which correctly models donor-to-donor
 variability. Here we compare FCGR3A+ with CD14+ monocytes within the
 same donors, using a paired design (<code>~ donor + subset</code>).</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mono</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">pbmc</span>, subset <span class="op">=</span> <span class="va">cell_type</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD14 Mono"</span>, <span class="st">"FCGR3A Mono"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mono</span><span class="op">$</span><span class="va">subset</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">mono</span><span class="op">$</span><span class="va">cell_type</span> <span class="op">==</span> <span class="st">"CD14 Mono"</span>, <span class="st">"CD14"</span>, <span class="st">"FCGR3A"</span><span class="op">)</span></span>
 <span></span>
@@ -845,12 +939,12 @@ same donors, using a paired design (<code>~ donor + subset</code>).</p>
 <span><span class="va">res_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/results.html" class="external-link">results</a></span><span class="op">(</span><span class="va">dds</span>, contrast <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"subset"</span>, <span class="st">"FCGR3A"</span>, <span class="st">"CD14"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res_df</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">res_df</span><span class="op">$</span><span class="va">padj</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"baseMean"</span>, <span class="st">"log2FoldChange"</span>, <span class="st">"padj"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;         baseMean log2FoldChange          padj</span></span>
-<span><span class="co">#&gt; LYZ    723.15192      -2.754455 1.411370e-313</span></span>
-<span><span class="co">#&gt; S100A9 468.42638      -3.446815 6.226475e-243</span></span>
-<span><span class="co">#&gt; S100A8 240.60757      -4.187309 1.249838e-104</span></span>
-<span><span class="co">#&gt; IFITM2 127.76440       2.048881  4.342559e-66</span></span>
-<span><span class="co">#&gt; RPS19  425.32590       1.018986  6.593423e-62</span></span>
-<span><span class="co">#&gt; FCGR3A  72.34323       4.748685  8.892743e-54</span></span></code></pre></div>
+<span><span class="co">#&gt; LYZ    710.62555      -2.711858 3.888894e-293</span></span>
+<span><span class="co">#&gt; S100A9 459.50829      -3.408762 1.039931e-238</span></span>
+<span><span class="co">#&gt; S100A8 236.02676      -4.137252  4.311980e-94</span></span>
+<span><span class="co">#&gt; IFITM2 127.90055       2.087865  4.086997e-67</span></span>
+<span><span class="co">#&gt; RPS19  420.64363       1.041063  7.382850e-61</span></span>
+<span><span class="co">#&gt; FCGR3A  72.51636       4.780340  3.927394e-55</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="volcano-trio-generate_volcano_trio">Volcano trio: <code>generate_volcano_trio()</code><a class="anchor" aria-label="anchor" href="#volcano-trio-generate_volcano_trio"></a>
 </h3>
@@ -862,7 +956,7 @@ EnhancedVolcano) that label, in turn, the top 10 up- and down-regulated
 genes, the significant genes from your own <code>target_genes</code>
 list, and both together. Genes are labelled only if they pass
 <code>padj &lt; 0.05</code> and <code>|log2FC| &gt;= 1</code>.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">volcano</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_volcano_trio.html">generate_volcano_trio</a></span><span class="op">(</span></span>
 <span>  res          <span class="op">=</span> <span class="va">res_df</span>,</span>
 <span>  main_title   <span class="op">=</span> <span class="st">"FCGR3A+ vs CD14+ monocytes (pseudo-bulk, paired by donor)"</span>,</span>
@@ -881,18 +975,18 @@ list, and both together. Genes are labelled only if they pass
 genes with the largest effect, chosen among the strictly significant
 ones. This way neither highly significant small changes nor large
 effects in lowly expressed genes are missed.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">top_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_top_mixed_genes.html">get_top_mixed_genes</a></span><span class="op">(</span><span class="va">res_df</span>, n_padj <span class="op">=</span> <span class="fl">25</span>, n_lfc <span class="op">=</span> <span class="fl">25</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">top_genes</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 40</span></span>
+<span><span class="co">#&gt; [1] 39</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">top_genes</span>, <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "LYZ"    "S100A9" "S100A8" "IFITM2" "RPS19"  "FCGR3A" "LGALS2" "LST1"  </span></span>
-<span><span class="co">#&gt;  [9] "FCER1G" "RHOC"   "MS4A7"  "GSTP1"  "MS4A6A" "CD14"   "CCL3"</span></span></code></pre></div>
+<span><span class="co">#&gt;  [9] "FCER1G" "RHOC"   "MS4A7"  "GPX1"   "GSTP1"  "MS4A6A" "CCL3"</span></span></code></pre></div>
 <p><code><a href="../reference/generate_and_save_heatmap.html">generate_and_save_heatmap()</a></code> uses these genes to draw two
 row-scaled heatmaps of the variance-stabilised counts. The left heatmap
 keeps your sample order (<code>ordered_samps</code>) and the right one
 clusters the samples freely.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vsd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/vst.html" class="external-link">vst</a></span><span class="op">(</span><span class="va">dds</span>, blind <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">anno_col</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">vsd</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"subset"</span>, <span class="st">"severity"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
@@ -913,7 +1007,7 @@ clusters the samples freely.</p>
 <span>  ts            <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"%Y%m%d_%H%M%S"</span><span class="op">)</span>,</span>
 <span>  clus          <span class="op">=</span> <span class="st">"Monocytes"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="OHMmy-differential-expression_files/figure-html/saved-Heatmap_FCGR3A_vs_CD14_Monocytes_topP_25_topLFC_25_20261113_151205.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="OHMmy-differential-expression_files/figure-html/saved-Heatmap_FCGR3A_vs_CD14_Monocytes_topP_25_topLFC_25_20261114_052609.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>In the unordered (right) heatmap the samples split by monocyte
 subset, not by the simulated severity. This is expected, because
 severity was simulated and has no transcriptional effect.</p>
@@ -922,7 +1016,7 @@ severity was simulated and has no transcriptional effect.</p>
 <div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.6.2 (2026-10-29)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>

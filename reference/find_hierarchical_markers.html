@@ -71,7 +71,9 @@ genes and thresholds that sort cells into the sub-clusters: a dichotomous key.</
 <span>  seed <span class="op">=</span> <span class="fl">42</span>,</span>
 <span>  sample_name <span class="op">=</span> <span class="st">"Sample"</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  vote_min_agreement <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>  min_global_auc <span class="op">=</span> <span class="fl">0.7</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -160,6 +162,16 @@ is restored afterwards). Default is 42.</p></dd>
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Logical. Print progress messages. Default is <code>TRUE</code>.</p></dd>
 
+
+<dt id="arg-vote-min-agreement">vote_min_agreement<a class="anchor" aria-label="anchor" href="#arg-vote-min-agreement"></a></dt>
+<dd><p>Numeric. Backup genes vote only when their agreement
+with the key gene is at least this. Default is 0.3.</p></dd>
+
+
+<dt id="arg-min-global-auc">min_global_auc<a class="anchor" aria-label="anchor" href="#arg-min-global-auc"></a></dt>
+<dd><p>Numeric. A marker is <code>global</code> when its AUC against all
+other cells is at least this. Default is 0.7.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -173,7 +185,7 @@ is restored afterwards). Default is 42.</p></dd>
 of the parent, counting moved and skipped cells as wrong), <code>status</code>.</p></li>
 <li><p><code>markers</code>: every gene passing the filters, per split and child:
 <code>split</code>, <code>child</code>, <code>gene</code>, <code>rank</code>, <code>auc</code>,
-<code>auc_vs_all</code>, <code>p_val</code>, <code>p_val_adj</code>, <code>avg_log2FC</code>,
+<code>auc_vs_all</code>, <code>global</code>, <code>p_val</code>, <code>p_val_adj</code>, <code>avg_log2FC</code>,
 <code>pct.1</code>, <code>pct.2</code>, <code>pct_diff</code>, <code>mean_child</code>,
 <code>mean_siblings</code>, <code>also_marks_parent</code>, <code>also_marks_children</code>,
 <code>pattern</code>.</p></li>
@@ -181,7 +193,8 @@ of the parent, counting moved and skipped cells as wrong), <code>status</code>.<
 <code>rpart_node</code>, <code>role</code>, <code>gene</code>, <code>threshold</code>,
 <code>rule</code> (e.g. <code>"GZMK &gt;= 1.2 -&gt; res0.5_3"</code>), <code>high_side</code> (the child
 predicted for cells at or above the threshold), <code>agreement</code> (backup genes:
-rpart's adjusted agreement with the key gene), <code>importance</code>, then
+rpart's adjusted agreement with the key gene), <code>votes</code> (the gene takes part
+in the vote), <code>importance</code>, then
 <code>marker_of</code> and the ranking columns of <code>markers</code> for that gene.</p></li>
 <li><p><code>confusion</code>: per split, a table of every parent cell's true child (or
 <code>"moved elsewhere"</code> / <code>"skipped (&lt; min_cells)"</code>) vs the child its key
@@ -190,10 +203,16 @@ predicts.</p></li>
 final cluster reached by walking the whole key from the root.</p></li>
 <li><p><code>key_accuracy</code>: share of all cells the whole key sorts into their own
 final cluster.</p></li>
+<li><p><code>vote</code>: <code>splits</code> (per split: <code>n_voting_genes</code>,
+<code>accuracy_one_gene</code>, <code>accuracy_vote</code>, <code>n_possible_dropouts</code>,
+<code>accuracy_one_gene_dropouts</code>, <code>accuracy_vote_dropouts</code>; on the cells
+each key was built from), <code>confusion_full</code> and <code>key_accuracy</code> (the
+whole key with the vote).</p></li>
 <li><p><code>plots</code>: <code>tree</code> (the resolution tree with key genes at each split),
 <code>dotplot</code> (key genes across the clusters of the highest resolution),
-<code>confusion</code> (per-split heatmaps) and <code>confusion_full</code> (whole-key heatmap);
-heatmap colour = share of the true cluster's cells, numbers = cells.</p></li>
+<code>confusion</code> (per-split heatmaps), <code>confusion_full</code> (whole-key heatmap)
+and <code>confusion_full_vote</code> (the same with the vote); heatmap colour = share
+of the true cluster's cells, numbers = cells.</p></li>
 <li><p><code>res_cols</code> and <code>parameters</code>.</p></li>
 </ul></div>
     <div class="section level2">
@@ -225,13 +244,25 @@ separates it from all other cells (<code>auc_vs_all &gt;= specific_auc</code>);<
 <li><p><code>"lineage"</code>: the child splits further, but the gene does not separate
 its sub-clusters (shared by all of them);</p></li>
 <li><p><code>"split"</code>: any other marker of this split.</p></li>
-</ul><p><strong>4. Key.</strong> For each split, <code>rpart</code> is given the top
+</ul><p>Every marker also gets <code>auc_vs_all</code> (the child against all other cells of the
+object) and <code>global</code> (<code>auc_vs_all &gt;= min_global_auc</code>). A marker that is not
+global is only higher than the siblings ("relative"): use it with care to name a
+cell type.</p>
+<p><strong>4. Key.</strong> For each split, <code>rpart</code> is given the top
 <code>max_candidate_genes</code> ranked markers of every child, grown to
 <code>max_depth</code> questions and pruned by cross-validation (1-SE rule: the smallest
 tree whose error is within one standard error of the best). The data therefore
 decide how many genes each split needs. For every question, the chosen gene
 (<code>role = "key"</code>) and up to <code>n_backup</code> surrogate genes that sort the cells
 almost the same way (<code>role = "backup"</code>) are reported with all ranking values.</p>
+<p><strong>Vote.</strong> A single key gene that drops out (reads 0 in a cell that expresses
+it) sends the cell the wrong way. The vote lets the key gene and its backup genes
+decide together: at each question every voting gene gives its weight (1 for the key
+gene, its <code>agreement</code> for a backup gene; only backups with
+<code>agreement &gt;= vote_min_agreement</code> vote) to the branch its own threshold points
+to; the heavier branch wins and ties follow the key gene. <code>vote$splits</code>
+compares the one-gene key with the vote, also on "possible dropouts": cells of a
+key question's high side with no expression of its key gene.</p>
 <p><strong>5. Checking the key on all cells.</strong> Two confusion views are given, both using
 the keys built from these same cells (so their accuracy is optimistic, like
 <code>train_accuracy</code>; <code>cv_accuracy</code> is the honest one):</p><ul><li><p>per split (<code>confusion</code>): every cell of the parent, sorted by that split's

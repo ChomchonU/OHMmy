@@ -29,7 +29,9 @@ find_hierarchical_markers(
   seed = 42,
   sample_name = "Sample",
   output_dir = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  vote_min_agreement = 0.3,
+  min_global_auc = 0.7
 )
 ```
 
@@ -116,6 +118,16 @@ find_hierarchical_markers(
 
   Logical. Print progress messages. Default is `TRUE`.
 
+- vote_min_agreement:
+
+  Numeric. Backup genes vote only when their agreement with the key gene
+  is at least this. Default is 0.3.
+
+- min_global_auc:
+
+  Numeric. A marker is `global` when its AUC against all other cells is
+  at least this. Default is 0.7.
+
 ## Value
 
 A list with:
@@ -131,17 +143,18 @@ A list with:
   counting moved and skipped cells as wrong), `status`.
 
 - `markers`: every gene passing the filters, per split and child:
-  `split`, `child`, `gene`, `rank`, `auc`, `auc_vs_all`, `p_val`,
-  `p_val_adj`, `avg_log2FC`, `pct.1`, `pct.2`, `pct_diff`, `mean_child`,
-  `mean_siblings`, `also_marks_parent`, `also_marks_children`,
-  `pattern`.
+  `split`, `child`, `gene`, `rank`, `auc`, `auc_vs_all`, `global`,
+  `p_val`, `p_val_adj`, `avg_log2FC`, `pct.1`, `pct.2`, `pct_diff`,
+  `mean_child`, `mean_siblings`, `also_marks_parent`,
+  `also_marks_children`, `pattern`.
 
 - `key`: the key and backup genes of every split: `split`, `rpart_node`,
   `role`, `gene`, `threshold`, `rule` (e.g.
   `"GZMK >= 1.2 -> res0.5_3"`), `high_side` (the child predicted for
   cells at or above the threshold), `agreement` (backup genes: rpart's
-  adjusted agreement with the key gene), `importance`, then `marker_of`
-  and the ranking columns of `markers` for that gene.
+  adjusted agreement with the key gene), `votes` (the gene takes part in
+  the vote), `importance`, then `marker_of` and the ranking columns of
+  `markers` for that gene.
 
 - `confusion`: per split, a table of every parent cell's true child (or
   `"moved elsewhere"` / `"skipped (< min_cells)"`) vs the child its key
@@ -153,11 +166,16 @@ A list with:
 - `key_accuracy`: share of all cells the whole key sorts into their own
   final cluster.
 
+- `vote`: `splits` (per split: `n_voting_genes`, `accuracy_one_gene`,
+  `accuracy_vote`, `n_possible_dropouts`, `accuracy_one_gene_dropouts`,
+  `accuracy_vote_dropouts`; on the cells each key was built from),
+  `confusion_full` and `key_accuracy` (the whole key with the vote).
+
 - `plots`: `tree` (the resolution tree with key genes at each split),
   `dotplot` (key genes across the clusters of the highest resolution),
-  `confusion` (per-split heatmaps) and `confusion_full` (whole-key
-  heatmap); heatmap colour = share of the true cluster's cells, numbers
-  = cells.
+  `confusion` (per-split heatmaps), `confusion_full` (whole-key heatmap)
+  and `confusion_full_vote` (the same with the vote); heatmap colour =
+  share of the true cluster's cells, numbers = cells.
 
 - `res_cols` and `parameters`.
 
@@ -202,6 +220,11 @@ does not split further) and a `pattern`:
 
 - `"split"`: any other marker of this split.
 
+Every marker also gets `auc_vs_all` (the child against all other cells
+of the object) and `global` (`auc_vs_all >= min_global_auc`). A marker
+that is not global is only higher than the siblings ("relative"): use it
+with care to name a cell type.
+
 **4. Key.** For each split, `rpart` is given the top
 `max_candidate_genes` ranked markers of every child, grown to
 `max_depth` questions and pruned by cross-validation (1-SE rule: the
@@ -210,6 +233,16 @@ data therefore decide how many genes each split needs. For every
 question, the chosen gene (`role = "key"`) and up to `n_backup`
 surrogate genes that sort the cells almost the same way
 (`role = "backup"`) are reported with all ranking values.
+
+**Vote.** A single key gene that drops out (reads 0 in a cell that
+expresses it) sends the cell the wrong way. The vote lets the key gene
+and its backup genes decide together: at each question every voting gene
+gives its weight (1 for the key gene, its `agreement` for a backup gene;
+only backups with `agreement >= vote_min_agreement` vote) to the branch
+its own threshold points to; the heavier branch wins and ties follow the
+key gene. `vote$splits` compares the one-gene key with the vote, also on
+"possible dropouts": cells of a key question's high side with no
+expression of its key gene.
 
 **5. Checking the key on all cells.** Two confusion views are given,
 both using the keys built from these same cells (so their accuracy is
